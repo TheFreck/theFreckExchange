@@ -1,6 +1,14 @@
+using Payment_Processing.Server.DTO;
+using Payment_Processing.Server.Repos;
+using Payment_Processing.Server.Services;
+
 var builder = WebApplication.CreateBuilder(args);
 
+builder.Services.Configure<MongoSettings>(builder.Configuration.GetSection("MongoConnection"));
+
 // Add services to the container.
+builder.Services.AddSingleton<IAccountRepo, AccountRepo>();
+builder.Services.AddSingleton<IAccountService,AccountService>();
 
 builder.Services.AddControllers();
 // Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
