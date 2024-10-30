@@ -9,7 +9,7 @@ import { env } from 'process';
 
 const baseFolder =
     env.APPDATA !== undefined && env.APPDATA !== ''
-        ? `${env.APPDATA}/ASP.NET/https`
+        ? `${env.APPDATA}/ASPNET/https`
         : `${env.HOME}/.aspnet/https`;
 
 const certificateName = "payment_processing.client";
@@ -43,12 +43,12 @@ export default defineConfig({
     },
     server: {
         proxy: {
-            '^/weatherforecast': {
+            '/api': {
                 target,
                 secure: false
             }
         },
-        port: 5173,
+        port: 5174,
         https: {
             key: fs.readFileSync(keyFilePath),
             cert: fs.readFileSync(certFilePath),

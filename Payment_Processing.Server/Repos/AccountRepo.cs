@@ -6,9 +6,11 @@ namespace Payment_Processing.Server.Repos
 {
     public interface IAccountRepo
     {
-        Task CreateOrUpdateAsync(Account account);
-        Task<Account> GetAccountAsync(string accountId);
+        Task UpdateAsync(Account account);
+        Task<Account> GetByAccountIdAsync(string accountId);
+        Task<Account> GetByEmailAsync(string email);
         Task<IEnumerable<Account>> GetAllAccountsAsync();
+        Task CreateAsync(Account account);
     }
 
     public class AccountRepo : IAccountRepo
@@ -19,17 +21,27 @@ namespace Payment_Processing.Server.Repos
         {
             var mongoClient = new MongoClient(settings.Value.ConnectionString);
             var mongoDatabase = mongoClient.GetDatabase(settings.Value.Database);
-            accountsCollection = mongoDatabase.GetCollection<Account>(settings.Value.CollectionName);
+            accountsCollection = mongoDatabase.GetCollection<Account>(settings.Value.AccountCollectionName);
         }
 
-        public async Task CreateOrUpdateAsync(Account account)
+        public async Task CreateAsync(Account account)
         {
             await accountsCollection.InsertOneAsync(account);
         }
 
-        public async Task<Account> GetAccountAsync(string accountId)
+        public async Task UpdateAsync(Account account)
+        {
+            accountsCollection.ReplaceOne(a => a.AccountId == account.AccountId, account);
+        }
+
+        public async Task<Account> GetByAccountIdAsync(string accountId)
         {
             return accountsCollection.FindAsync<Account>(a => a.AccountId == accountId).Result.FirstOrDefault();
+        }
+
+        public async Task<Account> GetByEmailAsync(string email)
+        {
+            return accountsCollection.FindAsync<Account>(a => a.Email == email).Result.FirstOrDefault();
         }
 
         public async Task<IEnumerable<Account>> GetAllAccountsAsync()

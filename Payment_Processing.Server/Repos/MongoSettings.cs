@@ -1,7 +1,7 @@
 ﻿using Microsoft.Extensions.Logging.Abstractions;
 using System.ComponentModel.DataAnnotations;
 
-namespace Payment_Processing.Server.DTO
+namespace Payment_Processing.Server.Repos
 {
     public sealed class MongoSettings
     {
@@ -19,5 +19,14 @@ namespace Payment_Processing.Server.DTO
 
         [Required]
         public string CollectionName { get; init; } = null;
+
+        [Required]
+        public string AccountCollectionName { get; init; } = null;
+
+        [Required]
+        public string ProductCollectionName { get; init; } = null;
+
+        [Required]
+        public string ItemCollectionName { get; init; } = null;
     }
 }

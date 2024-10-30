@@ -1,4 +1,3 @@
-using Payment_Processing.Server.DTO;
 using Payment_Processing.Server.Repos;
 using Payment_Processing.Server.Services;
 
@@ -8,7 +7,18 @@ builder.Services.Configure<MongoSettings>(builder.Configuration.GetSection("Mong
 
 // Add services to the container.
 builder.Services.AddSingleton<IAccountRepo, AccountRepo>();
-builder.Services.AddSingleton<IAccountService,AccountService>();
+builder.Services.AddSingleton<IProductRepo, ProductRepo>();
+builder.Services.AddSingleton<IItemRepo, ItemRepo>();
+builder.Services.AddSingleton<IAccountService, AccountService>();
+builder.Services.AddSingleton<IProductService, ProductService>();
+
+builder.Services.AddCors(options =>
+{
+    options.AddPolicy(name: "allowAll", policy =>
+    {
+        policy.AllowAnyOrigin().AllowAnyHeader().AllowAnyMethod();
+    });
+});
 
 builder.Services.AddControllers();
 // Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
@@ -28,6 +38,8 @@ if (app.Environment.IsDevelopment())
 }
 
 app.UseHttpsRedirection();
+
+app.UseCors("allowAll");
 
 app.UseAuthorization();
 

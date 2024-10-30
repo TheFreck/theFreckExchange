@@ -14,11 +14,15 @@ namespace Payment_Processing.Specs
             accountRepoMock = new Mock<IAccountRepo>();
             account1Id = Guid.NewGuid().ToString();
             account2Id = Guid.NewGuid().ToString();
+            email1 = "carl@email.com";
+            email2 = "jane@email.com";
         };
 
         protected static Mock<IAccountRepo> accountRepoMock;
         protected static string account1Id;
         protected static string account2Id;
+        protected static string email1;
+        protected static string email2;
     }
 
     public class When_Creating_A_New_Account : With_AcctRepo_Setup
@@ -26,10 +30,10 @@ namespace Payment_Processing.Specs
         Establish context = () =>
         {
             service = new AccountService(accountRepoMock.Object);
-            inputs = new List<(string name, string email)>
+            inputs = new List<(string name, string email, double balance)>
             {
-                new ("Carl","carl@email.com"),
-                new ("Jane", "jane@email.com")
+                new ("Carl","carl@email.com", 35),
+                new ("Jane", "jane@email.com", 90)
             };
             expectations = new List<Account>
             {
@@ -38,7 +42,7 @@ namespace Payment_Processing.Specs
                     AccountId = "",
                     Name="Carl",
                     Email = "carl@email.com",
-                    Balance = 0,
+                    Balance = 35,
                     DateOpened = DateTime.Now,
                 },
                 new Account
@@ -46,7 +50,7 @@ namespace Payment_Processing.Specs
                     AccountId = "",
                     Name = "Jane",
                     Email = "jane@email.com",
-                    Balance = 0,
+                    Balance = 90,
                     DateOpened = DateTime.Now,
                 }
             };
@@ -57,7 +61,7 @@ namespace Payment_Processing.Specs
         {
             for (var i = 0; i < inputs.Count; i++)
             {
-                outcomes.Add(service.CreateAccountAsync(inputs[i].name, inputs[i].email).GetAwaiter().GetResult());
+                outcomes.Add(service.CreateAccountAsync(inputs[i].name, inputs[i].email, inputs[i].balance).GetAwaiter().GetResult());
             }
         };
 
@@ -77,22 +81,22 @@ namespace Payment_Processing.Specs
         {
             for(var i=0;i<expectations.Count; i++)
             {
-                accountRepoMock.Verify(a => a.CreateOrUpdateAsync(Moq.It.IsAny<Account>()),Times.Exactly(inputs.Count));
+                accountRepoMock.Verify(a => a.CreateAsync(Moq.It.IsAny<Account>()),Times.Exactly(inputs.Count));
             }
         };
 
         private static AccountService service;
-        private static List<(string name, string email)> inputs;
+        private static List<(string name, string email, double balance)> inputs;
         private static List<Account> expectations;
         private static List<Account> outcomes;
     }
 
-    public class When_Getting_Account : With_AcctRepo_Setup
+    public class When_Getting_Account_With_AccountId : With_AcctRepo_Setup
     {
         Establish context = static () =>
         {
             service = new AccountService(accountRepoMock.Object);
-            accountRepoMock.Setup(a => a.GetAccountAsync(account1Id)).ReturnsAsync(
+            accountRepoMock.Setup(a => a.GetByAccountIdAsync(account1Id)).ReturnsAsync(
                 new Account
                 {
                     AccountId = account1Id,
@@ -101,7 +105,7 @@ namespace Payment_Processing.Specs
                     Balance = 0,
                     DateOpened = DateTime.Now,
                 });
-            accountRepoMock.Setup(a => a.GetAccountAsync(account2Id)).ReturnsAsync(
+            accountRepoMock.Setup(a => a.GetByAccountIdAsync(account2Id)).ReturnsAsync(
                 new Account
                 {
                     AccountId = account2Id,
@@ -140,7 +144,7 @@ namespace Payment_Processing.Specs
         {
             for (var i = 0; i < inputs.Count; i++)
             {
-                outcomes.Add(service.GetAccountAsync(inputs[i]).GetAwaiter().GetResult());
+                outcomes.Add(service.GetByAccountIdAsync(inputs[i]).GetAwaiter().GetResult());
             }
         };
 
@@ -160,7 +164,90 @@ namespace Payment_Processing.Specs
         {
             for (var i = 0; i < expectations.Count; i++)
             {
-                accountRepoMock.Verify(a => a.GetAccountAsync(Moq.It.IsAny<string>()),Times.Exactly(inputs.Count));
+                accountRepoMock.Verify(a => a.GetByAccountIdAsync(Moq.It.IsAny<string>()),Times.Exactly(inputs.Count));
+            }
+        };
+
+        private static List<string> inputs;
+        private static List<Account> expectations;
+        private static List<Account> outcomes;
+        private static AccountService service;
+    }
+
+    public class When_Getting_Account_With_Email : With_AcctRepo_Setup
+    {
+        Establish context = static () =>
+        {
+            service = new AccountService(accountRepoMock.Object);
+            accountRepoMock.Setup(a => a.GetByEmailAsync(email1)).ReturnsAsync(
+                new Account
+                {
+                    AccountId = account1Id,
+                    Name = "Carl",
+                    Email = email1,
+                    Balance = 0,
+                    DateOpened = DateTime.Now,
+                });
+            accountRepoMock.Setup(a => a.GetByEmailAsync(email2)).ReturnsAsync(
+                new Account
+                {
+                    AccountId = account2Id,
+                    Name = "Jane",
+                    Email = email2,
+                    Balance = 0,
+                    DateOpened = DateTime.Now,
+                });
+            inputs = new List<string>
+            {
+                email1,email2
+            };
+            expectations = new List<Account>
+            {
+                new Account
+                {
+                    AccountId = account1Id,
+                    Name="Carl",
+                    Email = email1,
+                    Balance = 0,
+                    DateOpened = DateTime.Now,
+                },
+                new Account
+                {
+                    AccountId= account2Id,
+                    Name = "Jane",
+                    Email = email2,
+                    Balance = 0,
+                    DateOpened = DateTime.Now,
+                }
+            };
+            outcomes = new List<Account>();
+        };
+
+        Because of = () =>
+        {
+            for (var i = 0; i < inputs.Count; i++)
+            {
+                outcomes.Add(service.GetByEmailAsync(inputs[i]).GetAwaiter().GetResult());
+            }
+        };
+
+        It Should_Return_Correct_Account = () =>
+        {
+            for (var i = 0; i < expectations.Count; i++)
+            {
+                outcomes[i].AccountId.ShouldEqual(expectations[i].AccountId);
+                outcomes[i].Name.ShouldEqual(expectations[i].Name);
+                outcomes[i].Email.ShouldEqual(expectations[i].Email);
+                outcomes[i].Balance.ShouldEqual(expectations[i].Balance);
+                outcomes[i].DateOpened.ShouldNotBeNull();
+            }
+        };
+
+        It Should_Call_Account_Repo_To_Get_Account = () =>
+        {
+            for (var i = 0; i < expectations.Count; i++)
+            {
+                accountRepoMock.Verify(a => a.GetByEmailAsync(inputs[i]), Times.Once);
             }
         };
 
@@ -200,8 +287,8 @@ namespace Payment_Processing.Specs
                     DateOpened = DateTime.Now,
                 }
             };
-            accountRepoMock.Setup(a => a.GetAccountAsync(account1Id)).ReturnsAsync(accounts[0]);
-            accountRepoMock.Setup(a => a.GetAccountAsync(account2Id)).ReturnsAsync(accounts[1]);
+            accountRepoMock.Setup(a => a.GetByAccountIdAsync(account1Id)).ReturnsAsync(accounts[0]);
+            accountRepoMock.Setup(a => a.GetByAccountIdAsync(account2Id)).ReturnsAsync(accounts[1]);
             inputs = new List<(string acctId, double balanceIncrease)>
             {
                 new (account1Id,100),
@@ -250,7 +337,7 @@ namespace Payment_Processing.Specs
         {
             for (var i = 0; i < expectations.Count; i++)
             {
-                accountRepoMock.Verify(r => r.GetAccountAsync(accounts[i].AccountId), Times.Once);
+                accountRepoMock.Verify(r => r.GetByAccountIdAsync(accounts[i].AccountId), Times.Once);
             }
         };
 
@@ -258,7 +345,7 @@ namespace Payment_Processing.Specs
         {
             for (var i = 0; i < expectations.Count; i++)
             {
-                accountRepoMock.Verify(a => a.CreateOrUpdateAsync(accounts[i]), Times.Once);
+                accountRepoMock.Verify(a => a.UpdateAsync(accounts[i]), Times.Once);
             }
         };
 
@@ -303,12 +390,12 @@ namespace Payment_Processing.Specs
                     DateOpened = DateTime.Now,
                 }
             };
-            accountRepoMock.Setup(a => a.GetAccountAsync(account1Id)).ReturnsAsync(accounts[0]);
-            accountRepoMock.Setup(a => a.GetAccountAsync(account2Id)).ReturnsAsync(accounts[1]);
+            accountRepoMock.Setup(a => a.GetByEmailAsync(email1)).ReturnsAsync(accounts[0]);
+            accountRepoMock.Setup(a => a.GetByEmailAsync(email2)).ReturnsAsync(accounts[1]);
             inputs = new List<(string acctId, double payment)>
             {
-                new (account1Id,50),
-                new (account2Id,75)
+                new (email1,50),
+                new (email2,75)
             };
             expectations = new List<Account>
             {
@@ -336,7 +423,7 @@ namespace Payment_Processing.Specs
         {
             for (var i = 0; i < inputs.Count; i++)
             {
-                outcomes.Add(service.MakePaymentAsync(inputs[i].accountId, inputs[i].payment).GetAwaiter().GetResult());
+                outcomes.Add(service.MakePaymentAsync(inputs[i].email, inputs[i].payment).GetAwaiter().GetResult());
             }
         };
 
@@ -353,7 +440,7 @@ namespace Payment_Processing.Specs
         {
             for (var i = 0; i < expectations.Count; i++)
             {
-                accountRepoMock.Verify(a => a.GetAccountAsync(inputs[i].accountId), Times.Once());
+                accountRepoMock.Verify(a => a.GetByEmailAsync(inputs[i].email), Times.Once());
             }
         };
 
@@ -361,11 +448,11 @@ namespace Payment_Processing.Specs
         {
             for (var i = 0; i < expectations.Count; i++)
             {
-                accountRepoMock.Verify(a => a.CreateOrUpdateAsync(Moq.It.IsAny<Account>()), Times.Exactly(expectations.Count));
+                accountRepoMock.Verify(a => a.UpdateAsync(Moq.It.IsAny<Account>()), Times.Exactly(expectations.Count));
             }
         };
 
-        private static List<(string accountId, double payment)> inputs;
+        private static List<(string email, double payment)> inputs;
         private static List<Account> expectations;
         private static List<Account> outcomes;
         private static AccountService service;

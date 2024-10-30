@@ -24,18 +24,25 @@ namespace Payment_Processing.Server.Controllers
             return accounts;
         }
 
-        [HttpGet("/{accountId}")]
-        public async Task<Account> GetAccount(string accountId)
+        [HttpGet("email/{email}")]
+        public async Task<Account> GetByEmail(string email)
         {
-            return await accountService.GetAccountAsync(accountId);
+            var account = await accountService.GetByEmailAsync(email);
+            return account;
         }
 
-        [HttpPost("/createAccount/{name}/{email}")]
-        public async Task<IActionResult> CreateAccount(string name, string email)
+        [HttpGet("{accountId}")]
+        public async Task<Account> GetAccount(string accountId)
+        {
+            return await accountService.GetByAccountIdAsync(accountId);
+        }
+
+        [HttpPost("createAccount/{name}/{email}/{balance}")]
+        public async Task<IActionResult> CreateAccount(string name, string email, double balance)
         {
             try
             {
-                var account = await accountService.CreateAccountAsync(name, email);
+                var account = await accountService.CreateAccountAsync(name, email,balance);
                 return Created("account",account);
             }
             catch (Exception)
@@ -45,12 +52,12 @@ namespace Payment_Processing.Server.Controllers
             }
         }
 
-        [HttpPut("/make_payment/{accountId}/{pmt}")]
-        public async Task<IActionResult> MakePayment(string accountId, double pmt)
+        [HttpPut("make_payment/{email}/{pmt}")]
+        public async Task<IActionResult> MakePayment(string email, double pmt)
         {
             try
             {
-                return Ok(await accountService.MakePaymentAsync(accountId, pmt));
+                return Ok(await accountService.MakePaymentAsync(email, pmt));
             }
             catch (Exception)
             {

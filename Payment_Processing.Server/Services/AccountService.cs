@@ -8,8 +8,9 @@ namespace Payment_Processing.Server.Services
 {
     public interface IAccountService
     {
-        Task<Account> CreateAccountAsync(string name, string email);
-        Task<Account> GetAccountAsync(string guid);
+        Task<Account> CreateAccountAsync(string name, string email, double balance);
+        Task<Account> GetByAccountIdAsync(string guid);
+        Task<Account> GetByEmailAsync(string email);
         Task<Account> AddToBalanceAsync(string acctId, double balanceIncrease);
         Task<Account> MakePaymentAsync(string accountId, double payment);
         Task<IEnumerable<Account>> GetAllAccountsAsync();
@@ -26,9 +27,9 @@ namespace Payment_Processing.Server.Services
 
         public async Task<Account> AddToBalanceAsync(string acctId, double balanceIncrease)
         {
-            var acct = await accountRepo.GetAccountAsync(acctId);
+            var acct = await accountRepo.GetByAccountIdAsync(acctId);
             acct.Balance += balanceIncrease;
-            accountRepo.CreateOrUpdateAsync(acct);
+            accountRepo.UpdateAsync(acct);
             return new Account
             {
                 AccountId = acct.AccountId,
@@ -39,33 +40,31 @@ namespace Payment_Processing.Server.Services
             };
         }
 
-        public async Task<Account> CreateAccountAsync(string name, string email)
+        public async Task<Account> CreateAccountAsync(string name, string email, double balance)
         {
             var account = new Account
             {
                 AccountId = Guid.NewGuid().ToString(),
                 Name = name,
                 Email = email,
-                Balance = 0,
+                Balance = balance,
                 DateOpened = DateTime.Now,
             };
 
-            await accountRepo.CreateOrUpdateAsync(account);
+            await accountRepo.CreateAsync(account);
 
             return account;
         }
 
-        public async Task<Account> GetAccountAsync(string accountId)
+        public async Task<Account> GetByAccountIdAsync(string accountId)
         {
-            var account = await accountRepo.GetAccountAsync(accountId);
-            return new Account
-            {
-                AccountId = account.AccountId,
-                Name = account.Name,
-                Email = account.Email,
-                Balance = account.Balance,
-                DateOpened = account.DateOpened
-            };
+            return await accountRepo.GetByAccountIdAsync(accountId);
+        }
+
+        public async Task<Account> GetByEmailAsync(string email)
+        {
+            var account = await accountRepo.GetByEmailAsync(email);
+            return account;
         }
 
         public async Task<IEnumerable<Account>> GetAllAccountsAsync()
@@ -86,11 +85,11 @@ namespace Payment_Processing.Server.Services
             return accounts;
         }
 
-        public async Task<Account> MakePaymentAsync(string accountId, double payment)
+        public async Task<Account> MakePaymentAsync(string email, double payment)
         {
-            var account = await accountRepo.GetAccountAsync(accountId);
+            var account = await accountRepo.GetByEmailAsync(email);
             account.Balance -= payment;
-            accountRepo.CreateOrUpdateAsync(account);
+            await accountRepo.UpdateAsync(account);
             return account;
         }
     }
