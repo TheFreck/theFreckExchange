@@ -7,7 +7,7 @@ namespace Payment_Processing.Server.Repos
     public interface IItemRepo
     {
         Task<Item> CreateAsync(Item item);
-        Task DeleteItemAsync(Item item);
+        Task<DeleteResult> DeleteItemAsync(Item item);
         Task<IEnumerable<Item>> GetAllItemsAsync(string name);
         Task<IEnumerable<Item>> GetByAttributeAsync(string itemName, AttributeType attributeName, string attributeValue);
         Task<Item> GetBySKUAsync(string sku);
@@ -31,9 +31,9 @@ namespace Payment_Processing.Server.Repos
             return item;
         }
 
-        public Task DeleteItemAsync(Item item)
+        public async Task<DeleteResult> DeleteItemAsync(Item item)
         {
-            throw new NotImplementedException();
+            return await itemsCollection.DeleteOneAsync(i => i.SKU == item.SKU,CancellationToken.None);
         }
 
         public async Task<IEnumerable<Item>> GetAllItemsAsync(string name)

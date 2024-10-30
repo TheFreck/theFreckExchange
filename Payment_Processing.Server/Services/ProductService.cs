@@ -2,7 +2,10 @@
 using MongoDB.Driver.Linq;
 using Payment_Processing.Server.DTO;
 using Payment_Processing.Server.Repos;
+using System.Reflection;
+using System.Text.RegularExpressions;
 using System.Threading.Tasks;
+using static Payment_Processing.Server.Services.ProductService;
 
 namespace Payment_Processing.Server.Services
 {
@@ -14,8 +17,11 @@ namespace Payment_Processing.Server.Services
         Task<Product> ModifyDescriptionAsync(string name, string newDescription);
         Task<Product> ModifyNameAsync(string name, string product1NewName);
         Task<Product> ModifyPriceAsync(string name, double price);
+        Task<IEnumerable<GroupedAttributes>> GetAttributesAsync(string product1Name);
         Task<IEnumerable<Item>> GetByAttributeAsync(string product1Id, AttributeType type, string value);
         Task<IEnumerable<Item>> GetItemsAsync(string name);
+        Task<Item> CreateItemAsync(string product1Id, Item item);
+        Task<IEnumerable<Item>> CreateManyItemsAsync(string productName, int itemQuantity, List<ItemAttribute> attributes);
         Task<Item> PurchaseItem(string email, Item item);
     }
     public class ProductService : IProductService
@@ -46,6 +52,27 @@ namespace Payment_Processing.Server.Services
             return outcome;
         }
 
+        public async Task<IEnumerable<Item>> CreateManyItemsAsync(string productName, int itemQuantity, List<ItemAttribute> attributes)
+        {
+            var product = await productRepo.GetByNameAsync(productName);
+            var items = new List<Item>();
+            for(var i=0; i<itemQuantity; i++)
+            {
+                var item = new Item
+                {
+                    Name = product.Name,
+                    Price = product.Price,
+                    ProductDescription = product.ProductDescription,
+                    ProductId = product.ProductId,
+                    SKU = Guid.NewGuid().ToString(),
+                    Attributes = attributes
+                };
+                itemRepo.CreateAsync(item);
+                items.Add(item);
+            }
+            return items;
+        }
+
         public async Task<Product> CreateProductAsync(string name, string desccription, double price)
         {
             var product = new Product
@@ -66,10 +93,21 @@ namespace Payment_Processing.Server.Services
             return products;
         }
 
-        public async Task<IEnumerable<Item>> GetByAttributeAsync(string product1Id, AttributeType type, string value)
+        public async Task<IEnumerable<GroupedAttributes>> GetAttributesAsync(string productName)
         {
-            var product = await productRepo.GetByProductIdAsync(product1Id);
-            var items = await itemRepo.GetByAttributeAsync(product.Name, type, value);
+            var items = await itemRepo.GetAllItemsAsync(productName);
+            var selected = items.SelectMany(i => i.Attributes).ToHashSet();
+            var groups = selected.GroupBy(attribute => attribute.Type, attribute => attribute.Value, (type, value) =>
+            new GroupedAttributes {
+                Type = type,
+                Value = value.ToHashSet(),
+            });
+            return groups;
+        }
+
+        public async Task<IEnumerable<Item>> GetByAttributeAsync(string productName, AttributeType type, string value)
+        {
+            var items = await itemRepo.GetByAttributeAsync(productName, type, value);
             return items;
         }
 

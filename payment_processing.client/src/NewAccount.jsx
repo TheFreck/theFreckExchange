@@ -1,6 +1,6 @@
 import react, { useState } from "react";
 
-export const NewAccount = ({account, setAccount, setNewAccount, createAccount}) => {
+export const NewAccount = ({setAccount, setIsNewAccount, createAccount}) => {
     const [name, setName] = useState("");
     const [email, setEmail] = useState("");
     const [balance, setBalance] = useState(0);
@@ -20,8 +20,10 @@ export const NewAccount = ({account, setAccount, setNewAccount, createAccount}) 
         <br/>
         <input type="submit" onClick={() => {
             setAccount({ name,email,balance });
-            setNewAccount(false);
+            setIsNewAccount(false);
             createAccount({ name,email,balance });
         }} />
     </div>
 }
+
+export default NewAccount;

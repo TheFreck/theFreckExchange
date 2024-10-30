@@ -7,10 +7,12 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
+using System.Runtime;
 using System.Security.Cryptography;
 using System.Text;
 using System.Threading.Tasks;
 using System.Xml.Linq;
+using static Payment_Processing.Server.Services.ProductService;
 using It = Machine.Specifications.It;
 
 namespace Payment_Processing.Specs
@@ -465,7 +467,7 @@ namespace Payment_Processing.Specs
         private static List<Product> products;
     }
 
-    public class When_Creating_Items_For_A_Product : With_ProductRepo_Setup
+    public class When_Creating_An_Item_For_A_Product : With_ProductRepo_Setup
     {
         Establish context = () =>
         {
@@ -583,6 +585,103 @@ namespace Payment_Processing.Specs
         private static List<Item> shirtOutcomes;
     }
 
+    public class When_Creating_Items_For_A_Product : With_ProductRepo_Setup
+    {
+        Establish context = () =>
+        {
+            attributes = new List<ItemAttribute>
+            {
+                new ItemAttribute
+                {
+                    Type = AttributeType.Color,
+                    Value = "Red"
+                },
+                new ItemAttribute
+                {
+                    Type= AttributeType.Size,
+                    Value = "L"
+                },
+                new ItemAttribute
+                {
+                    Type = AttributeType.Style,
+                    Value = "Fedora"
+                }
+            };
+            itemQuantity = 10;
+            hats = new List<Item>();
+            for (var i = 0; i < itemQuantity; i++)
+            {
+                var newHat = new Item
+                {
+                    Name = product1Name,
+                    Price = product1Price,
+                    ProductDescription = product1Desc,
+                    ProductId = product1Id,
+                    SKU = Guid.NewGuid().ToString(),
+                    Attributes = attributes
+                };
+                hats.Add(newHat);
+            }
+            for (var i = 0; i < hats.Count; i++)
+            {
+                itemRepoMock.Setup(r => r.CreateAsync(hats[i])).ReturnsAsync(hats[i]);
+            }
+            hatOutcomes = new List<Item>();
+            productRepoMock.Setup(p => p.GetByNameAsync(product1Name)).ReturnsAsync(new Product
+            {
+                Name = product1Name,
+                Price = product1Price,
+                ProductDescription = product1Desc,
+                ProductId = product1Id,
+            });
+            for (var i = 0; i < itemQuantity; i++)
+            {
+                itemRepoMock.Setup(p => p.CreateAsync(Moq.It.IsAny<Item>())).ReturnsAsync(hats[i]);
+            }
+            productService = new ProductService(productRepoMock.Object, itemRepoMock.Object, accountRepoMock.Object);
+        };
+
+        Because of = () => hatOutcomes = productService.CreateManyItemsAsync(product1Name, itemQuantity, attributes).GetAwaiter().GetResult().ToList();
+
+        It Should_Return_Item = () =>
+        {
+            for (var i = 0; i < itemQuantity; i++)
+            {
+                hatOutcomes[i].Name.ShouldEqual(hats[i].Name);
+                hatOutcomes[i].Price.ShouldEqual(hats[i].Price);
+                hatOutcomes[i].ProductDescription.ShouldEqual(hats[i].ProductDescription);
+                hatOutcomes[i].SKU.ShouldNotEqual(Guid.Empty.ToString());
+                hatOutcomes[i].Attributes.Select(s => s.Value).ShouldContain(attributes[0].Value);
+                hatOutcomes[i].Attributes.Select(s => s.Value).ShouldContain(attributes[1].Value);
+                hatOutcomes[i].Attributes.Select(s => s.Value).ShouldContain(attributes[2].Value);
+            }
+        };
+
+        It Should_Find_Product_In_Repo = () =>
+        {
+            productRepoMock.Verify(r => r.GetByNameAsync(product1Name), Times.Once);
+        };
+
+        It Should_Persist_Item_In_Repo = () =>
+        {
+            itemRepoMock.Verify(r => r.CreateAsync(Moq.It.IsAny<Item>()), Times.Exactly(itemQuantity));
+        };
+
+        private static ProductService productService;
+        private static List<string> colors;
+        private static List<string> sizes;
+        private static List<string> hatTypes;
+        private static List<ItemAttribute> attributes;
+        private static int itemQuantity;
+        private static List<string> prod1skus;
+        private static List<Item> hats;
+        private static List<string> shirtTypes;
+        private static List<string> prod2Skus;
+        private static List<Item> shirts;
+        private static List<Item> hatOutcomes;
+        private static List<Item> shirtOutcomes;
+    }
+
     public class When_Getting_All_Items_For_A_Product : With_ProductRepo_Setup
     {
         Establish context = () =>
@@ -671,6 +770,155 @@ namespace Payment_Processing.Specs
         private static ProductService productService;
     }
 
+    public class When_Getting_All_Attributes_For_A_Product : With_ProductRepo_Setup
+    {
+        Establish context = () =>
+        {
+            colors = new List<string>
+            {
+                "Red","Green","Black"
+            };
+            sizes = new List<string>
+            {
+                "S","M","L","XL"
+            };
+            hatTypes = new List<string>
+            {
+                "Ballcap","Fedora"
+            };
+            attributeTypes = new List<AttributeType>
+            {
+                AttributeType.Color,
+                AttributeType.Size,
+                AttributeType.Style
+            };
+            attributeValues = new List<string>
+            {
+                "Red","Green","Black",
+                "S","M","L","XL",
+                "Ballcap","Fedora"
+            };
+            attributes = new List<ItemAttribute>
+            {
+                new ItemAttribute
+                {
+                    Type = AttributeType.Color,
+                    Value = "Red"
+                },
+                new ItemAttribute
+                {
+                    Type = AttributeType.Color,
+                    Value = "Green"
+                },
+                new ItemAttribute
+                {
+                    Type = AttributeType.Color,
+                    Value = "Black"
+                },
+                new ItemAttribute
+                {
+                    Type = AttributeType.Size,
+                    Value = "S"
+                },
+                new ItemAttribute
+                {
+                    Type= AttributeType.Size,
+                    Value = "M"
+                },
+                new ItemAttribute
+                {
+                    Type= AttributeType.Size,
+                    Value = "L"
+                },
+                new ItemAttribute
+                {
+                    Type= AttributeType.Size,
+                    Value = "XL"
+                },
+                new ItemAttribute
+                {
+                    Type = AttributeType.Style,
+                    Value = "Ballcap"
+                },
+                new ItemAttribute
+                {
+                    Type = AttributeType.Style,
+                    Value = "Fedora"
+                }
+            };
+            hats = new List<Item>();
+            for (var i = 0; i < 10; i++)
+            {
+                var newHat = new Item
+                {
+                    Name = product1Name,
+                    Price = 19.99,
+                    ProductDescription = product1Desc,
+                    ProductId = product1Id,
+                    SKU = Guid.NewGuid().ToString(),
+                    Attributes = new List<ItemAttribute>
+                    {
+                        new ItemAttribute
+                        {
+                            Type = AttributeType.Color,
+                            Value = colors[i%3]
+                        },
+                        new ItemAttribute
+                        {
+                            Type = AttributeType.Size,
+                            Value = sizes[i%4]
+                        },
+                        new ItemAttribute
+                        {
+                            Type = AttributeType.Style,
+                            Value = hatTypes[i%2]
+                        }
+                    }
+                };
+                hats.Add(newHat);
+            }
+            itemRepoMock.Setup(i => i.GetAllItemsAsync(product1Name)).ReturnsAsync(hats);
+            for (var i = 0; i < attributeTypes.Count; i++)
+            {
+                for (var j = 0; j < attributeValues.Count; j++)
+                {
+                    itemRepoMock.Setup(p => p.GetByAttributeAsync(product1Name, attributeTypes[i], attributeValues[j]))
+                    .ReturnsAsync(hats.Where(h => h.Attributes.Where(a => a.Value == attributeValues[j]).Any()));
+                }
+            }
+            productService = new ProductService(productRepoMock.Object, itemRepoMock.Object, accountRepoMock.Object);
+            attributeOutcome = new List<GroupedAttributes>();
+        };
+
+        Because of = () => attributeOutcome = productService.GetAttributesAsync(product1Name).GetAwaiter().GetResult().ToList();
+
+        It Should_Return_A_List_Of_Attributes = () =>
+        {
+            var expectations = attributes.GroupBy(attribute => attribute.Type, attribute => attribute.Value, (type, value) =>
+            new {
+                Type = type,
+                Value = value,
+            }).ToList();
+            for(var i=0; i< expectations.Count(); i++)
+            {
+                attributeOutcome[i].Type.ShouldEqual(expectations[i].Type);
+                attributeOutcome[i].Value.ShouldEqual(expectations[i].Value);
+            }
+        };
+
+        It Should_Get_Attributes_From_ItemRepo = () => itemRepoMock.Verify(r => r.GetAllItemsAsync(product1Name),Times.Once);
+
+        private static List<string> colors;
+        private static List<string> sizes;
+        private static List<string> hatTypes;
+        private static List<AttributeType> attributeTypes;
+        private static List<string> attributeValues;
+        private static List<ItemAttribute> attributes;
+        private static List<Item> hats;
+        private static ProductService productService;
+        private static List<GroupedAttributes> attributeOutcome;
+    }
+
     public class When_Geting_Items_By_Attribute : With_ProductRepo_Setup
     {
         Establish context = () =>
@@ -691,7 +939,7 @@ namespace Payment_Processing.Specs
             {
                 AttributeType.Color,
                 AttributeType.Size,
-                AttributeType.Color
+                AttributeType.Style
             };
             attributeValues = new List<string>
             {
@@ -730,7 +978,7 @@ namespace Payment_Processing.Specs
                 };
                 hats.Add(newHat);
             }
-            productRepoMock.Setup(p => p.GetByProductIdAsync(product1Id))
+            productRepoMock.Setup(p => p.GetByNameAsync(product1Name))
             .ReturnsAsync(new Product
             {
                 Name = product1Name,
@@ -742,7 +990,7 @@ namespace Payment_Processing.Specs
             {
                 for(var j= 0;j<attributeValues.Count; j++)
                 {
-                    itemRepoMock.Setup(p => p.GetByAttributeAsync(product1Id, attributes[i], attributeValues[j]))
+                    itemRepoMock.Setup(p => p.GetByAttributeAsync(product1Name, attributes[i], attributeValues[j]))
                     .ReturnsAsync(hats.Where(h => h.Attributes.Where(a => a.Value == attributeValues[j]).Any()));
                 }
             }
@@ -873,7 +1121,7 @@ namespace Payment_Processing.Specs
             {
                 AttributeType.Color,
                 AttributeType.Size,
-                AttributeType.Color
+                AttributeType.Style
             };
             attributeValues = new List<string>
             {
@@ -985,7 +1233,7 @@ namespace Payment_Processing.Specs
             {
                 AttributeType.Color,
                 AttributeType.Size,
-                AttributeType.Color
+                AttributeType.Style
             };
             attributeValues = new List<string>
             {

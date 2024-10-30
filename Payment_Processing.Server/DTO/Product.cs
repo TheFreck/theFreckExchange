@@ -7,7 +7,7 @@ namespace Payment_Processing.Server.DTO
     {
         [BsonId]
         [BsonRepresentation(BsonType.ObjectId)]
-        public string? Id { get; set; }
+        public virtual string? Id { get; set; }
 
         [BsonElement("Name")]
         public required string Name { get; set; }
@@ -34,13 +34,13 @@ namespace Payment_Processing.Server.DTO
 
     public class Item : Product
     {
-        [BsonId]
-        [BsonRepresentation(BsonType.ObjectId)]
-        public string? Id { get; set; }
+        //[BsonId]
+        //[BsonRepresentation(BsonType.ObjectId)]
+        //public string? Id { get; set; }
 
         [BsonElement("SKU")]
         public required string SKU { get; init; } = Guid.NewGuid().ToString();
-        public List<ItemAttribute> Attributes { get; set; }
+        public List<ItemAttribute>? Attributes { get; set; }
     }
 
     public class ItemAttribute
