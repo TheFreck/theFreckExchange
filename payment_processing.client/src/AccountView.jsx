@@ -1,9 +1,9 @@
-import react, { useState } from "react";
+import react, { useEffect, useState } from "react";
 import axios from 'axios';
 import Login from "./Login";
 import NewAccount from "./NewAccount";
 
-export const AccountView = () => {
+export const AccountView = ({userAcct, setUserAcct}) => {
     const [account, setAccount] = useState({});
     const [payment, setPayment] = useState(0);
     const [email, setEmail] = useState();
@@ -13,6 +13,11 @@ export const AccountView = () => {
         baseURL: `https://localhost:7299/Account`
     });
 
+    useEffect(() => {
+        if(userAcct?.name !== undefined){
+            setAccount(userAcct);
+        }
+    },[]);
 
     const login = (e) => {
         e.preventDefault();
@@ -21,6 +26,7 @@ export const AccountView = () => {
             .then(yup => {
                 console.log("yup: ", yup.data);
                 setAccount(yup.data);
+                setUserAcct(yup.data);
             })
             .catch(nope => console.error(nope));
     }

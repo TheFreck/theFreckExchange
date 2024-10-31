@@ -12,8 +12,8 @@ const viewEnum = {
 };
 
 function App() {
-    const [view,setView] = useState(viewEnum.home);
-
+    const [view, setView] = useState(viewEnum.home);
+    const [userAcct, setUserAcct] = useState({});
 
 
     return <div>
@@ -28,13 +28,13 @@ function App() {
             </div>
         }
         {view === viewEnum.account &&
-            <AccountView />
+            <AccountView userAcct={userAcct} setUserAcct={setUserAcct} />
         }
         {view === viewEnum.product &&
             <ProductView />
         }
         {view === viewEnum.storeFront &&
-            <StoreFront />
+            <StoreFront userAcct={userAcct} setUserAcct={setUserAcct} />
         }
     </div>
 }

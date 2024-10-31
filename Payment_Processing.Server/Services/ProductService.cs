@@ -99,7 +99,7 @@ namespace Payment_Processing.Server.Services
             var selected = items.SelectMany(i => i.Attributes).ToHashSet();
             var groups = selected.GroupBy(attribute => attribute.Type, attribute => attribute.Value, (type, value) =>
             new GroupedAttributes {
-                Type = type,
+                Type = ((AttributeType)type).ToString(),
                 Value = value.ToHashSet(),
             });
             return groups;
