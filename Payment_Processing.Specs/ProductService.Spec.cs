@@ -25,6 +25,7 @@ namespace Payment_Processing.Specs
             productRepoMock = new Mock<IProductRepo>();
             itemRepoMock = new Mock<IItemRepo>();
             accountRepoMock = new Mock<IAccountRepo>();
+            loginServiceMock = new Mock<ILoginService>();
             account1Id = Guid.NewGuid().ToString();
             account2Id = Guid.NewGuid().ToString();
             name1 = "Carl";
@@ -33,8 +34,31 @@ namespace Payment_Processing.Specs
             email2 = "jane@email.com";
             password1 = "password1";
             password2 = "password2";
-            account1 = new Account(name1, email1, password1, email1);
-            account2 = new Account(name2, email2, password2, email2);
+            permission1 = new List<AccountPermissions>
+            {
+                new AccountPermissions
+                {
+                    Type = PermissionType.Admin,
+                    Token = "adminToken1"
+                },
+                new AccountPermissions
+                {
+                    Type = PermissionType.User,
+                    Token = "userToken1"
+                }
+            };
+            permission2 = new List<AccountPermissions>
+            {
+                new AccountPermissions
+                {
+                    Type = PermissionType.User,
+                    Token = "userToken1"
+                }
+            };
+            account1 = new Account(name1, email1, password1, email1, permission1);
+            account2 = new Account(name2, email2, password2, email2, permission2);
+            account1.Token = "token1";
+            account2.Token = "token2";
             product1Id = Guid.NewGuid().ToString();
             product2Id = Guid.NewGuid().ToString();
             product1Name = "hat";
@@ -49,6 +73,7 @@ namespace Payment_Processing.Specs
         protected static Mock<IProductRepo> productRepoMock;
         protected static Mock<IItemRepo> itemRepoMock;
         protected static Mock<IAccountRepo> accountRepoMock;
+        protected static Mock<ILoginService> loginServiceMock;
         protected static string account1Id;
         protected static string account2Id;
         protected static string name1;
@@ -57,6 +82,8 @@ namespace Payment_Processing.Specs
         protected static string email2;
         protected static string password1;
         protected static string password2;
+        protected static List<AccountPermissions> permission1;
+        protected static List<AccountPermissions> permission2;
         protected static Account account1;
         protected static Account account2;
         protected static string product1Id;
@@ -73,12 +100,13 @@ namespace Payment_Processing.Specs
     {
         Establish context = () =>
         {
+            loginServiceMock.Setup(l => l.ValidatePermissionsAsync(Moq.It.IsAny<Account>(), PermissionType.Admin)).ReturnsAsync(true);
             inputs = new List<(string name, string id, string desccription, double price)>
             {
                 new (product1Name,product1Id,product1Desc,product1Price),
                 new (product2Name,product2Id,product2Desc,product2Price)
             };
-            storeFront = new ProductService(productRepoMock.Object,itemRepoMock.Object, accountRepoMock.Object);
+            storeFront = new ProductService(productRepoMock.Object,itemRepoMock.Object, accountRepoMock.Object, loginServiceMock.Object);
             expectations = new List<Product>
             {
                 new Product()
@@ -103,7 +131,7 @@ namespace Payment_Processing.Specs
         {
             for(var i = 0; i < inputs.Count; i++)
             {
-                outcomes.Add(storeFront.CreateProductAsync(inputs[i].name, inputs[i].desccription, inputs[i].price).GetAwaiter().GetResult());
+                outcomes.Add(storeFront.CreateProductAsync(account1.Username, inputs[i].name, inputs[i].desccription, inputs[i].price).GetAwaiter().GetResult());
             }
         };
 
@@ -118,12 +146,17 @@ namespace Payment_Processing.Specs
             }
         };
 
+        It Should_Validate_Admin_Permission = () =>
+        {
+            loginServiceMock.Verify(l => l.ValidatePermissionsAsync(Moq.It.IsAny<Account>(), Moq.It.IsAny<PermissionType>()), Times.Exactly(inputs.Count));
+        };
+
         It Should_Persist_New_Product = () =>
         {
             productRepoMock.Verify(p => p.CreateAsync(Moq.It.IsAny<Product>()), Times.Exactly(inputs.Count));
         };
 
-        private static ProductService storeFront;
+        private static IProductService storeFront;
         private static List<(string name, string id, string desccription, double price)> inputs;
         private static List<Product> expectations;
         private static List<Product> outcomes;
@@ -149,9 +182,10 @@ namespace Payment_Processing.Specs
                 ProductId = product2Id,
                 Price = product2Price
             };
+            loginServiceMock.Setup(l => l.ValidatePermissionsAsync(Moq.It.IsAny<Account>(), PermissionType.Admin)).ReturnsAsync(true);
             productRepoMock.Setup(p => p.GetByNameAsync(product1Name)).ReturnsAsync(product1);
             productRepoMock.Setup(p => p.GetByNameAsync(product2Name)).ReturnsAsync(product2);
-            storeFront = new ProductService(productRepoMock.Object,itemRepoMock.Object, accountRepoMock.Object);
+            storeFront = new ProductService(productRepoMock.Object,itemRepoMock.Object, accountRepoMock.Object, loginServiceMock.Object);
             inputs = new List<(string name, string newDescription)>
             {
                 new (product1Name,product1NewDesc),
@@ -169,8 +203,13 @@ namespace Payment_Processing.Specs
         {
             for (var i = 0; i < inputs.Count; i++)
             {
-                outcomes.Add(storeFront.ModifyDescriptionAsync(inputs[i].name,product1NewDesc).GetAwaiter().GetResult());
+                outcomes.Add(storeFront.ModifyDescriptionAsync(account1.Username, inputs[i].name,product1NewDesc).GetAwaiter().GetResult());
             }
+        };
+
+        It Should_Validate_Admin_Permission = () =>
+        {
+            loginServiceMock.Verify(l => l.ValidatePermissionsAsync(Moq.It.IsAny<Account>(), Moq.It.IsAny<PermissionType>()), Times.Exactly(expectations.Count));
         };
 
         It Should_Return_Modified_Product = () =>
@@ -232,9 +271,10 @@ namespace Payment_Processing.Specs
             newProduct2 = product2;
             newProduct1.Name = product1NewName;
             newProduct2.Name = product2NewName;
+            loginServiceMock.Setup(l => l.ValidatePermissionsAsync(Moq.It.IsAny<Account>(), PermissionType.Admin)).ReturnsAsync(true);
             productRepoMock.Setup(p => p.GetByNameAsync(product1Name)).ReturnsAsync(product1);
             productRepoMock.Setup(p => p.GetByNameAsync(product2Name)).ReturnsAsync(product2);
-            productService = new ProductService(productRepoMock.Object,itemRepoMock.Object, accountRepoMock.Object);
+            productService = new ProductService(productRepoMock.Object,itemRepoMock.Object, accountRepoMock.Object, loginServiceMock.Object);
             inputs = new List<(string name, string newName)>
             {
                 new (product1Name,product1NewName),
@@ -252,8 +292,13 @@ namespace Payment_Processing.Specs
         {
             for (var i = 0; i < inputs.Count; i++)
             {
-                outcomes.Add(productService.ModifyNameAsync(inputs[i].name, inputs[i].newName).GetAwaiter().GetResult());
+                outcomes.Add(productService.ModifyNameAsync(account1.Username, inputs[i].name, inputs[i].newName).GetAwaiter().GetResult());
             }
+        };
+
+        It Should_Validate_Admin_Permission = () =>
+        {
+            loginServiceMock.Verify(l => l.ValidatePermissionsAsync(Moq.It.IsAny<Account>(), Moq.It.IsAny<PermissionType>()), Times.Exactly(expectations.Count));
         };
 
         It Should_Return_Modified_Product = () =>
@@ -275,7 +320,7 @@ namespace Payment_Processing.Specs
 
         It Should_Persist_Modified_Product = () => productRepoMock.Verify(p => p.UpdateAsync(Moq.It.IsAny<Product>()), Times.Exactly(expectations.Count));
 
-        private static ProductService productService;
+        private static IProductService productService;
         private static string product1NewName;
         private static string product2NewName;
         private static Product product1;
@@ -307,9 +352,11 @@ namespace Payment_Processing.Specs
                 ProductId = product2Id,
                 Price = product2Price
             };
+            loginServiceMock.Setup(l => l.ValidatePermissionsAsync(Moq.It.IsAny<Account>(), PermissionType.Admin)).ReturnsAsync(true);
             productRepoMock.Setup(p => p.GetByNameAsync(product1Name)).ReturnsAsync(product1);
             productRepoMock.Setup(p => p.GetByNameAsync(product2Name)).ReturnsAsync(product2);
-            productService = new ProductService(productRepoMock.Object, itemRepoMock.Object, accountRepoMock.Object);
+            productRepoMock.Setup(p => p.UpdateAsync(Moq.It.IsAny<Product>()));
+            productService = new ProductService(productRepoMock.Object, itemRepoMock.Object, accountRepoMock.Object, loginServiceMock.Object);
             inputs = new List<(string name, double price)>
             {
                 new (product1Name,product1NewPrice),
@@ -327,8 +374,13 @@ namespace Payment_Processing.Specs
         {
             for (var i = 0; i < inputs.Count; i++)
             {
-                outcomes.Add(productService.ModifyPriceAsync(inputs[i].name, inputs[i].price).GetAwaiter().GetResult());
+                outcomes.Add(productService.ModifyPriceAsync(account1.Username, inputs[i].name, inputs[i].price).GetAwaiter().GetResult());
             }
+        };
+
+        It Should_Validate_Admin_Permission = () =>
+        {
+            loginServiceMock.Verify(l => l.ValidatePermissionsAsync(Moq.It.IsAny<Account>(), Moq.It.IsAny<PermissionType>()), Times.Exactly(expectations.Count));
         };
 
         It Should_Return_Modified_Product = () =>
@@ -389,7 +441,7 @@ namespace Payment_Processing.Specs
                 }
             };
             productRepoMock.Setup(p => p.GetAllProductsAsync()).ReturnsAsync(products);
-            productService = new ProductService(productRepoMock.Object, itemRepoMock.Object, accountRepoMock.Object);
+            productService = new ProductService(productRepoMock.Object, itemRepoMock.Object, accountRepoMock.Object, loginServiceMock.Object);
             expectations = products;
             outcomes = new List<Product>();
         };
@@ -446,7 +498,7 @@ namespace Payment_Processing.Specs
             };
             productRepoMock.Setup(p => p.GetByNameAsync(product1Name)).ReturnsAsync(product1);
             productRepoMock.Setup(p => p.GetByNameAsync(product2Name)).ReturnsAsync(product2);
-            productService = new ProductService(productRepoMock.Object, itemRepoMock.Object, accountRepoMock.Object);
+            productService = new ProductService(productRepoMock.Object, itemRepoMock.Object, accountRepoMock.Object, loginServiceMock.Object);
             expectations = products;
             outcomes = new List<Product>();
         };
@@ -538,6 +590,7 @@ namespace Payment_Processing.Specs
                 itemRepoMock.Setup(r => r.CreateAsync(hats[i])).ReturnsAsync(hats[i]);
             }
             hatOutcomes = new List<Item>();
+            loginServiceMock.Setup(l => l.ValidatePermissionsAsync(Moq.It.IsAny<Account>(), PermissionType.Admin)).ReturnsAsync(true);
             productRepoMock.Setup(p => p.GetByProductIdAsync(product1Id)).ReturnsAsync(new Product
             {
                 Name = product1Name,
@@ -549,23 +602,27 @@ namespace Payment_Processing.Specs
             {
                 itemRepoMock.Setup(p => p.CreateAsync(Moq.It.IsAny<Item>())).ReturnsAsync(hats[i]);
             }
-            productService = new ProductService(productRepoMock.Object, itemRepoMock.Object, accountRepoMock.Object);
+            productService = new ProductService(productRepoMock.Object, itemRepoMock.Object, accountRepoMock.Object, loginServiceMock.Object);
         };
 
         Because of = () =>
         {
             for (var i = 0; i < hats.Count; i++) 
             {
-                var hat = productService.CreateItemAsync(product1Id, hats[i]).GetAwaiter().GetResult();
+                var hat = productService.CreateItemAsync(account1.Username, product1Id, hats[i]).GetAwaiter().GetResult();
                 hatOutcomes.Add(hat);
             }
             hatOutcomes.OrderBy(o => o.SKU).ToList();
             hats.OrderBy(o => o.SKU).ToList();
         };
 
+        It Should_Validate_Admin_Permission = () =>
+        {
+            loginServiceMock.Verify(l => l.ValidatePermissionsAsync(Moq.It.IsAny<Account>(), Moq.It.IsAny<PermissionType>()), Times.Exactly(hats.Count));
+        };
+
         It Should_Return_Item = () =>
         {
-
             for (var i = 0; i < hats.Count; i++)
             {
                 hatOutcomes[i].Name.ShouldEqual(hats[i].Name);
@@ -591,7 +648,7 @@ namespace Payment_Processing.Specs
             itemRepoMock.Verify(r => r.CreateAsync(Moq.It.IsAny<Item>()),Times.Exactly(hats.Count));
         };
 
-        private static ProductService productService;
+        private static IProductService productService;
         private static List<string> colors;
         private static List<string> sizes;
         private static List<string> hatTypes;
@@ -646,6 +703,7 @@ namespace Payment_Processing.Specs
                 itemRepoMock.Setup(r => r.CreateAsync(hats[i])).ReturnsAsync(hats[i]);
             }
             hatOutcomes = new List<Item>();
+            loginServiceMock.Setup(l => l.ValidatePermissionsAsync(Moq.It.IsAny<Account>(), PermissionType.Admin)).ReturnsAsync(true);
             productRepoMock.Setup(p => p.GetByNameAsync(product1Name)).ReturnsAsync(new Product
             {
                 Name = product1Name,
@@ -657,10 +715,15 @@ namespace Payment_Processing.Specs
             {
                 itemRepoMock.Setup(p => p.CreateAsync(Moq.It.IsAny<Item>())).ReturnsAsync(hats[i]);
             }
-            productService = new ProductService(productRepoMock.Object, itemRepoMock.Object, accountRepoMock.Object);
+            productService = new ProductService(productRepoMock.Object, itemRepoMock.Object, accountRepoMock.Object, loginServiceMock.Object);
         };
 
-        Because of = () => hatOutcomes = productService.CreateManyItemsAsync(product1Name, itemQuantity, attributes).GetAwaiter().GetResult().ToList();
+        Because of = () => hatOutcomes = productService.CreateManyItemsAsync(account1.Username, product1Name, itemQuantity, attributes).GetAwaiter().GetResult().ToList();
+
+        It Should_Validate_Admin_Permission = () =>
+        {
+            loginServiceMock.Verify(l => l.ValidatePermissionsAsync(Moq.It.IsAny<Account>(), Moq.It.IsAny<PermissionType>()), Times.Once);
+        };
 
         It Should_Return_Item = () =>
         {
@@ -686,7 +749,7 @@ namespace Payment_Processing.Specs
             itemRepoMock.Verify(r => r.CreateAsync(Moq.It.IsAny<Item>()), Times.Exactly(itemQuantity));
         };
 
-        private static ProductService productService;
+        private static IProductService productService;
         private static List<string> colors;
         private static List<string> sizes;
         private static List<string> hatTypes;
@@ -754,7 +817,7 @@ namespace Payment_Processing.Specs
             }
             hatOutcomes = new List<Item>();
             itemRepoMock.Setup(p => p.GetAllItemsAsync(product1Id)).ReturnsAsync(hats);
-            productService = new ProductService(productRepoMock.Object, itemRepoMock.Object, accountRepoMock.Object);
+            productService = new ProductService(productRepoMock.Object, itemRepoMock.Object, accountRepoMock.Object, loginServiceMock.Object);
         };
 
         Because of = () =>
@@ -905,7 +968,7 @@ namespace Payment_Processing.Specs
                     .ReturnsAsync(hats.Where(h => h.Attributes.Where(a => a.Value == attributeValues[j]).Any()));
                 }
             }
-            productService = new ProductService(productRepoMock.Object, itemRepoMock.Object, accountRepoMock.Object);
+            productService = new ProductService(productRepoMock.Object, itemRepoMock.Object, accountRepoMock.Object, loginServiceMock.Object);
             attributeOutcome = new List<GroupedAttributes>();
         };
 
@@ -1013,7 +1076,7 @@ namespace Payment_Processing.Specs
                     .ReturnsAsync(hats.Where(h => h.Attributes.Where(a => a.Value == attributeValues[j]).Any()));
                 }
             }
-            productService = new ProductService(productRepoMock.Object, itemRepoMock.Object, accountRepoMock.Object);
+            productService = new ProductService(productRepoMock.Object, itemRepoMock.Object, accountRepoMock.Object, loginServiceMock.Object);
             redItems = new List<Item>();
             greenItems = new List<Item>();
             blackItems = new List<Item>();
@@ -1196,7 +1259,7 @@ namespace Payment_Processing.Specs
                 ProductId = product1Id,
             });
             itemRepoMock.Setup(i => i.GetAllItemsAsync(product1Name)).ReturnsAsync(hats);
-            productService = new ProductService(productRepoMock.Object, itemRepoMock.Object, accountRepoMock.Object);
+            productService = new ProductService(productRepoMock.Object, itemRepoMock.Object, accountRepoMock.Object, loginServiceMock.Object);
             items = new List<Item>();
         };
 
@@ -1297,13 +1360,15 @@ namespace Payment_Processing.Specs
                 ProductDescription = product1Desc,
                 ProductId = product1Id,
             });
-            accountRepoMock.Setup(a => a.GetByEmailAsync(Moq.It.IsAny<string>())).ReturnsAsync(account1);
+            loginServiceMock.Setup(l => l.ValidateTokenAsync(account1.Username,account1.Token)).ReturnsAsync(true);
+            loginServiceMock.Setup(l => l.ValidatePermissionsAsync(account1,PermissionType.User)).ReturnsAsync(true);
+            accountRepoMock.Setup(a => a.GetByUsernameAsync(Moq.It.IsAny<string>())).ReturnsAsync(account1);
             itemRepoMock.Setup(i => i.GetByAttributeAsync(product1Name,Moq.It.IsAny<AttributeType>(), Moq.It.IsAny<string>())).ReturnsAsync(hats);
-            productService = new ProductService(productRepoMock.Object, itemRepoMock.Object, accountRepoMock.Object);
+            productService = new ProductService(productRepoMock.Object, itemRepoMock.Object, accountRepoMock.Object, loginServiceMock.Object);
             items = new List<Item>();
         };
 
-        Because of = () => item = productService.PurchaseItem(account1.Username,hats[0]).GetAwaiter().GetResult();
+        Because of = () => item = productService.PurchaseItem(account1.Username, account1.Token, hats[0]).GetAwaiter().GetResult();
 
         It Should_Return_Item_To_Purchase = () =>
         {
@@ -1317,17 +1382,18 @@ namespace Payment_Processing.Specs
             }
         };
 
-        It Should_Delete_The_Item_From_Repo = () =>
+        It Should_Validate_Account_Token = () => loginServiceMock.Verify(l => l.ValidateTokenAsync(account1.Username, account1.Token), Times.Once);
+
+        It Should_Validate_User_Permission = () =>
         {
-            itemRepoMock.Verify(r => r.DeleteItemAsync(Moq.It.IsAny<Item>()), Times.Once);
+            loginServiceMock.Verify(l => l.ValidatePermissionsAsync(account1,PermissionType.User), Times.Once);
         };
 
-        It Should_Get_The_Account_From_Repo = () => accountRepoMock.Verify(a => a.GetByEmailAsync(account1.Email), Times.Once);
+        It Should_Delete_The_Item_From_Repo = () => itemRepoMock.Verify(r => r.DeleteItemAsync(Moq.It.IsAny<Item>()), Times.Once);
 
-        It Should_Add_The_Price_To_Account_Balance = () =>
-        {
-            accountRepoMock.Verify(r => r.UpdateAsync(Moq.It.IsAny<Account>()), Times.Once);
-        };
+        It Should_Get_The_Account_From_Repo = () => accountRepoMock.Verify(a => a.GetByUsernameAsync(account1.Username), Times.Once);
+
+        It Should_Add_The_Price_To_Account_Balance = () => accountRepoMock.Verify(r => r.UpdateAsync(Moq.It.IsAny<Account>()), Times.Once);
 
         private static List<string> colors;
         private static List<string> sizes;
@@ -1335,7 +1401,7 @@ namespace Payment_Processing.Specs
         private static List<AttributeType> attributes;
         private static List<string> attributeValues;
         private static List<Item> hats;
-        private static ProductService productService;
+        private static IProductService productService;
         private static List<Item> items;
         private static Item item;
     }

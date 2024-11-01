@@ -3,6 +3,7 @@ using Moq;
 using Payment_Processing.Server.DTO;
 using Payment_Processing.Server.Repos;
 using Payment_Processing.Server.Services;
+using System.Runtime;
 using It = Machine.Specifications.It;
 
 namespace Payment_Processing.Specs
@@ -23,8 +24,30 @@ namespace Payment_Processing.Specs
             username2 = "theJane";
             password1 = "password1";
             password2 = "password2";
-            account1 = new Account(name1, email1, password1, email1);
-            account2 = new Account(name2, email2, password2, email2);
+            permissions1 = new List<AccountPermissions>
+            {
+                new AccountPermissions
+                {
+                    Type = PermissionType.Admin,
+                },
+                new AccountPermissions
+                {
+                    Type= PermissionType.User,
+                }
+            };
+            permissions2 = new List<AccountPermissions>
+            {
+                new AccountPermissions
+                {
+                    Type = PermissionType.User,
+                }
+            };
+            permissions = new List<List<AccountPermissions>>
+            {
+                permissions1,permissions2
+            };
+            account1 = new Account(name1, email1, password1, email1, permissions1);
+            account2 = new Account(name2, email2, password2, email2, permissions2);
         };
 
         protected static Mock<IAccountRepo> accountRepoMock;
@@ -39,6 +62,9 @@ namespace Payment_Processing.Specs
         protected static string username2;
         protected static string password1;
         protected static string password2;
+        protected static List<AccountPermissions> permissions1;
+        protected static List<AccountPermissions> permissions2;
+        protected static List<List<AccountPermissions>> permissions;
         protected static Account account1;
         protected static Account account2;
     }
@@ -65,7 +91,7 @@ namespace Payment_Processing.Specs
         {
             for (var i = 0; i < inputs.Count; i++)
             {
-                outcomes.Add(service.CreateAccountAsync(inputs[i].name, inputs[i].email, inputs[i].username, inputs[i].password).GetAwaiter().GetResult());
+                outcomes.Add(service.CreateAccountAsync(inputs[i].name, inputs[i].email, inputs[i].username, inputs[i].password, permissions[i]).GetAwaiter().GetResult());
             }
         };
 
@@ -83,6 +109,38 @@ namespace Payment_Processing.Specs
             }
         };
 
+        It Should_Assign_Permissions_To_Account = () =>
+        {
+            for(var i=0; i<expectations.Count ; i++)
+            {
+                var types = outcomes[i].Permissions.Select(p => p.Type).ToList();
+                types.ShouldContainOnly(outcomes[i].Permissions.Select(i => i.Type));
+            }
+        };
+
+        It Should_Strip_Permissions_Of_TokenSalt = () =>
+        {
+            for (var i = 0; i < expectations.Count; i++)
+            {
+                outcomes[i].Permissions.ForEach(p =>
+                {
+                    p.TokenSalt.ShouldEqual(new byte[64]);
+                });
+            }
+        };
+
+        It Should_Strip_Account_Of_Credentials_Before_Returning = () =>
+        {
+            for(var i=0; i < expectations.Count; i++)
+            {
+                outcomes[i].Username.ShouldEqual(string.Empty);
+                outcomes[i].Password.ShouldEqual(string.Empty);
+                outcomes[i].Token.ShouldEqual(string.Empty);
+                outcomes[i].PasswordSalt.ShouldEqual(new byte[64]);
+                outcomes[i].TokenSalt.ShouldEqual(new byte[64]);
+            }
+        };
+
         It Should_Persist_New_Account = () =>
         {
             for(var i=0;i<expectations.Count; i++)
@@ -93,6 +151,46 @@ namespace Payment_Processing.Specs
 
         private static AccountService service;
         private static List<(string name, string email, string username, string password, double balance)> inputs;
+        private static List<Account> expectations;
+        private static List<Account> outcomes;
+    }
+
+    public class When_Getting_All_Accounts : With_AcctRepo_Setup
+    {
+        Establish context = static () =>
+        {
+            service = new AccountService(accountRepoMock.Object, loginServiceMock.Object);
+            accountRepoMock.Setup(a => a.GetAllAccountsAsync()).ReturnsAsync(new List<Account> { account1,account2});
+            inputs = new List<string>
+            {
+                account1Id,account2Id
+            };
+            expectations = new List<Account>
+            {
+                account1,account2
+            };
+            outcomes = new List<Account>();
+        };
+
+        Because of = () => outcomes = service.GetAllAccountsAsync().GetAwaiter().GetResult().ToList();
+
+        It Should_Return_All_Accounts = () => outcomes.Count.ShouldEqual(expectations.Count);
+
+        It Should_Strip_Accounts_Of_Credentials = () =>
+        {
+            for (var i = 0; i < outcomes.Count; i++) 
+            {
+                outcomes[i].Name.ShouldEqual(expectations[i].Name);
+                outcomes[i].Password.ShouldEqual(string.Empty);
+                outcomes[i].Token.ShouldEqual(string.Empty);
+                outcomes[i].Username.ShouldEqual(string.Empty);
+                outcomes[i].PasswordSalt.ShouldEqual(new byte[64]);
+                outcomes[i].TokenSalt.ShouldEqual(new byte[64]);
+            }
+        };
+
+        private static AccountService service;
+        private static List<string> inputs;
         private static List<Account> expectations;
         private static List<Account> outcomes;
     }
@@ -140,6 +238,18 @@ namespace Payment_Processing.Specs
             for (var i = 0; i < expectations.Count; i++)
             {
                 accountRepoMock.Verify(a => a.GetByAccountIdAsync(Moq.It.IsAny<string>()),Times.Exactly(inputs.Count));
+            }
+        };
+
+        It Should_Strip_Credentials_From_Account_Before_Returning = () =>
+        {
+            for(var i = 0;i < expectations.Count; i++)
+            {
+                outcomes[i].Username.ShouldEqual(string.Empty);
+                outcomes[i].Password.ShouldEqual(string.Empty);
+                outcomes[i].Token.ShouldEqual(string.Empty);
+                outcomes[i].PasswordSalt.ShouldEqual(new byte[64]);
+                outcomes[i].TokenSalt.ShouldEqual(new byte[64]);
             }
         };
 
@@ -195,6 +305,18 @@ namespace Payment_Processing.Specs
             }
         };
 
+        It Should_Strip_Credentials_From_Account_Before_Returning = () =>
+        {
+            for (var i = 0; i < expectations.Count; i++)
+            {
+                outcomes[i].Username.ShouldEqual(string.Empty);
+                outcomes[i].Password.ShouldEqual(string.Empty);
+                outcomes[i].Token.ShouldEqual(string.Empty);
+                outcomes[i].PasswordSalt.ShouldEqual(new byte[64]);
+                outcomes[i].TokenSalt.ShouldEqual(new byte[64]);
+            }
+        };
+
         private static List<string> inputs;
         private static List<Account> expectations;
         private static List<Account> outcomes;
@@ -247,6 +369,18 @@ namespace Payment_Processing.Specs
             }
         };
 
+        It Should_Strip_Credentials_From_Account_Before_Returning = () =>
+        {
+            for (var i = 0; i < expectations.Count; i++)
+            {
+                outcomes[i].Username.ShouldEqual(string.Empty);
+                outcomes[i].Password.ShouldEqual(string.Empty);
+                outcomes[i].Token.ShouldEqual(string.Empty);
+                outcomes[i].PasswordSalt.ShouldEqual(new byte[64]);
+                outcomes[i].TokenSalt.ShouldEqual(new byte[64]);
+            }
+        };
+
         private static List<string> inputs;
         private static List<Account> expectations;
         private static List<Account> outcomes;
@@ -288,7 +422,7 @@ namespace Payment_Processing.Specs
         {
             for (var i = 0; i < inputs.Count; i++)
             {
-                outcomes.Add(service.AddToBalanceAsync(inputs[i].username, inputs[i].balanceIncrease).GetAwaiter().GetResult());
+                outcomes.Add(service.AddToBalanceAsync(inputs[i].username, "token", inputs[i].balanceIncrease).GetAwaiter().GetResult());
             }
         };
 
@@ -296,7 +430,6 @@ namespace Payment_Processing.Specs
         {
             for (var i = 0; i < expectations.Count; i++)
             {
-                outcomes[i].Username.ShouldEqual(inputs[i].username);
                 outcomes[i].Balance.ShouldEqual(inputs[i].balanceIncrease + startingBalances[i]);
             }
         };
@@ -306,6 +439,18 @@ namespace Payment_Processing.Specs
             for (var i = 0; i < expectations.Count; i++)
             {
                 accountRepoMock.Verify(r => r.GetByUsernameAsync(Moq.It.IsAny<string>()), Times.Exactly(expectations.Count));
+            }
+        };
+
+        It Should_Strip_Account_Of_Credentials = () =>
+        {
+            for(var i=0; i < expectations.Count; ++i)
+            {
+                outcomes[i].Username.ShouldEqual(string.Empty);
+                outcomes[i].Password.ShouldEqual(string.Empty);
+                outcomes[i].Token.ShouldEqual(string.Empty);
+                outcomes[i].PasswordSalt.ShouldEqual(new byte[64]);
+                outcomes[i].TokenSalt.ShouldEqual(new byte[64]);
             }
         };
 
@@ -382,6 +527,18 @@ namespace Payment_Processing.Specs
             }
         };
 
+        It Should_Strip_Account_Of_Credentials = () =>
+        {
+            for (var i = 0; i < expectations.Count; ++i)
+            {
+                outcomes[i].Username.ShouldEqual(string.Empty);
+                outcomes[i].Password.ShouldEqual(string.Empty);
+                outcomes[i].Token.ShouldEqual(string.Empty);
+                outcomes[i].PasswordSalt.ShouldEqual(new byte[64]);
+                outcomes[i].TokenSalt.ShouldEqual(new byte[64]);
+            }
+        };
+
         It Should_Persist_Updated_Account = () =>
         {
             for (var i = 0; i < expectations.Count; i++)
@@ -399,5 +556,4 @@ namespace Payment_Processing.Specs
         private static double[] startingBalances;
         private static List<Account> accounts;
     }
-
 }

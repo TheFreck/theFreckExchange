@@ -11,6 +11,7 @@ builder.Services.AddSingleton<IProductRepo, ProductRepo>();
 builder.Services.AddSingleton<IItemRepo, ItemRepo>();
 builder.Services.AddSingleton<IAccountService, AccountService>();
 builder.Services.AddSingleton<IProductService, ProductService>();
+builder.Services.AddSingleton<ILoginService, LoginService>();
 
 builder.Services.AddCors(options =>
 {

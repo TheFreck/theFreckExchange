@@ -1,4 +1,5 @@
-﻿using Microsoft.AspNetCore.Mvc;
+﻿using Microsoft.AspNetCore.Identity.Data;
+using Microsoft.AspNetCore.Mvc;
 using Payment_Processing.Server.DTO;
 using Payment_Processing.Server.Services;
 
@@ -10,11 +11,13 @@ namespace Payment_Processing.Server.Controllers
     {
         private readonly ILogger<AccountController> _logger;
         private readonly IAccountService accountService;
+        private readonly ILoginService loginService;
 
-        public AccountController(ILogger<AccountController> logger, IAccountService accountService)
+        public AccountController(ILogger<AccountController> logger, IAccountService accountService, ILoginService loginService)
         {
             _logger = logger;
             this.accountService = accountService;
+            this.loginService = loginService;
         }
 
         [HttpGet]
@@ -38,11 +41,11 @@ namespace Payment_Processing.Server.Controllers
         }
 
         [HttpPost("createAccount/{name}/{email}")]
-        public async Task<IActionResult> CreateAccount(string name, string email, string username, string password)
+        public async Task<IActionResult> CreateAccount(string name, string email, string username, string password, List<AccountPermissions> permissions)
         {
             try
             {
-                var account = await accountService.CreateAccountAsync(name, email,username,password);
+                var account = await accountService.CreateAccountAsync(name, email,username,password, permissions);
                 return Created("account",account);
             }
             catch (Exception)
@@ -64,6 +67,27 @@ namespace Payment_Processing.Server.Controllers
 
                 throw;
             }
+        }
+
+        [HttpPost("login")]
+        public async Task<IActionResult> Login([FromBody] LoginRequest loginRequest)
+        {
+            var account = await loginService.LoginAsync(loginRequest.Email, loginRequest.Password);
+            if(account.Name != "NullName" 
+                && account.Username != "NullAccount" 
+                && account.Email != "null@null.null" 
+                && account.AccountId != Guid.Empty.ToString()
+                && account.Token != Guid.Empty.ToString())
+            {
+                return Ok(account);
+            }
+            else return BadRequest(account);
+        }
+
+        [HttpPost("logout/{username}")]
+        public async Task<IActionResult> Logout(string username)
+        {
+            return Ok(await loginService.LogOutAsync(username));
         }
     }
 }

@@ -10,6 +10,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using It = Machine.Specifications.It;
+using Microsoft.AspNetCore.Mvc;
 
 namespace Payment_Processing.Specs
 {
@@ -24,7 +25,18 @@ namespace Payment_Processing.Specs
             name = "name";
             username = "username1@username.com";
             password = "password";
-            account = new Account(name, username, password, username);
+            permissions = new List<AccountPermissions>
+            {
+                new AccountPermissions
+                {
+                    Type = PermissionType.Admin,
+                },
+                new AccountPermissions
+                {
+                    Type = PermissionType.User,
+                }
+            };
+            account = new Account(name, username, password, username, permissions);
         };
 
         protected static Mock<ILoginService> loginServiceMock;
@@ -34,6 +46,7 @@ namespace Payment_Processing.Specs
         protected static string name;
         protected static string username;
         protected static string password;
+        private static List<AccountPermissions> permissions;
         protected static Account account;
     }
     public class When_Creating_New_Login : With_Login_Setup
@@ -139,4 +152,69 @@ namespace Payment_Processing.Specs
         private static Account loggedInAccount;
     }
 
+    public class When_Logging_Out_Of_An_Account : With_Login_Setup
+    {
+        Establish context = () =>
+        {
+            accountRepoMock.Setup(a => a.GetByUsernameAsync(username)).ReturnsAsync(account);
+            accountRepoMock.Setup(a => a.UpdateAsync(account));
+            loginService = new LoginService(accountRepoMock.Object);
+        };
+
+        Because of = () => loggedOut = loginService.LogOutAsync(username).GetAwaiter().GetResult();
+
+        It Should_Return_True = () => loggedOut.ShouldBeTrue();
+
+        It Should_Get_Account_From_Repo = () => accountRepoMock.Verify(a => a.GetByUsernameAsync(username), Times.Once());
+
+        It Should_Remove_Token_From_Account = () => account.Token.ShouldEqual(Guid.Empty.ToString());
+
+        It Should_Remove_TokenSalt_From_Account = () => account.TokenSalt.ShouldEqual(new byte[64]);
+
+        It Should_Update_AccountRepo_With_LoggedOut_Account = () => accountRepoMock.Verify(a => a.UpdateAsync(Moq.It.IsAny<Account>()), Times.Once());
+
+        private static ILoginService loginService;
+        private static bool loggedOut;
+    }
+
+    public class When_Validating_Admin_Permissions : With_Login_Setup
+    {
+        Establish context = () =>
+        {
+            accountRepoMock.Setup(a => a.GetByUsernameAsync(username)).ReturnsAsync(account);
+            loginService = new LoginService(accountRepoMock.Object);
+            account.Permissions.Where(p => p.Type == PermissionType.Admin).FirstOrDefault().Token = loginService.MakeHash(PermissionType.Admin.ToString(), out var salt);
+            account.Permissions.Where(p => p.Type == PermissionType.Admin).FirstOrDefault().TokenSalt = salt;
+        };
+
+        Because of = () => isValid = loginService.ValidatePermissionsAsync(account,PermissionType.Admin).GetAwaiter().GetResult();
+
+        It Should_Get_Account_From_Repo = () => accountRepoMock.Verify(r => r.GetByUsernameAsync(Moq.It.IsAny<string>()), Times.Once());
+
+        It Should_Return_True = () => isValid.ShouldEqual(true);
+
+        private static ILoginService loginService;
+        private static string adminHash;
+        private static bool isValid;
+    }
+
+    public class When_Validating_User_Permissions : With_Login_Setup
+    {
+        Establish context = () =>
+        {
+            accountRepoMock.Setup(a => a.GetByUsernameAsync(username)).ReturnsAsync(account);
+            loginService = new LoginService(accountRepoMock.Object);
+            account.Permissions.Where(p => p.Type == PermissionType.User).FirstOrDefault().Token = loginService.MakeHash(PermissionType.User.ToString(), out var salt);
+            account.Permissions.Where(p => p.Type == PermissionType.User).FirstOrDefault().TokenSalt = salt;
+        };
+
+        Because of = () => isValid = loginService.ValidatePermissionsAsync(account, PermissionType.User).GetAwaiter().GetResult();
+
+        It Should_Get_Account_From_Repo = () => accountRepoMock.Verify(r => r.GetByUsernameAsync(Moq.It.IsAny<string>()), Times.Once());
+
+        It Should_Return_True = () => isValid.ShouldEqual(true);
+
+        private static ILoginService loginService;
+        private static bool isValid;
+    }
 }

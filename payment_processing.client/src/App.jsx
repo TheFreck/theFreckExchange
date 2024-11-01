@@ -14,8 +14,7 @@ const viewEnum = {
     storeFront: 3
 };
 
-const login = (e) => {
-    e.preventDefault();
+const login = (userName,password) => {
     const cleanEmail = email.replace("@", "%40");
     accountApi.get(`email/${cleanEmail}`)
         .then(yup => {

@@ -23,6 +23,7 @@ namespace Payment_Processing.Server.DTO
         public string Email { get; set; }
         public double Balance { get; set; }
         public DateTime DateOpened { get; set; }
+        public List<AccountPermissions> Permissions { get; set; }
 
         /// <summary>
         /// a token that is created when an account is checked out and destroyed when it is checked back in 
@@ -32,7 +33,7 @@ namespace Payment_Processing.Server.DTO
         public byte[] TokenSalt;
 
 
-        public Account(string name, string username, string password, string email)
+        public Account(string name, string username, string password, string email, List<AccountPermissions> permissions)
         {
             Username = username;
            
@@ -41,6 +42,7 @@ namespace Payment_Processing.Server.DTO
             Name = name;
             AccountId = Guid.NewGuid().ToString();
             Token = Guid.Empty.ToString();
+            Permissions = permissions;
         }
 
         public Account() 
@@ -50,5 +52,17 @@ namespace Payment_Processing.Server.DTO
             Name = "NullName";
             AccountId = Guid.Empty.ToString();
         }
+    }
+
+    public class AccountPermissions
+    {
+        public PermissionType Type { get; set; }
+        public string Token { set; get; }
+        public byte[] TokenSalt { get; set; }
+    }
+
+    public enum PermissionType
+    {
+        Admin,User
     }
 }
