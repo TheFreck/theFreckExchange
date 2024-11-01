@@ -37,12 +37,12 @@ namespace Payment_Processing.Server.Controllers
             return await accountService.GetByAccountIdAsync(accountId);
         }
 
-        [HttpPost("createAccount/{name}/{email}/{balance}")]
-        public async Task<IActionResult> CreateAccount(string name, string email, double balance)
+        [HttpPost("createAccount/{name}/{email}")]
+        public async Task<IActionResult> CreateAccount(string name, string email, string username, string password)
         {
             try
             {
-                var account = await accountService.CreateAccountAsync(name, email,balance);
+                var account = await accountService.CreateAccountAsync(name, email,username,password);
                 return Created("account",account);
             }
             catch (Exception)

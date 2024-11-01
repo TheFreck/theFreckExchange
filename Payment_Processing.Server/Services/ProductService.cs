@@ -147,9 +147,9 @@ namespace Payment_Processing.Server.Services
             return product;
         }
 
-        public async Task<Item> PurchaseItem(string email, Item item)
+        public async Task<Item> PurchaseItem(string username, Item item)
         {
-            var account = await accountRepo.GetByEmailAsync(email);
+            var account = await accountRepo.GetByEmailAsync(username);
             var items = new List<Item>();
             for(var i=0; i<item.Attributes.Count; i++)
             {

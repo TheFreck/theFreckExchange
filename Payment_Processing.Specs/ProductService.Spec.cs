@@ -1,4 +1,5 @@
 ﻿using Machine.Specifications;
+using Microsoft.Cci;
 using Moq;
 using Payment_Processing.Server.DTO;
 using Payment_Processing.Server.Repos;
@@ -24,6 +25,16 @@ namespace Payment_Processing.Specs
             productRepoMock = new Mock<IProductRepo>();
             itemRepoMock = new Mock<IItemRepo>();
             accountRepoMock = new Mock<IAccountRepo>();
+            account1Id = Guid.NewGuid().ToString();
+            account2Id = Guid.NewGuid().ToString();
+            name1 = "Carl";
+            name2 = "Jane";
+            email1 = "carl@email.com";
+            email2 = "jane@email.com";
+            password1 = "password1";
+            password2 = "password2";
+            account1 = new Account(name1, email1, password1, email1);
+            account2 = new Account(name2, email2, password2, email2);
             product1Id = Guid.NewGuid().ToString();
             product2Id = Guid.NewGuid().ToString();
             product1Name = "hat";
@@ -32,14 +43,22 @@ namespace Payment_Processing.Specs
             product2Desc = "it is worn on your torso";
             product1Price = 25.75;
             product2Price = 74.99;
-            
-
         };
 
 
         protected static Mock<IProductRepo> productRepoMock;
         protected static Mock<IItemRepo> itemRepoMock;
         protected static Mock<IAccountRepo> accountRepoMock;
+        protected static string account1Id;
+        protected static string account2Id;
+        protected static string name1;
+        protected static string name2;
+        protected static string email1;
+        protected static string email2;
+        protected static string password1;
+        protected static string password2;
+        protected static Account account1;
+        protected static Account account2;
         protected static string product1Id;
         protected static string product2Id;
         protected static string product1Name;
@@ -896,8 +915,8 @@ namespace Payment_Processing.Specs
         {
             var expectations = attributes.GroupBy(attribute => attribute.Type, attribute => attribute.Value, (type, value) =>
             new {
-                Type = type,
-                Value = value,
+                Type = type.ToString(),
+                Value = value.ToHashSet(),
             }).ToList();
             for(var i=0; i< expectations.Count(); i++)
             {
@@ -1207,16 +1226,6 @@ namespace Payment_Processing.Specs
     {
         Establish context = () =>
         {
-            email = "carl@email.com";
-            name = "Carl";
-            accountId = Guid.NewGuid().ToString();
-            account = new Account
-            {
-                Name = name,
-                AccountId = accountId,
-                Balance = 0,
-                Email = email,
-            };
             colors = new List<string>
             {
                 "Red","Green","Black"
@@ -1288,13 +1297,13 @@ namespace Payment_Processing.Specs
                 ProductDescription = product1Desc,
                 ProductId = product1Id,
             });
-            accountRepoMock.Setup(a => a.GetByEmailAsync(Moq.It.IsAny<string>())).ReturnsAsync(account);
+            accountRepoMock.Setup(a => a.GetByEmailAsync(Moq.It.IsAny<string>())).ReturnsAsync(account1);
             itemRepoMock.Setup(i => i.GetByAttributeAsync(product1Name,Moq.It.IsAny<AttributeType>(), Moq.It.IsAny<string>())).ReturnsAsync(hats);
             productService = new ProductService(productRepoMock.Object, itemRepoMock.Object, accountRepoMock.Object);
             items = new List<Item>();
         };
 
-        Because of = () => item = productService.PurchaseItem(email,hats[0]).GetAwaiter().GetResult();
+        Because of = () => item = productService.PurchaseItem(account1.Username,hats[0]).GetAwaiter().GetResult();
 
         It Should_Return_Item_To_Purchase = () =>
         {
@@ -1313,7 +1322,7 @@ namespace Payment_Processing.Specs
             itemRepoMock.Verify(r => r.DeleteItemAsync(Moq.It.IsAny<Item>()), Times.Once);
         };
 
-        It Should_Get_The_Account_From_Repo = () => accountRepoMock.Verify(a => a.GetByEmailAsync(email), Times.Once);
+        It Should_Get_The_Account_From_Repo = () => accountRepoMock.Verify(a => a.GetByEmailAsync(account1.Email), Times.Once);
 
         It Should_Add_The_Price_To_Account_Balance = () =>
         {
@@ -1329,9 +1338,5 @@ namespace Payment_Processing.Specs
         private static ProductService productService;
         private static List<Item> items;
         private static Item item;
-        private static string email;
-        private static string name;
-        private static string accountId;
-        private static Account account;
     }
 }

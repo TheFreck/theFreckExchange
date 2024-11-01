@@ -11,6 +11,7 @@ namespace Payment_Processing.Server.Repos
         Task<Account> GetByEmailAsync(string email);
         Task<IEnumerable<Account>> GetAllAccountsAsync();
         Task CreateAsync(Account account);
+        Task<Account> GetByUsernameAsync(string username);
     }
 
     public class AccountRepo : IAccountRepo
@@ -41,13 +42,18 @@ namespace Payment_Processing.Server.Repos
 
         public async Task<Account> GetByEmailAsync(string email)
         {
-            return accountsCollection.FindAsync<Account>(a => a.Email == email).Result.FirstOrDefault();
+            return (await accountsCollection.FindAsync<Account>(a => a.Email == email)).FirstOrDefault();
         }
 
         public async Task<IEnumerable<Account>> GetAllAccountsAsync()
         {
             var accounts = accountsCollection.AsQueryable();
             return accounts;
+        }
+
+        public async Task<Account> GetByUsernameAsync(string username)
+        {
+            return (await accountsCollection.FindAsync(a => a.Username == username)).FirstOrDefault();
         }
     }
 }

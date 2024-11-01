@@ -1,0 +1,142 @@
+﻿using Machine.Specifications;
+using Microsoft.AspNetCore.Identity.Data;
+using Moq;
+using Payment_Processing.Server.DTO;
+using Payment_Processing.Server.Services;
+using Payment_Processing.Server.Repos;
+using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Text;
+using System.Threading.Tasks;
+using It = Machine.Specifications.It;
+
+namespace Payment_Processing.Specs
+{
+    public class With_Login_Setup
+    {
+        Establish context = () =>
+        {
+            loginServiceMock = new Mock<ILoginService>();
+            accountRepoMock = new Mock<IAccountRepo>();
+            account1Id = "account1Id";
+            accountId = Guid.NewGuid().ToString();
+            name = "name";
+            username = "username1@username.com";
+            password = "password";
+            account = new Account(name, username, password, username);
+        };
+
+        protected static Mock<ILoginService> loginServiceMock;
+        protected static Mock<IAccountRepo> accountRepoMock;
+        protected static string account1Id;
+        protected static string accountId;
+        protected static string name;
+        protected static string username;
+        protected static string password;
+        protected static Account account;
+    }
+    public class When_Creating_New_Login : With_Login_Setup
+    {
+        Establish context = () =>
+        { 
+            accountRepoMock.Setup(r => r.GetByUsernameAsync(username)).ReturnsAsync(account);
+            outSalt = Encoding.ASCII.GetBytes("GotOut");
+            loginService = new LoginService(accountRepoMock.Object);
+            password = "password";
+        };
+
+        Because of = () => outcome = loginService.CreateLogin(password);
+
+        It Should_Return_Fresh_Hash = () => outcome.hash.ShouldNotBeNull();
+        It Should_Return_Salt = () => outcome.salt.ShouldNotBeNull();
+
+        private static string accountId;
+        private static string name;
+        private static string username;
+        private static string password;
+        private static Account account;
+        private static ILoginService loginService;
+        private static LoginRequest loginRequenst;
+        private static (string hash, byte[] salt) outcome;
+        private static byte[] outSalt;
+        private static byte[] mockOut;
+    }
+
+    public class When_Verifying_A_Hash : With_Login_Setup
+    {
+        Establish context = () =>
+        {
+            loginService = new LoginService(accountRepoMock.Object);
+            hash = loginService.MakeHash(password,out salt);
+        };
+
+        Because of = () => hashBack = loginService.VerifyHash(password, hash, salt);
+
+        It Should_Return_The_Same_Hash = () => hashBack.ShouldBeTrue();
+
+        private static string hash;
+        private static bool hashBack;
+        private static byte[] salt;
+        private static ILoginService loginService;
+    }
+
+    public class When_Logging_Into_An_Account_With_Correct_Password : With_Login_Setup
+    {
+        Establish context = () =>
+        {
+            accountRepoMock.Setup(a => a.GetByUsernameAsync(username)).ReturnsAsync(account);
+            loginService = new LoginService(accountRepoMock.Object);
+            account.Password = loginService.MakeHash(password, out var salt);
+            account.PasswordSalt = salt;
+        };
+
+        Because of = () => loggedInAccount = loginService.LoginAsync(username, password).GetAwaiter().GetResult();
+
+        It Should_Return_Correct_Account = () =>
+        {
+            loggedInAccount.Name.ShouldEqual(account.Name);
+            loggedInAccount.Username.ShouldEqual(account.Username);
+            loggedInAccount.Email.ShouldEqual(account.Email);
+        };
+
+        It Should_Get_Account_From_Repo = () => accountRepoMock.Verify(a => a.GetByUsernameAsync(username), Times.Once());
+
+        It Should_Add_A_Token_To_The_Account = () => loggedInAccount.Token.ShouldNotEqual(Guid.Empty.ToString());
+
+        It Should_Persist_The_Account_With_Token = () => accountRepoMock.Verify(a => a.UpdateAsync(Moq.It.IsAny<Account>()), Times.Once());
+
+        private static ILoginService loginService;
+        private static Account loggedInAccount;
+    }
+
+    public class When_Logging_Into_An_Account_With_Incorrect_Password : With_Login_Setup
+    {
+        Establish context = () =>
+        {
+            accountRepoMock.Setup(a => a.GetByUsernameAsync(username)).ReturnsAsync(account);
+            loginService = new LoginService(accountRepoMock.Object);
+            account.Password = loginService.MakeHash(password, out var salt);
+            account.PasswordSalt = salt;
+        };
+
+        Because of = () => loggedInAccount = loginService.LoginAsync(username, "parseword").GetAwaiter().GetResult();
+
+        It Should_Return_Correct_Account = () =>
+        {
+            loggedInAccount.Username.ShouldEqual("NullAccount");
+            loggedInAccount.Name.ShouldEqual("NullName");
+            loggedInAccount.Email.ShouldEqual("null@null.null");
+        };
+
+        It Should_Get_Account_From_Repo = () => accountRepoMock.Verify(a => a.GetByUsernameAsync(username), Times.Once());
+
+        It Should_Not_Add_A_Token_To_The_Account = () => loggedInAccount.Token.ShouldEqual(Guid.Empty.ToString());
+
+        It Should_Not_Persist_The_Account_With_Token = () => accountRepoMock.VerifyNoOtherCalls();
+
+        private static ILoginService loginService;
+        private static Account loggedInAccount;
+    }
+
+}

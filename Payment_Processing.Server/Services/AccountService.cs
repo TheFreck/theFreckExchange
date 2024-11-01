@@ -8,9 +8,10 @@ namespace Payment_Processing.Server.Services
 {
     public interface IAccountService
     {
-        Task<Account> CreateAccountAsync(string name, string email, double balance);
+        Task<Account> CreateAccountAsync(string name, string email, string username, string password);
         Task<Account> GetByAccountIdAsync(string guid);
         Task<Account> GetByEmailAsync(string email);
+        Task<Account> GetByUsernameAsync(string username);
         Task<Account> AddToBalanceAsync(string acctId, double balanceIncrease);
         Task<Account> MakePaymentAsync(string accountId, double payment);
         Task<IEnumerable<Account>> GetAllAccountsAsync();
@@ -19,37 +20,29 @@ namespace Payment_Processing.Server.Services
     public class AccountService : IAccountService
     {
         private readonly IAccountRepo accountRepo;
+        private readonly ILoginService loginService;
 
-        public AccountService(IAccountRepo accountRepo)
+        public AccountService(IAccountRepo accountRepo, ILoginService loginService)
         {
             this.accountRepo = accountRepo;
+            this.loginService = loginService;
         }
 
-        public async Task<Account> AddToBalanceAsync(string acctId, double balanceIncrease)
+        public async Task<Account> AddToBalanceAsync(string username, double balanceIncrease)
         {
-            var acct = await accountRepo.GetByAccountIdAsync(acctId);
+            var acct = await accountRepo.GetByUsernameAsync(username);
             acct.Balance += balanceIncrease;
-            accountRepo.UpdateAsync(acct);
-            return new Account
-            {
-                AccountId = acct.AccountId,
-                Name = acct.Name,
-                Email = acct.Email,
-                Balance = acct.Balance,
-                DateOpened = acct.DateOpened
-            };
+            await accountRepo.UpdateAsync(acct);
+            return acct;
         }
 
-        public async Task<Account> CreateAccountAsync(string name, string email, double balance)
+        public async Task<Account> CreateAccountAsync(string name, string email, string username, string password)
         {
-            var account = new Account
-            {
-                AccountId = Guid.NewGuid().ToString(),
-                Name = name,
-                Email = email,
-                Balance = balance,
-                DateOpened = DateTime.Now,
-            };
+            var account = new Account(name, username, password, email);
+
+            var (passwordHash,passwordSalt) = loginService.CreateLogin(password);
+            account.Password = passwordHash;
+            account.PasswordSalt = passwordSalt;
 
             await accountRepo.CreateAsync(account);
 
@@ -67,22 +60,11 @@ namespace Payment_Processing.Server.Services
             return account;
         }
 
+
+
         public async Task<IEnumerable<Account>> GetAllAccountsAsync()
         {
-            var accountEntities = await accountRepo.GetAllAccountsAsync();
-            var accounts = new List<Account>();
-            foreach(var account in accountEntities)
-            {
-                accounts.Add(new Account
-                {
-                    AccountId = account.AccountId,
-                    Name = account.Name,
-                    Email = account.Email,
-                    Balance = account.Balance,
-                    DateOpened = account.DateOpened
-                });
-            }
-            return accounts;
+            return await accountRepo.GetAllAccountsAsync();
         }
 
         public async Task<Account> MakePaymentAsync(string email, double payment)
@@ -91,6 +73,17 @@ namespace Payment_Processing.Server.Services
             account.Balance -= payment;
             await accountRepo.UpdateAsync(account);
             return account;
+        }
+
+        public async Task<Account> GetByUsernameAsync(string username)
+        {
+            return await accountRepo.GetByUsernameAsync(username);
+        }
+
+        public async Task<Account> LoginAsync(string username, string password)
+        {
+
+            throw new NotImplementedException();
         }
     }
 }
