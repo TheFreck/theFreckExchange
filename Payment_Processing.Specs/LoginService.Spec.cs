@@ -27,14 +27,8 @@ namespace Payment_Processing.Specs
             password = "password";
             permissions = new List<AccountPermissions>
             {
-                new AccountPermissions
-                {
-                    Type = PermissionType.Admin,
-                },
-                new AccountPermissions
-                {
-                    Type = PermissionType.User,
-                }
+                new AccountPermissions(PermissionType.Admin),
+                new AccountPermissions(PermissionType.User)
             };
             account = new Account(name, username, password, username, permissions);
         };

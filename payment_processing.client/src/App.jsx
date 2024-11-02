@@ -1,11 +1,10 @@
-import { useEffect, useState } from 'react';
+import { useCallback, useEffect, useState } from 'react';
+import axios from 'axios';
 import './App.css';
-import AccountView from './AccountView';
-import ProductView from './ProductView';
-import StoreFront from './StoreFront';
-import AccountContext from './Context';
-import ProductViewV2 from './ProductViewV2';
+import {AccountContext, ProductContext} from './Context';
 import Welcome from './Views/Welcome';
+import Login from './Views/Login';
+import { Button } from '@mui/material';
 
 const viewEnum = {
     home: 0,
@@ -14,53 +13,51 @@ const viewEnum = {
     storeFront: 3
 };
 
-const login = (userName,password) => {
-    const cleanEmail = email.replace("@", "%40");
-    accountApi.get(`email/${cleanEmail}`)
-        .then(yup => {
-            setUserAcct(yup.data)
-        })
-        .catch(nope => console.error(nope));
-}
 
 function App() {
     const [view, setView] = useState(viewEnum.home);
     const [userAcct, setUserAcct] = useState({});
+    
+    const accountApi = axios.create({
+        baseURL: `https://localhost:7299/Account`
+    });
 
-    return <Welcome />
-    // return (
-    // <AccountContext.Provider 
-    //     value={[
-    //         view,
-    //         setView,
-    //         userAcct,
-    //         setUserAcct,
-    //         viewEnum,
-    //         login
-    //     ]}
-    // >
-    //     <div>
-    //         <button id="home" onClick={() => setView(viewEnum.home)} >Home</button>
-    //         {view === viewEnum.home &&
-    //             <div>
-    //                 <h1>Welcome</h1>
-    //                 <h3>Would you like to access Accounts or Products?</h3>
-    //                 <button id="account" onClick={() => setView(viewEnum.account)}>Account</button>
-    //                 <button id="product" onClick={() => setView(viewEnum.product)}>Product</button>
-    //                 <button id="store" onClick={() => setView(viewEnum.storeFront)}>Store</button>
-    //             </div>
-    //         }
-    //         {view === viewEnum.account &&
-    //             <AccountView userAcct={userAcct} setUserAcct={setUserAcct} />
-    //         }
-    //         {view === viewEnum.product &&
-    //             <ProductViewV2 />
-    //         }
-    //         {view === viewEnum.storeFront &&
-    //             <StoreFront userAcct={userAcct} setUserAcct={setUserAcct} />
-    //         }
-    //     </div>
-    // </AccountContext.Provider>);
+    const login = (userName,password) => {
+        accountApi.post(`login/`,{
+            email: userName.replace("@", "%40"),
+            password: password
+        })
+        .then(yup => {
+            setUserAcct(yup.data);
+            localStorage.setItem("loginToken",yup.data.token);
+            let admin = yup.data.permissions.find(p => p.type === 0);
+            if(admin !== undefined){
+                localStorage.setItem("permissions.admin",admin.token);
+            }
+            let user =  yup.data.permissions.find(p => p.type === 1);
+            if(user !== undefined){
+                localStorage.setItem("permissions.user",user.token);
+            }
+        })
+        .catch(nope => console.error(nope));
+    }
+
+    const logout = () => {
+        accountApi.post(`logout/${userAcct.username}`)
+        .then(yup => {
+            setUserAcct({});
+            setView(viewEnum.home);
+            localStorage.clear();
+        })
+        .catch(nope => console.error(nope));
+    }
+
+    const AppCallback = useCallback(() => <AccountContext.Provider value={[login,userAcct]}>
+        {localStorage.getItem("loginToken") !== null && <Button onClick={logout} >Logout</Button>}
+        {localStorage.getItem("loginToken") === null && <Login />}
+        {localStorage.getItem("loginToken") !== null && <Welcome />}
+    </AccountContext.Provider>,[userAcct,view]);
+    return <AppCallback />
 }
 
 export default App;

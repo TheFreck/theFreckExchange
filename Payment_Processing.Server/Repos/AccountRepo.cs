@@ -53,7 +53,8 @@ namespace Payment_Processing.Server.Repos
 
         public async Task<Account> GetByUsernameAsync(string username)
         {
-            return (await accountsCollection.FindAsync(a => a.Username == username)).FirstOrDefault();
+            var retrieved = (await accountsCollection.FindAsync(a => a.Username == username)).FirstOrDefault();
+            return retrieved;
         }
     }
 }

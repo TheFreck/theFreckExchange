@@ -36,24 +36,12 @@ namespace Payment_Processing.Specs
             password2 = "password2";
             permission1 = new List<AccountPermissions>
             {
-                new AccountPermissions
-                {
-                    Type = PermissionType.Admin,
-                    Token = "adminToken1"
-                },
-                new AccountPermissions
-                {
-                    Type = PermissionType.User,
-                    Token = "userToken1"
-                }
+                new AccountPermissions(PermissionType.Admin),
+                new AccountPermissions(PermissionType.User)
             };
             permission2 = new List<AccountPermissions>
             {
-                new AccountPermissions
-                {
-                    Type = PermissionType.User,
-                    Token = "userToken1"
-                }
+                new AccountPermissions(PermissionType.User)
             };
             account1 = new Account(name1, email1, password1, email1, permission1);
             account2 = new Account(name2, email2, password2, email2, permission2);

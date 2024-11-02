@@ -34,18 +34,18 @@ namespace Payment_Processing.Server.Controllers
             return account;
         }
 
-        [HttpGet("{accountId}")]
-        public async Task<Account> GetAccount(string accountId)
+        [HttpGet("{username}")]
+        public async Task<Account> GetAccount(string username)
         {
-            return await accountService.GetByAccountIdAsync(accountId);
+            return await accountService.GetByUsernameAsync(username);
         }
 
         [HttpPost("createAccount/{name}/{email}")]
-        public async Task<IActionResult> CreateAccount(string name, string email, string username, string password, List<AccountPermissions> permissions)
+        public async Task<IActionResult> CreateAccount(string name, string email, NewAccountRequest request)
         {
             try
             {
-                var account = await accountService.CreateAccountAsync(name, email,username,password, permissions);
+                var account = await accountService.CreateAccountAsync(name, email,request.Username,request.Password, request.Permissions);
                 return Created("account",account);
             }
             catch (Exception)
@@ -53,6 +53,13 @@ namespace Payment_Processing.Server.Controllers
 
                 throw;
             }
+        }
+
+        public class NewAccountRequest
+        {
+            public string Username { get; set; }
+            public string Password { get; set; }
+            public List<AccountPermissions> Permissions { get; set; }
         }
 
         [HttpPut("make_payment/{email}/{pmt}")]

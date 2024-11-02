@@ -1,7 +1,7 @@
 import react, { useCallback, useContext, useEffect, useState } from "react";
 import axios from 'axios';
 import NewProduct from "./NewProduct";
-import { AccountContext, ProductContext } from "./Context";
+import { AccountContext, ProductContext } from "../Context";
 
 const productVeiwEnum = {
     home: 0,

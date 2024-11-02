@@ -51,7 +51,7 @@ namespace Payment_Processing.Server.Controllers
         /// </summary>
         /// <param name="input"></param>
         /// <returns></returns>
-        [HttpPost("create")]
+        [HttpPost("create/{username}")]
         public async Task<Product> CreateProduct(ProductDTO input, string username)
         {
             var product = await productService.CreateProductAsync(username, input.Name, input.Description, input.Price);

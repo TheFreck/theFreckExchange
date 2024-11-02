@@ -26,21 +26,12 @@ namespace Payment_Processing.Specs
             password2 = "password2";
             permissions1 = new List<AccountPermissions>
             {
-                new AccountPermissions
-                {
-                    Type = PermissionType.Admin,
-                },
-                new AccountPermissions
-                {
-                    Type= PermissionType.User,
-                }
+                new AccountPermissions(PermissionType.Admin),
+                new AccountPermissions(PermissionType.User)
             };
             permissions2 = new List<AccountPermissions>
             {
-                new AccountPermissions
-                {
-                    Type = PermissionType.User,
-                }
+                new AccountPermissions(PermissionType.User)
             };
             permissions = new List<List<AccountPermissions>>
             {

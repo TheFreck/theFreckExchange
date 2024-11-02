@@ -57,8 +57,13 @@ namespace Payment_Processing.Server.DTO
     public class AccountPermissions
     {
         public PermissionType Type { get; set; }
-        public string Token { set; get; }
-        public byte[] TokenSalt { get; set; }
+        public string Token { set; get; } = string.Empty;
+        public byte[] TokenSalt { get; set; } = new byte[64];
+
+        public AccountPermissions(PermissionType Type)
+        {
+            this.Type = Type;
+        }
     }
 
     public enum PermissionType
