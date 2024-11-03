@@ -109,7 +109,7 @@ namespace Payment_Processing.Specs
 
         It Should_Get_Account_From_Repo = () => accountRepoMock.Verify(a => a.GetByUsernameAsync(username), Times.Once());
 
-        It Should_Add_A_Token_To_The_Account = () => loggedInAccount.Token.ShouldNotEqual(Guid.Empty.ToString());
+        It Should_Add_A_Token_To_The_Account = () => loggedInAccount.LoginToken.ShouldNotEqual(Guid.Empty.ToString());
 
         It Should_Persist_The_Account_With_Token = () => accountRepoMock.Verify(a => a.UpdateAsync(Moq.It.IsAny<Account>()), Times.Once());
 
@@ -138,7 +138,7 @@ namespace Payment_Processing.Specs
 
         It Should_Get_Account_From_Repo = () => accountRepoMock.Verify(a => a.GetByUsernameAsync(username), Times.Once());
 
-        It Should_Not_Add_A_Token_To_The_Account = () => loggedInAccount.Token.ShouldEqual(Guid.Empty.ToString());
+        It Should_Not_Add_A_Token_To_The_Account = () => loggedInAccount.LoginToken.ShouldEqual(Guid.Empty.ToString());
 
         It Should_Not_Persist_The_Account_With_Token = () => accountRepoMock.VerifyNoOtherCalls();
 
@@ -161,7 +161,7 @@ namespace Payment_Processing.Specs
 
         It Should_Get_Account_From_Repo = () => accountRepoMock.Verify(a => a.GetByUsernameAsync(username), Times.Once());
 
-        It Should_Remove_Token_From_Account = () => account.Token.ShouldEqual(Guid.Empty.ToString());
+        It Should_Remove_Token_From_Account = () => account.LoginToken.ShouldEqual(Guid.Empty.ToString());
 
         It Should_Remove_TokenSalt_From_Account = () => account.TokenSalt.ShouldEqual(new byte[64]);
 
@@ -181,7 +181,7 @@ namespace Payment_Processing.Specs
             account.Permissions.Where(p => p.Type == PermissionType.Admin).FirstOrDefault().TokenSalt = salt;
         };
 
-        Because of = () => isValid = loginService.ValidatePermissionsAsync(account,PermissionType.Admin).GetAwaiter().GetResult();
+        Because of = () => isValid = loginService.ValidatePermissionsAsync(account,PermissionType.Admin, account.Permissions.Where(p => p.Type == PermissionType.Admin).FirstOrDefault().Token).GetAwaiter().GetResult();
 
         It Should_Get_Account_From_Repo = () => accountRepoMock.Verify(r => r.GetByUsernameAsync(Moq.It.IsAny<string>()), Times.Once());
 
@@ -202,7 +202,7 @@ namespace Payment_Processing.Specs
             account.Permissions.Where(p => p.Type == PermissionType.User).FirstOrDefault().TokenSalt = salt;
         };
 
-        Because of = () => isValid = loginService.ValidatePermissionsAsync(account, PermissionType.User).GetAwaiter().GetResult();
+        Because of = () => isValid = loginService.ValidatePermissionsAsync(account, PermissionType.User, account.Permissions.Where(p => p.Type == PermissionType.User).FirstOrDefault().Token).GetAwaiter().GetResult();
 
         It Should_Get_Account_From_Repo = () => accountRepoMock.Verify(r => r.GetByUsernameAsync(Moq.It.IsAny<string>()), Times.Once());
 

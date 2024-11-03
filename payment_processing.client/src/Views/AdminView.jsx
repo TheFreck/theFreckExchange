@@ -1,9 +1,9 @@
-import react, { useState } from "react";
-import { Accordion, AccordionDetails, AccordionSummary, Icon, Typography } from "@mui/material";
+import react, { useContext, useEffect, useState } from "react";
+import { Accordion, AccordionDetails, AccordionSummary, Typography } from "@mui/material";
 import { ExpandMore } from "@mui/icons-material";
 import CreateProduct from "./CreateProduct";
 import CreateItems from "./CreateItems";
-import ProductView from "./ProductView";
+import { ProductContext } from "../Context";
 
 const accordionEnum = {
     none: 0,
@@ -13,13 +13,36 @@ const accordionEnum = {
 }
 
 export const AdminView = () => {
+    const {getProductsAsync} = useContext(ProductContext);
     const [accordionView,setAccordionView] = useState(accordionEnum.none);
+    const [products,setProducts] = useState(new Set());
+    const [ready,setReady] = useState(false);
+
+    useEffect(() => {
+        console.log("Prod context: ", ProductContext);
+        getProductsAsync(prods => {
+            setProducts(prods);
+            setReady(true);
+        })
+    },[]);
+
+    useEffect(() => {
+        console.log("admin products: ", products);
+    },[products]);
 
     return <>
-        <div>Admin View</div>
+        <Typography
+            variant="h4"
+            sx={{":hover": {
+                cursor: "pointer"
+            }}}
+            onClick={() => setAccordionView(accordionEnum.none)}
+        >
+            Admin View
+        </Typography>
         <Accordion
             expanded={accordionView === accordionEnum.createProduct}
-            onClick={() => setAccordionView(accordionView !== accordionEnum.createProduct ? accordionEnum.createProduct : accordionEnum.none)}
+            onClick={() => setAccordionView(accordionEnum.createProduct)}
         >
             <AccordionSummary
                 expandIcon={<ExpandMore />}
@@ -32,34 +55,38 @@ export const AdminView = () => {
                 <CreateProduct />
             </AccordionDetails>
         </Accordion>
+        {console.log("admin products: ", products)}
+        {
+            products.size &&
         <Accordion
             expanded={accordionView === accordionEnum.createItems}
-            onClick={() => setAccordionView(accordionView !== accordionEnum.createItems ? accordionEnum.createItems : accordionEnum.none)}
+            onClick={() => setAccordionView(accordionEnum.createItems)}
         >
             <AccordionSummary
                 expandIcon={<ExpandMore/>}
                 aria-controls="createItems-content"
                 id="createItemsAccordion"
             >
-                <Typography className="createItemsTypography">Create Items</Typography>   
+                <Typography >Create Items</Typography>   
             </AccordionSummary>
             <AccordionDetails>
                 <CreateItems />
             </AccordionDetails>
         </Accordion>
+                }
         <Accordion
             expanded={accordionView === accordionEnum.modifyProducts}
-            onClick={() => setAccordionView(accordionView !== accordionEnum.modifyProducts ? accordionEnum.modifyProducts : accordionEnum.none)}
+            onClick={() => setAccordionView(accordionEnum.modifyProducts)}
         >
             <AccordionSummary
             expandIcon={<ExpandMore/>}
             aria-controls="modifyProducts-content"
             id="modifyProductsAccordion"
         >
-            <Typography className="modifyProductsTypography">Modify Products</Typography>
+            <Typography >Modify Products</Typography>
         </AccordionSummary>
         <AccordionDetails>
-            <ProductView />
+            <div>Place Holder</div> 
         </AccordionDetails>
         </Accordion>
     </>

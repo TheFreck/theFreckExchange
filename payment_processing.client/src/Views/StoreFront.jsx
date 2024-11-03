@@ -18,17 +18,6 @@ export const StoreFront = ({userAcct,setUserAcct}) => {
         baseURL: `https://localhost:7299/Account`
     });
 
-
-    const login = (e) => {
-        e.preventDefault();
-        const cleanEmail = email.replace("@", "%40");
-        accountApi.get(`email/${cleanEmail}`)
-            .then(yup => {
-                setUserAcct(yup.data)
-            })
-            .catch(nope => console.error(nope));
-    }
-
     useEffect(() => {
         var prods = [];
         var prodCount = 0;

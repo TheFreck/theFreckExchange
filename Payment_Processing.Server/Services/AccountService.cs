@@ -35,7 +35,7 @@ namespace Payment_Processing.Server.Services
             await accountRepo.UpdateAsync(acct);
             acct.Username = string.Empty;
             acct.Password = string.Empty;
-            acct.Token = string.Empty;
+            acct.LoginToken = string.Empty;
             acct.PasswordSalt = new byte[64];
             acct.TokenSalt = new byte[64];
             return acct;
@@ -57,7 +57,7 @@ namespace Payment_Processing.Server.Services
 
             account.Username = string.Empty;
             account.Password = string.Empty;
-            account.Token = string.Empty;
+            account.LoginToken = string.Empty;
             account.PasswordSalt = new byte[64];
             account.TokenSalt = new byte[64];
             account.Permissions.ForEach(p => p.TokenSalt = new byte[64]);
@@ -70,7 +70,7 @@ namespace Payment_Processing.Server.Services
             var account = await accountRepo.GetByAccountIdAsync(accountId);
             account.Username = string.Empty;
             account.Password = string.Empty;
-            account.Token = string.Empty;
+            account.LoginToken = string.Empty;
             account.PasswordSalt = new byte[64];
             account.TokenSalt = new byte[64];
             return account;
@@ -82,7 +82,7 @@ namespace Payment_Processing.Server.Services
 
             account.Username = string.Empty;
             account.Password = string.Empty;
-            account.Token = string.Empty;
+            account.LoginToken = string.Empty;
             account.PasswordSalt = new byte[64];
             account.TokenSalt = new byte[64];
 
@@ -97,7 +97,7 @@ namespace Payment_Processing.Server.Services
                 a.Username = string.Empty;
                 a.Password = string.Empty;
                 a.PasswordSalt = new byte[64];
-                a.Token = string.Empty;
+                a.LoginToken = string.Empty;
                 a.TokenSalt = new byte[64];
             });
             return accounts;
@@ -110,7 +110,7 @@ namespace Payment_Processing.Server.Services
             await accountRepo.UpdateAsync(account);
             account.Username = string.Empty;
             account.Password = string.Empty;
-            account.Token = string.Empty;
+            account.LoginToken = string.Empty;
             account.PasswordSalt = new byte[64];
             account.TokenSalt = new byte[64];
             return account;
@@ -122,7 +122,7 @@ namespace Payment_Processing.Server.Services
 
             account.Username = string.Empty;
             account.Password = string.Empty;
-            account.Token = string.Empty;
+            account.LoginToken = string.Empty;
             account.PasswordSalt = new byte[64];
             account.TokenSalt = new byte[64];
 

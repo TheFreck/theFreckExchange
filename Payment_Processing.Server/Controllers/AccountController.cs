@@ -84,7 +84,7 @@ namespace Payment_Processing.Server.Controllers
                 && account.Username != "NullAccount" 
                 && account.Email != "null@null.null" 
                 && account.AccountId != Guid.Empty.ToString()
-                && account.Token != Guid.Empty.ToString())
+                && account.LoginToken != Guid.Empty.ToString())
             {
                 return Ok(account);
             }

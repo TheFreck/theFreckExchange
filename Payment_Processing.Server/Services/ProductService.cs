@@ -11,18 +11,18 @@ namespace Payment_Processing.Server.Services
 {
     public interface IProductService
     {
-        Task<Product> CreateProductAsync(string username, string name, string desccription, double price);
+        Task<Item> CreateItemAsync(string productId, Item item, LoginCredentials credentials);
+        Task<IEnumerable<Item>> CreateManyItemsAsync(string productName, int itemQuantity, List<ItemAttribute> attributes, LoginCredentials credentials);
+        Task<Product> CreateProductAsync(string name, string description, double price, LoginCredentials credentials);
         Task<IEnumerable<Product>> GetAllAsync();
+        Task<IEnumerable<GroupedAttributes>> GetAttributesAsync(string productName);
+        Task<IEnumerable<Item>> GetByAttributeAsync(string productName, AttributeType type, string value);
         Task<Product> GetByNameAsync(string name);
-        Task<Product> ModifyDescriptionAsync(string name, string newDescription, string product1NewDesc);
-        Task<Product> ModifyNameAsync(string username, string oldName, string newName);
-        Task<Product> ModifyPriceAsync(string username, string name, double price);
-        Task<IEnumerable<GroupedAttributes>> GetAttributesAsync(string product1Name);
-        Task<IEnumerable<Item>> GetByAttributeAsync(string productId, AttributeType type, string value);
         Task<IEnumerable<Item>> GetItemsAsync(string name);
-        Task<Item> CreateItemAsync(string username, string productId, Item item);
-        Task<IEnumerable<Item>> CreateManyItemsAsync(string username, string productName, int itemQuantity, List<ItemAttribute> attributes);
-        Task<Item> PurchaseItem(string username, string token, Item item);
+        Task<Product> ModifyDescriptionAsync(string productName, string newDescription, LoginCredentials credentials);
+        Task<Product> ModifyNameAsync(string oldName, string newName, LoginCredentials credentials);
+        Task<Product> ModifyPriceAsync(string productName, double price, LoginCredentials credentials);
+        Task<Item> PurchaseItem(Item item, LoginCredentials credentials);
     }
     public class ProductService : IProductService
     {
@@ -38,10 +38,10 @@ namespace Payment_Processing.Server.Services
             this.loginService = loginService;
         }
 
-        public async Task<Item> CreateItemAsync(string username, string productId, Item item)
+        public async Task<Item> CreateItemAsync(string productId, Item item, LoginCredentials credentials)
         {
-            var account = await accountRepo.GetByUsernameAsync(username);
-            if (await loginService.ValidatePermissionsAsync(account, PermissionType.Admin))
+            var account = await accountRepo.GetByUsernameAsync(credentials.Username);
+            if (await loginService.ValidatePermissionsAsync(account, PermissionType.Admin, credentials.AdminToken))
             {
                 var product = await productRepo.GetByProductIdAsync(productId);
                 var newItem = new Item
@@ -59,10 +59,10 @@ namespace Payment_Processing.Server.Services
             return null;
         }
 
-        public async Task<IEnumerable<Item>> CreateManyItemsAsync(string username, string productName, int itemQuantity, List<ItemAttribute> attributes)
+        public async Task<IEnumerable<Item>> CreateManyItemsAsync(string productName, int itemQuantity, List<ItemAttribute> attributes, LoginCredentials credentials)
         {
-            var account = await accountRepo.GetByUsernameAsync(username);
-            if (await loginService.ValidatePermissionsAsync(account, PermissionType.Admin))
+            var account = await accountRepo.GetByUsernameAsync(credentials.Username);
+            if (await loginService.ValidatePermissionsAsync(account, PermissionType.Admin, credentials.AdminToken))
             {
                 var product = await productRepo.GetByNameAsync(productName);
                 var items = new List<Item>();
@@ -85,15 +85,16 @@ namespace Payment_Processing.Server.Services
             return null;
         }
 
-        public async Task<Product> CreateProductAsync(string username, string name, string desccription, double price)
+        public async Task<Product> CreateProductAsync(string name, string description, double price, LoginCredentials credentials)
         {
-            var account = await accountRepo.GetByUsernameAsync(username);
-            if (await loginService.ValidatePermissionsAsync(account, PermissionType.Admin))
+            var account = await accountRepo.GetByUsernameAsync(credentials.Username);
+
+            if (await loginService.ValidatePermissionsAsync(account, PermissionType.Admin, credentials.AdminToken))
             {
                 var product = new Product
                 {
                     Name = name,
-                    ProductDescription = desccription,
+                    ProductDescription = description,
                     ProductId = Guid.NewGuid().ToString(),
                     Price = price
                 };
@@ -141,10 +142,10 @@ namespace Payment_Processing.Server.Services
             return items;
         }
 
-        public async Task<Product> ModifyDescriptionAsync(string username, string productName, string newDescription)
+        public async Task<Product> ModifyDescriptionAsync(string productName, string newDescription, LoginCredentials credentials)
         {
-            var account = await accountRepo.GetByUsernameAsync(username);
-            if (await loginService.ValidatePermissionsAsync(account, PermissionType.Admin))
+            var account = await accountRepo.GetByUsernameAsync(credentials.Username);
+            if (await loginService.ValidatePermissionsAsync(account, PermissionType.Admin, credentials.AdminToken))
             {
                 var product = await productRepo.GetByNameAsync(productName);
                 product.ProductDescription = newDescription;
@@ -154,10 +155,10 @@ namespace Payment_Processing.Server.Services
             return null;
         }
 
-        public async Task<Product> ModifyNameAsync(string username, string oldName, string newName)
+        public async Task<Product> ModifyNameAsync(string oldName, string newName, LoginCredentials credentials)
         {
-            var account = await accountRepo.GetByUsernameAsync(username);
-            if (await loginService.ValidatePermissionsAsync(account, PermissionType.Admin))
+            var account = await accountRepo.GetByUsernameAsync(credentials.Username);
+            if (await loginService.ValidatePermissionsAsync(account, PermissionType.Admin, credentials.AdminToken))
             {
                 var product = await productRepo.GetByNameAsync(oldName);
                 product.Name = newName;
@@ -167,10 +168,10 @@ namespace Payment_Processing.Server.Services
             return null;
         }
 
-        public async Task<Product> ModifyPriceAsync(string username, string productName, double price)
+        public async Task<Product> ModifyPriceAsync(string productName, double price, LoginCredentials credentials)
         {
-            var account = await accountRepo.GetByUsernameAsync(username);
-            if (await loginService.ValidatePermissionsAsync(account, PermissionType.Admin))
+            var account = await accountRepo.GetByUsernameAsync(credentials.Username);
+            if (await loginService.ValidatePermissionsAsync(account, PermissionType.Admin, credentials.AdminToken))
             {
                 var product = await productRepo.GetByNameAsync(productName);
                 product.Price = price;
@@ -180,35 +181,29 @@ namespace Payment_Processing.Server.Services
             return null;
         }
 
-        public async Task<Item> PurchaseItem(string username, string token, Item item)
+        public async Task<Item> PurchaseItem(Item item, LoginCredentials credentials)
         {
-            var account = await accountRepo.GetByUsernameAsync(username);
-
-            if (await loginService.ValidateTokenAsync(username, token))
+            var account = await accountRepo.GetByUsernameAsync(credentials.Username);
+            var loggedIn = await loginService.ValidateTokenAsync(credentials.Username, credentials.LoginToken);
+            var hasPermission = await loginService.ValidatePermissionsAsync(account, PermissionType.User, credentials.UserToken);
+            if (loggedIn && hasPermission)
             {
-                if (await loginService.ValidatePermissionsAsync(account, PermissionType.User))
+                var items = new List<Item>();
+                for (var i = 0; i < item.Attributes.Count; i++)
                 {
-                    var items = new List<Item>();
-                    for (var i = 0; i < item.Attributes.Count; i++)
-                    {
-                        items.AddRange(await itemRepo.GetByAttributeAsync(item.Name, item.Attributes[i].Type, item.Attributes[i].Value));
-                    }
-                    var toBuy = new List<Item>();
-                    for (var i = 0; i < item.Attributes.Count; i++)
-                    {
-                        toBuy.AddRange(items.Where(i => i.Attributes.ContainsAll(item.Attributes)));
-                    }
-                    account.Balance += items[0].Price;
-                    await accountRepo.UpdateAsync(account);
-                    await itemRepo.DeleteItemAsync(items[0]);
-                    return item;
+                    items.AddRange(await itemRepo.GetByAttributeAsync(item.Name, item.Attributes[i].Type, item.Attributes[i].Value));
                 }
-                else return null;
+                var toBuy = new List<Item>();
+                for (var i = 0; i < item.Attributes.Count; i++)
+                {
+                    toBuy.AddRange(items.Where(i => i.Attributes.ContainsAll(item.Attributes)));
+                }
+                account.Balance += items[0].Price;
+                await accountRepo.UpdateAsync(account);
+                await itemRepo.DeleteItemAsync(items[0]);
+                return item;
             }
-            else
-            {
-                return null;
-            }
+            else return null;
         }
     }
 }

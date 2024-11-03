@@ -30,6 +30,7 @@ namespace Payment_Processing.Server.DTO
         public required string Name { get; set; }
         public required double Price { get; set; }
         public required string Description { get; set; }
+        public LoginCredentials Credentials { get; set; }
     }
 
     public class Item : Product
@@ -38,6 +39,7 @@ namespace Payment_Processing.Server.DTO
         [BsonElement("SKU")]
         public required string SKU { get; init; } = Guid.NewGuid().ToString();
         public List<ItemAttribute>? Attributes { get; set; }
+        public LoginCredentials Credentials { get; set; }
     }
 
     public class ItemAttribute

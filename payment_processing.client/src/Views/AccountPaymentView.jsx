@@ -1,6 +1,6 @@
 import react, {useEffect, useState} from "react";
 
-export const AccountUpdateView = ({account, payment, setPayment, submit}) => {
+export const AccountPaymentView = ({account, payment, setPayment, submit}) => {
 
     useEffect(() => {
         console.log("account: ", account);
@@ -18,4 +18,4 @@ export const AccountUpdateView = ({account, payment, setPayment, submit}) => {
     </div>
 }
 
-export default AccountUpdateView;
+export default AccountPaymentView;

@@ -29,7 +29,7 @@ function App() {
         })
         .then(yup => {
             setUserAcct(yup.data);
-            localStorage.setItem("loginToken",yup.data.token);
+            localStorage.setItem("loginToken",yup.data.loginToken);
             let admin = yup.data.permissions.find(p => p.type === 0);
             if(admin !== undefined){
                 localStorage.setItem("permissions.admin",admin.token);
@@ -43,16 +43,24 @@ function App() {
     }
 
     const logout = () => {
+        localStorage.clear();
         accountApi.post(`logout/${userAcct.username}`)
         .then(yup => {
             setUserAcct({});
             setView(viewEnum.home);
-            localStorage.clear();
         })
         .catch(nope => console.error(nope));
     }
 
-    const AppCallback = useCallback(() => <AccountContext.Provider value={[login,userAcct]}>
+    const createAccount = ({ name,email,username,password,permissions }) => {
+        accountApi.post(`createAccount/${name}/${email}`,{username,password,permissions})
+            .then(yup => {
+                console.log("yup: ", yup.data);
+            })
+            .catch(nope => console.error(nope));
+    }
+
+    const AppCallback = useCallback(() => <AccountContext.Provider value={{login,userAcct,createAccount}}>
         {localStorage.getItem("loginToken") !== null && <Button onClick={logout} >Logout</Button>}
         {localStorage.getItem("loginToken") === null && <Login />}
         {localStorage.getItem("loginToken") !== null && <Welcome />}

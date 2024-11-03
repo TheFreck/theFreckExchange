@@ -28,7 +28,7 @@ namespace Payment_Processing.Server.DTO
         /// <summary>
         /// a token that is created when an account is checked out and destroyed when it is checked back in 
         /// </summary>
-        public string Token { get; set; } = Guid.Empty.ToString();
+        public string LoginToken { get; set; } = Guid.Empty.ToString();
         public byte[] PasswordSalt {  get; set; }
         public byte[] TokenSalt;
 
@@ -41,7 +41,7 @@ namespace Payment_Processing.Server.DTO
             DateOpened = DateTime.Now;
             Name = name;
             AccountId = Guid.NewGuid().ToString();
-            Token = Guid.Empty.ToString();
+            LoginToken = Guid.Empty.ToString();
             Permissions = permissions;
         }
 

@@ -126,7 +126,7 @@ namespace Payment_Processing.Specs
             {
                 outcomes[i].Username.ShouldEqual(string.Empty);
                 outcomes[i].Password.ShouldEqual(string.Empty);
-                outcomes[i].Token.ShouldEqual(string.Empty);
+                outcomes[i].LoginToken.ShouldEqual(string.Empty);
                 outcomes[i].PasswordSalt.ShouldEqual(new byte[64]);
                 outcomes[i].TokenSalt.ShouldEqual(new byte[64]);
             }
@@ -173,7 +173,7 @@ namespace Payment_Processing.Specs
             {
                 outcomes[i].Name.ShouldEqual(expectations[i].Name);
                 outcomes[i].Password.ShouldEqual(string.Empty);
-                outcomes[i].Token.ShouldEqual(string.Empty);
+                outcomes[i].LoginToken.ShouldEqual(string.Empty);
                 outcomes[i].Username.ShouldEqual(string.Empty);
                 outcomes[i].PasswordSalt.ShouldEqual(new byte[64]);
                 outcomes[i].TokenSalt.ShouldEqual(new byte[64]);
@@ -238,7 +238,7 @@ namespace Payment_Processing.Specs
             {
                 outcomes[i].Username.ShouldEqual(string.Empty);
                 outcomes[i].Password.ShouldEqual(string.Empty);
-                outcomes[i].Token.ShouldEqual(string.Empty);
+                outcomes[i].LoginToken.ShouldEqual(string.Empty);
                 outcomes[i].PasswordSalt.ShouldEqual(new byte[64]);
                 outcomes[i].TokenSalt.ShouldEqual(new byte[64]);
             }
@@ -302,7 +302,7 @@ namespace Payment_Processing.Specs
             {
                 outcomes[i].Username.ShouldEqual(string.Empty);
                 outcomes[i].Password.ShouldEqual(string.Empty);
-                outcomes[i].Token.ShouldEqual(string.Empty);
+                outcomes[i].LoginToken.ShouldEqual(string.Empty);
                 outcomes[i].PasswordSalt.ShouldEqual(new byte[64]);
                 outcomes[i].TokenSalt.ShouldEqual(new byte[64]);
             }
@@ -366,7 +366,7 @@ namespace Payment_Processing.Specs
             {
                 outcomes[i].Username.ShouldEqual(string.Empty);
                 outcomes[i].Password.ShouldEqual(string.Empty);
-                outcomes[i].Token.ShouldEqual(string.Empty);
+                outcomes[i].LoginToken.ShouldEqual(string.Empty);
                 outcomes[i].PasswordSalt.ShouldEqual(new byte[64]);
                 outcomes[i].TokenSalt.ShouldEqual(new byte[64]);
             }
@@ -439,7 +439,7 @@ namespace Payment_Processing.Specs
             {
                 outcomes[i].Username.ShouldEqual(string.Empty);
                 outcomes[i].Password.ShouldEqual(string.Empty);
-                outcomes[i].Token.ShouldEqual(string.Empty);
+                outcomes[i].LoginToken.ShouldEqual(string.Empty);
                 outcomes[i].PasswordSalt.ShouldEqual(new byte[64]);
                 outcomes[i].TokenSalt.ShouldEqual(new byte[64]);
             }
@@ -524,7 +524,7 @@ namespace Payment_Processing.Specs
             {
                 outcomes[i].Username.ShouldEqual(string.Empty);
                 outcomes[i].Password.ShouldEqual(string.Empty);
-                outcomes[i].Token.ShouldEqual(string.Empty);
+                outcomes[i].LoginToken.ShouldEqual(string.Empty);
                 outcomes[i].PasswordSalt.ShouldEqual(new byte[64]);
                 outcomes[i].TokenSalt.ShouldEqual(new byte[64]);
             }

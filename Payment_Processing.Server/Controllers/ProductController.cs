@@ -51,10 +51,10 @@ namespace Payment_Processing.Server.Controllers
         /// </summary>
         /// <param name="input"></param>
         /// <returns></returns>
-        [HttpPost("create/{username}")]
-        public async Task<Product> CreateProduct(ProductDTO input, string username)
+        [HttpPost("create")]
+        public async Task<Product> CreateProduct(ProductDTO input)
         {
-            var product = await productService.CreateProductAsync(username, input.Name, input.Description, input.Price);
+            var product = await productService.CreateProductAsync(input.Name, input.Description, input.Price, input.Credentials);
             return product;
         }
 
@@ -65,9 +65,9 @@ namespace Payment_Processing.Server.Controllers
         /// <param name="newName"></param>
         /// <returns></returns>
         [HttpPut("modify/name/{oldName}/{newName}/{username}")]
-        public async Task<Product> ModifyName(string username, string oldName, string newName)
+        public async Task<Product> ModifyName(string username, string oldName, string newName, LoginCredentials credentials)
         {
-            var product = await productService.ModifyNameAsync(username, oldName, newName);
+            var product = await productService.ModifyNameAsync(oldName, newName, credentials);
             return product;
         }
 
@@ -78,9 +78,9 @@ namespace Payment_Processing.Server.Controllers
         /// <param name="price"></param>
         /// <returns></returns>
         [HttpPut("modify/price/{name}/{price}/{username}")]
-        public async Task<Product> ModifyPrice(string username, string name, double price)
+        public async Task<Product> ModifyPrice(string username, string name, double price, LoginCredentials credentials)
         {
-            var product = await productService.ModifyPriceAsync(username, name, price);
+            var product = await productService.ModifyPriceAsync(name, price, credentials);
             return product;
         }
 
@@ -91,10 +91,10 @@ namespace Payment_Processing.Server.Controllers
         /// <param name="description"></param>
         /// <returns></returns>
         [HttpPut("modify/description/{productName}")]
-        public async Task<Product> ModifyDescription(string username, string productName, [FromBody] string description)
+        public async Task<Product> ModifyDescription(string productName, [FromBody] ProductDTO product)
         {
-            var product = await productService.ModifyDescriptionAsync(username, productName, description);
-            return product;
+            var prod = await productService.ModifyDescriptionAsync(productName, product.Description, product.Credentials);
+            return prod;
         }
 
         // ITEMS
@@ -147,10 +147,10 @@ namespace Payment_Processing.Server.Controllers
         /// <param name="attributes"></param>
         /// <returns></returns>
         [HttpPost("items/create/{qty}/{productName}/{username}")]
-        public async Task<IEnumerable<Item>> CreateItems(string username, int qty, string productName, List<ItemAttribute> attributes)
+        public async Task<IEnumerable<Item>> CreateItems(string username, int qty, string productName, Item item)
         {
             var products = await productService.GetByNameAsync(productName);
-            var items = await productService.CreateManyItemsAsync(username, productName,qty, attributes);
+            var items = await productService.CreateManyItemsAsync(productName,qty, item.Attributes, item.Credentials);
             return items; ;
         }
 
@@ -161,19 +161,19 @@ namespace Payment_Processing.Server.Controllers
         /// <param name="username"></param>
         /// <param name="attributes"></param>
         /// <returns></returns>
-        [HttpDelete("item/buy/{productName}/{username}")]
-        public async Task<Item> PurchaseItem(string productName, string username, string token, List<ItemAttribute> attributes)
+        [HttpDelete("item/buy")]
+        public async Task<Item> PurchaseItem(Item item)
         {
-            var account = await accountService.GetByUsernameAsync(username);
+            var account = await accountService.GetByUsernameAsync(item.Credentials.Username);
 
-            if(await loginService.ValidateTokenAsync(username, token))
+            if(await loginService.ValidateTokenAsync(item.Credentials.Username, item.Credentials.UserToken))
             {
                 var items = new List<Item>();
-                for(var i=0; i<attributes.Count; i++)
+                for(var i=0; i<item.Attributes.Count; i++)
                 {
-                    items.AddRange(await productService.GetByAttributeAsync(productName, attributes[i].Type, attributes[i].Value));
+                    items.AddRange(await productService.GetByAttributeAsync(item.Name, item.Attributes[i].Type, item.Attributes[i].Value));
                 }
-                return await productService.PurchaseItem(username, token, items.FirstOrDefault());
+                return await productService.PurchaseItem(items.FirstOrDefault(), item.Credentials);
             }
             else
             {

@@ -15,7 +15,7 @@ namespace Payment_Processing.Server.Services
         Task<Account> LoginAsync(string username, string password);
         Task<bool> LogOutAsync(string username);
         string MakeHash(string preHash, out byte[] salt);
-        Task<bool> ValidatePermissionsAsync(Account account, PermissionType admin);
+        Task<bool> ValidatePermissionsAsync(Account account, PermissionType admin, string token);
         Task<bool> ValidateTokenAsync(string username, string token);
         bool VerifyHash(string password, string hashword, byte[] salt);
     }
@@ -37,9 +37,9 @@ namespace Payment_Processing.Server.Services
         public async Task<Account> LoginAsync(string username, string password)
         {
             var account = await accountRepo.GetByUsernameAsync(username);
-            if(VerifyHash(password, account.Password, account.PasswordSalt))
+            if(account != null && VerifyHash(password, account.Password, account.PasswordSalt))
             {
-                account.Token = MakeHash(Guid.NewGuid().ToString(),out var tokenSalt);
+                account.LoginToken = MakeHash(Guid.NewGuid().ToString(),out var tokenSalt);
                 account.TokenSalt = tokenSalt;
                 await accountRepo.UpdateAsync(account);
                 return account;
@@ -49,11 +49,19 @@ namespace Payment_Processing.Server.Services
 
         public async Task<bool> LogOutAsync(string username)
         {
-            var account = await accountRepo.GetByUsernameAsync(username);
-            account.Token = Guid.Empty.ToString();
-            account.TokenSalt = new byte[64];
-            await accountRepo.UpdateAsync(account);
-            return true;
+            try
+            {
+                if (username == null || username == "undefined") return true;
+                var account = await accountRepo.GetByUsernameAsync(username);
+                account.LoginToken = Guid.Empty.ToString();
+                account.TokenSalt = new byte[64];
+                await accountRepo.UpdateAsync(account);
+                return true;
+            }
+            catch (Exception)
+            {
+                return true;
+            }
         }
 
         public string MakeHash(string preHash, out byte[] salt)
@@ -70,23 +78,19 @@ namespace Payment_Processing.Server.Services
             return Convert.ToHexString(hash);
         }
 
-        public async Task<bool> ValidatePermissionsAsync(Account account, PermissionType permission)
+        public async Task<bool> ValidatePermissionsAsync(Account account, PermissionType permission, string token)
         {
             var gotten = await accountRepo.GetByUsernameAsync(account.Username);
-            foreach(var perm in gotten.Permissions)
-            {
-                if (perm.Type == permission && VerifyHash(permission.ToString(), perm.Token, perm.TokenSalt))
-                {
-                    return true;
-                }
-            }
+            if (account.LoginToken == string.Empty) return false;
+
+            if (account.Permissions.Where(p => p.Type == permission).FirstOrDefault().Token == token) return true;
             return false;
         }
 
         public async Task<bool> ValidateTokenAsync(string username, string token)
         {
             var account = await accountRepo.GetByUsernameAsync(username);
-            return account != null && account.Token == token;
+            return account != null && account.LoginToken == token;
         }
 
         public bool VerifyHash(string password, string hashword, byte[] salt)
