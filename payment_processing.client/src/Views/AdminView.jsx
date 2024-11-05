@@ -1,4 +1,4 @@
-import react, { useContext, useEffect, useState } from "react";
+import react, { useCallback, useContext, useEffect, useState } from "react";
 import { Box, Accordion, AccordionDetails, AccordionSummary, Typography } from "@mui/material";
 import { ExpandMore } from "@mui/icons-material";
 import CreateProduct from "./Product/CreateProduct";
@@ -17,15 +17,30 @@ export const AdminView = () => {
     const [products, setProducts] = useState(new Set());
     const [ready, setReady] = useState(false);
     const { getProductsAsync } = useContext(ProductContext);
+    
 
     useEffect(() => {
-        getProductsAsync(prods => {
+        getProducts(prods => {
             setProducts(prods);
-            setReady(true);
-        })
+            setReady(!ready);
+        });
     }, []);
 
-    return <Box>
+    const getProducts = (cb) => {
+        getProductsAsync(prods => {
+            cb(prods);
+        })
+    }
+
+    const created = () => {
+        getProducts(p => {
+            setProducts(p);
+        })
+    }
+
+    const CreateItemsCallback = useCallback(() => <CreateItems products={products} />,[products]);
+
+    const AdminCallback = useCallback(() => <Box>
         <Typography
             variant="h4"
             sx={{
@@ -49,14 +64,16 @@ export const AdminView = () => {
                 <Typography >Create Product</Typography>
             </AccordionSummary>
             <AccordionDetails>
-                <CreateProduct />
+                <CreateProduct created={created} />
             </AccordionDetails>
         </Accordion>
         {
-            products.size &&
+            products && products.size > 0 &&
             <Accordion
                 expanded={accordionView === accordionEnum.createItems}
-                onClick={() => setAccordionView(accordionEnum.createItems)}
+                onClick={() => {
+                    setAccordionView(accordionEnum.createItems);
+                }}
             >
                 <AccordionSummary
                     expandIcon={<ExpandMore />}
@@ -66,7 +83,7 @@ export const AdminView = () => {
                     <Typography >Create Items</Typography>
                 </AccordionSummary>
                 <AccordionDetails>
-                    <CreateItems />
+                    <CreateItemsCallback />
                 </AccordionDetails>
             </Accordion>
         }
@@ -85,7 +102,9 @@ export const AdminView = () => {
                 <Typography>Place Holder</Typography>
             </AccordionDetails>
         </Accordion>
-    </Box>
+    </Box>,[ready,accordionView]);
+
+    return <AdminCallback />
 }
 
 export default AdminView;

@@ -23,6 +23,7 @@ namespace Payment_Processing.Server.Services
         Task<Product> ModifyNameAsync(string oldName, string newName, LoginCredentials credentials);
         Task<Product> ModifyPriceAsync(string productName, double price, LoginCredentials credentials);
         Task<Item> PurchaseItem(Item item, LoginCredentials credentials);
+        Task<List<string>> GetAvailableAttributes(string productName);
     }
     public class ProductService : IProductService
     {
@@ -123,6 +124,12 @@ namespace Payment_Processing.Server.Services
                 Value = value.ToHashSet(),
             });
             return groups;
+        }
+
+        public async Task<List<string>> GetAvailableAttributes(string productName)
+        {
+            var product = await productRepo.GetByNameAsync(productName);
+            return product.AvailableAttributes;
         }
 
         public async Task<IEnumerable<Item>> GetByAttributeAsync(string productName, string type, string value)

@@ -127,7 +127,7 @@ namespace Payment_Processing.Server.Controllers
         }
 
         /// <summary>
-        /// Gets all Attributes used for a Product
+        /// Gets all Attributes for existing items for a given product
         /// </summary>
         /// <param name="productName"></param>
         /// <returns></returns>
@@ -136,6 +136,18 @@ namespace Payment_Processing.Server.Controllers
         {
             var groups = await productService.GetAttributesAsync(productName);
             return groups;
+        }
+
+        /// <summary>
+        /// Gets all available attributes for a given product
+        /// </summary>
+        /// <param name="productName"></param>
+        /// <returns></returns>
+        [HttpGet("items/availableAttributes/{productName}")]
+        public async Task<IEnumerable<string>> GetAvailableAttributes(string productName)
+        {
+            var attributes = await productService.GetAvailableAttributes(productName);
+            return attributes;
         }
 
         /// <summary>

@@ -4,13 +4,30 @@ import NewProduct from "./NewProduct";
 import BathtubIcon from '@mui/icons-material/Bathtub';
 
 import { Box, Button, FormControl, Grid2, InputAdornment, InputLabel, MenuItem, Select, TextField, Typography } from "@mui/material";
-import { Label } from "@mui/icons-material";
 import { ProductContext } from "../../Context";
 
 export const ProductView = ({ product, attributes }) => {
-    const {createItemsAsync} = useContext(ProductContext);
+    const { createItemsAsync } = useContext(ProductContext);
     const [quantity, setQuantity] = useState(0);
-    const [item,setItem] = useState(product);
+    const [item, setItem] = useState();
+    const [attributeObjects, setAttributeObjects] = useState([]);
+    const [image, setImage] = useState({});
+    const [hasImage, setHasImage] = useState(false);
+
+    useEffect(() => {
+        product.attributes = [];
+        for (var attribute of attributes) {
+            product.attributes.push({ type: attribute, value: "" });
+        }
+        setItem(product);
+        setAttributeObjects(product.attributes);
+    }, []);
+
+    const uploadImage = (e) => {
+        console.log("target: ", e.target.files);
+        setImage(URL.createObjectURL(e.target.files[0]));
+        setHasImage(true);
+    }
 
     return (
         <Box
@@ -25,33 +42,34 @@ export const ProductView = ({ product, attributes }) => {
                     sx={{ display: "flex", flexDirection: "column" }}
                 >
                     <Grid2 size={4}>
-                        <BathtubIcon sx={{ width: "200%", height: "auto" }} />
+                        <>
+                            <input type="file" onChange={uploadImage} />
+                            {hasImage &&
+                                <img src={image} style={{minWidth: "5vw", maxWidth: "20vw", borderRadius: "5px"}}/>
+                            }
+                            {!hasImage &&
+                                <BathtubIcon sx={{ width: "200%", height: "auto" }} />
+                            }
+                        </>
                     </Grid2>
                     <Grid2 size={12}>
                         {
-                            attributes.length > 0 &&
+                            item && attributes.length > 0 &&
                             <Grid2
                                 size={12}
                                 sx={{ display: "flex", flexDirection: "column" }}
                             >
                                 {
-                                    attributes.map((items, i) => (
-                                        <FormControl key={i} fullWidth>
-                                            <InputLabel
-                                                id={`${items.type}-label`}
-                                            >{items.type}</InputLabel>
-                                            <Select
-                                                labelId={`${items.type}-label`}
-                                                onChange={x => {
-                                                    items.choice = x.target.value;
-                                                    console.log("item: ", item);
-                                                }}
-                                            >
-                                                {items.value.map((b,j) => (
-                                                <MenuItem key={j} name={items.type} value={b} >{b}</MenuItem>
-                                                ))}
-                                            </Select>
-                                        </FormControl>
+                                    attributes.map((type, i) => (
+                                        <TextField
+                                            label={type}
+                                            value={item.attributes[i].value}
+                                            onChange={(a) => {
+                                                item.attributes[i].value = a.target.value;
+                                                attributeObjects[i].value = a.target.value;
+                                                setAttributeObjects([...attributeObjects.filter(a => a.key !== type), attributeObjects[i]])
+                                            }}
+                                        />
                                     ))
                                 }
                             </Grid2>
@@ -73,7 +91,7 @@ export const ProductView = ({ product, attributes }) => {
                         <Grid2 size={7}>
                             {
 
-                                <Button onClick={() => createItemsAsync({item,quantity,attributes})} variant="contained">Create</Button>
+                                <Button onClick={() => createItemsAsync({ item, quantity, image })} variant="contained">Create</Button>
                             }
                         </Grid2>
                     </Grid2>
@@ -100,7 +118,7 @@ export const ProductView = ({ product, attributes }) => {
                     </Grid2>
                 </Grid2>
             </Grid2>
-        </Box>
+        </Box >
     )
 }
 

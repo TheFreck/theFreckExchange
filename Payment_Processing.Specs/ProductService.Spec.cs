@@ -66,6 +66,14 @@ namespace Payment_Processing.Specs
             product2Desc = "it is worn on your torso";
             product1Price = 25.75;
             product2Price = 74.99;
+            product1AvailableAttributes = new List<string>
+            {
+                "Color","Size","Style"
+            };
+            product2AvailableAttributes = new List<string>
+            {
+                "Color","Style","Age"
+            };
             loginCreds = new LoginCredentials
             {
                 Username = account1.Username,
@@ -104,6 +112,8 @@ namespace Payment_Processing.Specs
         protected static string product2Desc;
         protected static double product1Price;
         protected static double product2Price;
+        protected static List<string> product1AvailableAttributes;
+        protected static List<string> product2AvailableAttributes;
         protected static LoginCredentials loginCreds;
     }
 
@@ -869,7 +879,7 @@ namespace Payment_Processing.Specs
         private static ProductService productService;
     }
 
-    public class When_Getting_All_Attributes_For_A_Product : With_ProductRepo_Setup
+    public class When_Getting_All_Item_Attributes_For_A_Product : With_ProductRepo_Setup
     {
         Establish context = () =>
         {
@@ -1016,6 +1026,33 @@ namespace Payment_Processing.Specs
         private static List<Item> hats;
         private static ProductService productService;
         private static List<GroupedAttributes> attributeOutcome;
+    }
+
+    public class When_Getting_All_Available_Attributes_For_A_Product : With_ProductRepo_Setup
+    {
+        Establish context = () =>
+        {
+            product = new Product
+            {
+                Name = product1Name,
+                Price = product1Price,
+                ProductDescription = product1Desc,
+                ProductId = product1Id,
+                AvailableAttributes = product1AvailableAttributes
+            };
+            productRepoMock.Setup(p => p.GetByNameAsync(Moq.It.IsAny<string>())).ReturnsAsync(product);
+            service = new ProductService(productRepoMock.Object, itemRepoMock.Object, accountRepoMock.Object, loginServiceMock.Object);
+        };
+
+        Because of = () => attributes = service.GetAvailableAttributes(product.Name).GetAwaiter().GetResult();
+
+        It Should_Find_Product_In_Repo = () => productRepoMock.Verify(p => p.GetByNameAsync(product.Name), Times.Once());
+
+        It Should_Return_Only_Available_Attributes = () => attributes.ShouldContainOnly(attributes);
+
+        private static Product product;
+        private static ProductService service;
+        private static List<string> attributes;
     }
 
     public class When_Geting_Items_By_Attribute : With_ProductRepo_Setup

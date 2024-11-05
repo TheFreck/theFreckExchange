@@ -1,56 +1,60 @@
 import react, { useCallback, useContext, useEffect, useState } from "react";
 import { ProductContext } from "../../Context";
-import { FormControl, MenuItem, Select } from "@mui/material";
+import { FormControl, InputLabel, MenuItem, Select } from "@mui/material";
 import ProductView from "../Product/ProductView";
+import { Label } from "@mui/icons-material";
 
-export const CreateItems = () => {
-    const {getProductsAsync,getItemsAsync,getAttributesAsync} = useContext(ProductContext);
+export const CreateItems = ({products}) => {
+    const { getProductsAsync, getAvailableAttributesAsync } = useContext(ProductContext);
     const [product, setProduct] = useState({});
-    const [items, setItems] = useState([]);
-    const [products,setProducts] = useState([]);
+    const [productsArray, setProductsArray] = useState([]);
     const [ready, setReady] = useState(false);
-    const [attributes,setAttributes] = useState([]);
+    const [attributes, setAttributes] = useState([]);
 
     useEffect(() => {
-        getProductsAsync(prods => {
-            var prodys = [];
-            for(var prod of prods){
-                prodys.push(prod);
-            }
-            setProducts(prodys);
-            setReady(true);
-        });
-    },[]);
+        if(!products) return;
+        var prods = [];
+        for(var prod of products.values()){
+            prods.push(prod);
+        }
+        setProductsArray(prods);
+    }, []);
+    
+    useEffect(() => {
+            // console.log("product useeffect: ", product);
+    },[product]);
+
+    useEffect(() => {
+        // console.log("attributes useeffect: ", attributes);
+    },[attributes]);
 
     const selectProduct = async (p) => {
-        console.log("select Product: ", p);
-        setProduct(p);
-        getAttributesAsync(p.name,att => {
-            console.log("selected product got attributes: ", att);
+        // console.log("selected: ", p.target.value);
+        setProduct(p.target.value);
+        getAvailableAttributesAsync(p.target.value.name, att => {
+            // console.log("got attributes async: ", att);
             setAttributes(att);
             setReady(!ready);
         })
     }
 
     const CreateItemsCallback = useCallback(() => <div>
-        <div>Create Items</div>
-        <FormControl fullWidth>
+        {products.size > 0 && <FormControl fullWidth>
+        <InputLabel id="productLabel">Product</InputLabel>
             <Select
-                labelId="productSelectorLabel"
                 id="productSelector"
-                value={product.name}
+                labelId="productLabel"
                 label="Product"
-                onChange={p => selectProduct(p.target.value)}
+                value={product}
+                onChange={selectProduct}
             >
-                {
-                    products.map((p,i) => (
-                        <MenuItem key={i} value={p}>{p.name}</MenuItem>
-                    ))
-                }
+                {productsArray.map((p, i) => (
+                    <MenuItem name={p.name} key={i} value={p}>{p.name}</MenuItem>
+                ))}
             </Select>
-            {attributes.length > 0 && <ProductView product={product} attributes={attributes} setAttributes={setAttributes} />}
-        </FormControl>
-    </div>,[ready]);
+        </FormControl>}
+        {attributes.length > 0 && product.name !== undefined && <ProductView product={product} attributes={attributes} setAttributes={setAttributes} />}
+    </div>, [ready, product, productsArray, attributes]);
 
     return <CreateItemsCallback />
 }

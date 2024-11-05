@@ -2,7 +2,7 @@ import { Box, Button, Chip, Stack, TextField } from "@mui/material";
 import react, { useContext, useEffect, useState } from "react";
 import { ProductContext } from "../../Context";
 
-export const CreateProduct = () => {
+export const CreateProduct = ({created}) => {
     const { createProductAsync } = useContext(ProductContext);
     const [name, setName] = useState("");
     const [price, setPrice] = useState(0.0);
@@ -64,7 +64,10 @@ export const CreateProduct = () => {
             <Button
                 id="createProductButton"
                 variant="contained"
-                onClick={() => createProductAsync({ name, description, attributes, price })}
+                onClick={() => {
+                    createProductAsync({ name, description, attributes, price });
+                    created();
+                }}
             >
                 Create
             </Button>
