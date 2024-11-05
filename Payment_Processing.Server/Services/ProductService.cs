@@ -13,10 +13,10 @@ namespace Payment_Processing.Server.Services
     {
         Task<Item> CreateItemAsync(string productId, Item item, LoginCredentials credentials);
         Task<IEnumerable<Item>> CreateManyItemsAsync(string productName, int itemQuantity, List<ItemAttribute> attributes, LoginCredentials credentials);
-        Task<Product> CreateProductAsync(string name, string description, double price, LoginCredentials credentials);
+        Task<Product> CreateProductAsync(string name, string description, List<string> attributes, double price, LoginCredentials credentials);
         Task<IEnumerable<Product>> GetAllAsync();
         Task<IEnumerable<GroupedAttributes>> GetAttributesAsync(string productName);
-        Task<IEnumerable<Item>> GetByAttributeAsync(string productName, AttributeType type, string value);
+        Task<IEnumerable<Item>> GetByAttributeAsync(string productName, string type, string value);
         Task<Product> GetByNameAsync(string name);
         Task<IEnumerable<Item>> GetItemsAsync(string name);
         Task<Product> ModifyDescriptionAsync(string productName, string newDescription, LoginCredentials credentials);
@@ -85,7 +85,7 @@ namespace Payment_Processing.Server.Services
             return null;
         }
 
-        public async Task<Product> CreateProductAsync(string name, string description, double price, LoginCredentials credentials)
+        public async Task<Product> CreateProductAsync(string name, string description, List<string> attributes, double price, LoginCredentials credentials)
         {
             var account = await accountRepo.GetByUsernameAsync(credentials.Username);
 
@@ -96,7 +96,8 @@ namespace Payment_Processing.Server.Services
                     Name = name,
                     ProductDescription = description,
                     ProductId = Guid.NewGuid().ToString(),
-                    Price = price
+                    Price = price,
+                    AvailableAttributes = attributes
                 };
 
                 await productRepo.CreateAsync(product);
@@ -124,7 +125,7 @@ namespace Payment_Processing.Server.Services
             return groups;
         }
 
-        public async Task<IEnumerable<Item>> GetByAttributeAsync(string productName, AttributeType type, string value)
+        public async Task<IEnumerable<Item>> GetByAttributeAsync(string productName, string type, string value)
         {
             var items = await itemRepo.GetByAttributeAsync(productName, type, value);
             return items;

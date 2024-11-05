@@ -1,9 +1,9 @@
 import react, { useContext, useState } from "react";
-import { AccountContext } from "../Context";
+import { AccountContext } from "../../Context";
 import { Box, Button, Checkbox, Grid2, TextField, Typography } from "@mui/material";
 
 export const NewAccount = ({newAccountModal,setNewAccountModal}) => {
-    const accountContext = useContext(AccountContext);
+    const {createAccount} = useContext(AccountContext);
     const [name, setName] = useState("");
     const [email, setEmail] = useState("");
     const [username, setUsername] = useState("");
@@ -121,7 +121,7 @@ export const NewAccount = ({newAccountModal,setNewAccountModal}) => {
                         for(var permission of permissions){
                             perms.push({ type:permission });
                         }
-                        accountContext.createAccount({ name, email, username, password, permissions:perms });
+                        createAccount({ name, email, username, password, permissions:perms });
                         setNewAccountModal(false);
                     }}
                 >

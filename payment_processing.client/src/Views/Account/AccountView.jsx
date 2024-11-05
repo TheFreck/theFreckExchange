@@ -1,7 +1,7 @@
 import react, { useEffect, useState } from "react";
 import axios from 'axios';
 import Login from "../Login";
-import NewAccount from "./NewAccount";
+import NewAccount from "../NewAccount";
 
 export const AccountView = ({userAcct, setUserAcct}) => {
     const [account, setAccount] = useState({});

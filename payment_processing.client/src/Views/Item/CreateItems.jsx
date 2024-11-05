@@ -1,33 +1,35 @@
 import react, { useCallback, useContext, useEffect, useState } from "react";
-import { ProductContext } from "../Context";
+import { ProductContext } from "../../Context";
 import { FormControl, MenuItem, Select } from "@mui/material";
-import {NewProductForm, ProductView} from "./ProductView";
+import ProductView from "../Product/ProductView";
 
 export const CreateItems = () => {
-    const productContext = useContext(ProductContext);
+    const {getProductsAsync,getItemsAsync,getAttributesAsync} = useContext(ProductContext);
     const [product, setProduct] = useState({});
     const [items, setItems] = useState([]);
     const [products,setProducts] = useState([]);
     const [ready, setReady] = useState(false);
+    const [attributes,setAttributes] = useState([]);
 
     useEffect(() => {
-        productContext.getProductsAsync(prods => {
+        getProductsAsync(prods => {
             var prodys = [];
             for(var prod of prods){
-                prodys.push(prod.name);
+                prodys.push(prod);
             }
             setProducts(prodys);
-            console.log("products to create: ", productContext.products);
             setReady(true);
         });
     },[]);
 
     const selectProduct = async (p) => {
         console.log("select Product: ", p);
-        await productContext.getItemsAsync(p,items => {
-            console.log("items: ", items);
-            setItems(items);
-        });
+        setProduct(p);
+        getAttributesAsync(p.name,att => {
+            console.log("selected product got attributes: ", att);
+            setAttributes(att);
+            setReady(!ready);
+        })
     }
 
     const CreateItemsCallback = useCallback(() => <div>
@@ -40,14 +42,13 @@ export const CreateItems = () => {
                 label="Product"
                 onChange={p => selectProduct(p.target.value)}
             >
-                {console.log("all ps: ", products)}
                 {
                     products.map((p,i) => (
-                        <MenuItem key={i} value={p}>{p}</MenuItem>
+                        <MenuItem key={i} value={p}>{p.name}</MenuItem>
                     ))
                 }
             </Select>
-            <NewProductForm />
+            {attributes.length > 0 && <ProductView product={product} attributes={attributes} setAttributes={setAttributes} />}
         </FormControl>
     </div>,[ready]);
 

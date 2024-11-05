@@ -9,7 +9,7 @@ namespace Payment_Processing.Server.Repos
         Task<Item> CreateAsync(Item item);
         Task<DeleteResult> DeleteItemAsync(Item item);
         Task<IEnumerable<Item>> GetAllItemsAsync(string name);
-        Task<IEnumerable<Item>> GetByAttributeAsync(string itemName, AttributeType attributeName, string attributeValue);
+        Task<IEnumerable<Item>> GetByAttributeAsync(string itemName, string attributeName, string attributeValue);
         Task<Item> GetBySKUAsync(string sku);
         Task<Item> UpdateAsync(Item item);
     }
@@ -42,7 +42,7 @@ namespace Payment_Processing.Server.Repos
             return items.ToEnumerable();
         }
 
-        public async Task<IEnumerable<Item>> GetByAttributeAsync(string itemName, AttributeType attributeName, string attributeValue)
+        public async Task<IEnumerable<Item>> GetByAttributeAsync(string itemName, string attributeName, string attributeValue)
         {
             var items = await itemsCollection.FindAsync(i => i.Name == itemName && i.Attributes.Select(a => a.Value).Contains(attributeValue));
             return items.ToEnumerable();

@@ -16,6 +16,7 @@ namespace Payment_Processing.Server.DTO
         public required string ProductId { get; init; }
 
         public required string ProductDescription { get; set; }
+        public List<string> AvailableAttributes { get; set; }
 
         public required double Price { get; set; }
 
@@ -31,25 +32,21 @@ namespace Payment_Processing.Server.DTO
         public required double Price { get; set; }
         public required string Description { get; set; }
         public LoginCredentials Credentials { get; set; }
+        public List<string> Attributes { get; set; }
     }
 
     public class Item : Product
     {
 
         [BsonElement("SKU")]
-        public required string SKU { get; init; } = Guid.NewGuid().ToString();
+        public required string SKU { get; set; } = Guid.NewGuid().ToString();
         public List<ItemAttribute>? Attributes { get; set; }
         public LoginCredentials Credentials { get; set; }
     }
 
     public class ItemAttribute
     {
-        public required AttributeType Type { get; set; }
+        public required string Type { get; set; }
         public required string Value { get; set; }
-    }
-
-    public enum AttributeType
-    {
-        Color,Size,Style
     }
 }

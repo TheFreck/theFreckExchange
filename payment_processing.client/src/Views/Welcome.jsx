@@ -28,16 +28,24 @@ export const Welcome = () => {
 
     const getItemsAsync = async (prod,cb) => {
         await productApi.get(`items/${prod}`)
-            .then(yup => {
-                console.log("items returned: ", yup.data);
-                cb(yup.data);
-            })
-            .catch(nope => console.error(nope));
+        .then(yup => {
+            console.log("items returned: ", yup.data);
+            cb(yup.data);
+        })
+        .catch(nope => console.error(nope));
     }
 
-    const createProductAsync = async ({name,description,price}) => {
+    const getAttributesAsync = async (product,cb) => {
+        await productApi.get(`items/product/${product}/attributes`)
+        .then(yup => {
+            cb(yup.data);
+        })
+        .catch(nope => console.error(nope));
+    }
+
+    const createProductAsync = async ({name,description,attributes,price}) => {
         console.log(`name: ${name}; price: $${price}; description: ${description}`);
-        productApi.post(`create`,{name,description,price,credentials:{
+        productApi.post(`create`,{name,description,price,attributes,credentials:{
             username: accountContext.userAcct.username,
             loginToken: localStorage.getItem("loginToken"),
             adminToken: localStorage.getItem("permissions.admin"),
@@ -49,8 +57,27 @@ export const Welcome = () => {
             .catch(nope => console.error(nope));
     }
 
-    const createItemsAsync = async (items) => {
-
+    const createItemsAsync = async ({item,quantity,attributes}) => {
+        console.log("creating item: ", item);
+        console.log("creating with attributes: ", attributes);
+        var cleanAttributes = [];
+        for(var attribute of attributes){
+            cleanAttributes.push({type: attribute.type,value: attribute.choice});
+        }
+        item.attributes = cleanAttributes;
+        console.log("cleanAttributes: ", cleanAttributes);
+        item.credentials = {
+            username: accountContext.userAcct.username,
+            loginToken: localStorage.getItem("loginToken"),
+            adminToken: localStorage.getItem("permissions.admin"),
+            userToken: localStorage.getItem("permissions.user")
+        }
+        item.sku = "";
+        productApi.post(`items/create/${quantity}`,item)
+        .then(yup => {
+            console.log("yup: ", yup.data);
+        })
+        .catch(nope => console.error(nope));
     }
     
     const productApi = axios.create({
@@ -68,7 +95,7 @@ export const Welcome = () => {
         else return;
     }, [userPermissions,products,ready]);
 
-    return <ProductContext.Provider value={{products,getProductsAsync,getItemsAsync,createProductAsync,createItemsAsync}}>
+    return <ProductContext.Provider value={{products,getProductsAsync,getItemsAsync,createProductAsync,createItemsAsync,getAttributesAsync}}>
             <WelcomeCallback />
         </ProductContext.Provider>
 }

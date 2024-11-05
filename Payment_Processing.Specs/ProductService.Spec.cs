@@ -118,6 +118,10 @@ namespace Payment_Processing.Specs
                 new (product2Name,product2Id,product2Desc,product2Price)
             };
             storeFront = new ProductService(productRepoMock.Object,itemRepoMock.Object, accountRepoMock.Object, loginServiceMock.Object);
+            attributes = new List<string>
+            {
+                "Color","Size","Style"
+            };
             expectations = new List<Product>
             {
                 new Product()
@@ -142,7 +146,7 @@ namespace Payment_Processing.Specs
         {
             for(var i = 0; i < inputs.Count; i++)
             {
-                outcomes.Add(storeFront.CreateProductAsync(inputs[i].name, inputs[i].desccription, inputs[i].price,loginCreds).GetAwaiter().GetResult());
+                outcomes.Add(storeFront.CreateProductAsync(inputs[i].name, inputs[i].desccription,attributes, inputs[i].price,loginCreds).GetAwaiter().GetResult());
             }
         };
 
@@ -168,6 +172,7 @@ namespace Payment_Processing.Specs
         };
 
         private static IProductService storeFront;
+        private static List<string> attributes;
         private static List<(string name, string id, string desccription, double price)> inputs;
         private static List<Product> expectations;
         private static List<Product> outcomes;
@@ -580,17 +585,17 @@ namespace Payment_Processing.Specs
                     {
                         new ItemAttribute
                         {
-                            Type = AttributeType.Color,
+                            Type = "Color",
                             Value = colors[i%3]
                         },
                         new ItemAttribute
                         {
-                            Type = AttributeType.Size,
+                            Type = "Size",
                             Value = sizes[i%4]
                         },
                         new ItemAttribute
                         {
-                            Type = AttributeType.Style,
+                            Type = "Style",
                             Value = hatTypes[i%2]
                         }
                     }
@@ -681,17 +686,17 @@ namespace Payment_Processing.Specs
             {
                 new ItemAttribute
                 {
-                    Type = AttributeType.Color,
+                    Type = "Color",
                     Value = "Red"
                 },
                 new ItemAttribute
                 {
-                    Type= AttributeType.Size,
+                    Type= "Size",
                     Value = "L"
                 },
                 new ItemAttribute
                 {
-                    Type = AttributeType.Style,
+                    Type = "Style",
                     Value = "Fedora"
                 }
             };
@@ -806,17 +811,17 @@ namespace Payment_Processing.Specs
                     {
                         new ItemAttribute
                         {
-                            Type = AttributeType.Color,
+                            Type = "Color",
                             Value = colors[i%3]
                         },
                         new ItemAttribute
                         {
-                            Type = AttributeType.Size,
+                            Type = "Size",
                             Value = sizes[i%4]
                         },
                         new ItemAttribute
                         {
-                            Type = AttributeType.Style,
+                            Type = "Style",
                             Value = hatTypes[i%2]
                         }
                     }
@@ -880,11 +885,11 @@ namespace Payment_Processing.Specs
             {
                 "Ballcap","Fedora"
             };
-            attributeTypes = new List<AttributeType>
+            attributeTypes = new List<string>
             {
-                AttributeType.Color,
-                AttributeType.Size,
-                AttributeType.Style
+                "Color",
+                "Size",
+                "Style"
             };
             attributeValues = new List<string>
             {
@@ -896,47 +901,47 @@ namespace Payment_Processing.Specs
             {
                 new ItemAttribute
                 {
-                    Type = AttributeType.Color,
+                    Type = "Color",
                     Value = "Red"
                 },
                 new ItemAttribute
                 {
-                    Type = AttributeType.Color,
+                    Type = "Color",
                     Value = "Green"
                 },
                 new ItemAttribute
                 {
-                    Type = AttributeType.Color,
+                    Type = "Color",
                     Value = "Black"
                 },
                 new ItemAttribute
                 {
-                    Type = AttributeType.Size,
+                    Type = "Size",
                     Value = "S"
                 },
                 new ItemAttribute
                 {
-                    Type= AttributeType.Size,
+                    Type= "Size",
                     Value = "M"
                 },
                 new ItemAttribute
                 {
-                    Type= AttributeType.Size,
+                    Type= "Size",
                     Value = "L"
                 },
                 new ItemAttribute
                 {
-                    Type= AttributeType.Size,
+                    Type= "Size",
                     Value = "XL"
                 },
                 new ItemAttribute
                 {
-                    Type = AttributeType.Style,
+                    Type = "Style",
                     Value = "Ballcap"
                 },
                 new ItemAttribute
                 {
-                    Type = AttributeType.Style,
+                    Type = "Style",
                     Value = "Fedora"
                 }
             };
@@ -954,17 +959,17 @@ namespace Payment_Processing.Specs
                     {
                         new ItemAttribute
                         {
-                            Type = AttributeType.Color,
+                            Type = "Color",
                             Value = colors[i%3]
                         },
                         new ItemAttribute
                         {
-                            Type = AttributeType.Size,
+                            Type = "Size",
                             Value = sizes[i%4]
                         },
                         new ItemAttribute
                         {
-                            Type = AttributeType.Style,
+                            Type = "Style",
                             Value = hatTypes[i%2]
                         }
                     }
@@ -1005,7 +1010,7 @@ namespace Payment_Processing.Specs
         private static List<string> colors;
         private static List<string> sizes;
         private static List<string> hatTypes;
-        private static List<AttributeType> attributeTypes;
+        private static List<string> attributeTypes;
         private static List<string> attributeValues;
         private static List<ItemAttribute> attributes;
         private static List<Item> hats;
@@ -1029,11 +1034,11 @@ namespace Payment_Processing.Specs
             {
                 "Ballcap","Fedora"
             };
-            attributes = new List<AttributeType>
+            attributes = new List<string>
             {
-                AttributeType.Color,
-                AttributeType.Size,
-                AttributeType.Style
+                "Color",
+                "Size",
+                "Style"
             };
             attributeValues = new List<string>
             {
@@ -1055,17 +1060,17 @@ namespace Payment_Processing.Specs
                     {
                         new ItemAttribute
                         {
-                            Type = AttributeType.Color,
+                            Type = "Color",
                             Value = colors[i%3]
                         },
                         new ItemAttribute
                         {
-                            Type = AttributeType.Size,
+                            Type = "Size",
                             Value = sizes[i%4]
                         },
                         new ItemAttribute
                         {
-                            Type = AttributeType.Style,
+                            Type = "Style",
                             Value = hatTypes[i%2]
                         }
                     }
@@ -1084,7 +1089,7 @@ namespace Payment_Processing.Specs
             {
                 for(var j= 0;j<attributeValues.Count; j++)
                 {
-                    itemRepoMock.Setup(p => p.GetByAttributeAsync(product1Name, attributes[i], attributeValues[j]))
+                    itemRepoMock.Setup(p => p.GetByAttributeAsync(product1Name, attributes[i].ToString(), attributeValues[j]))
                     .ReturnsAsync(hats.Where(h => h.Attributes.Where(a => a.Value == attributeValues[j]).Any()));
                 }
             }
@@ -1104,15 +1109,15 @@ namespace Payment_Processing.Specs
 
         Because of = () =>
         {
-            redItems = productService.GetByAttributeAsync(product1Id, AttributeType.Color, "Red").GetAwaiter().GetResult();
-            greenItems = productService.GetByAttributeAsync(product1Id, AttributeType.Color, "Green").GetAwaiter().GetResult();
-            blackItems = productService.GetByAttributeAsync(product1Id, AttributeType.Color, "Black").GetAwaiter().GetResult();
-            smallItems = productService.GetByAttributeAsync(product1Id, AttributeType.Size, "S").GetAwaiter().GetResult();
-            mediumItems = productService.GetByAttributeAsync(product1Id, AttributeType.Size, "M").GetAwaiter().GetResult();
-            largeItems = productService.GetByAttributeAsync(product1Id, AttributeType.Size, "L").GetAwaiter().GetResult();
-            xlItems = productService.GetByAttributeAsync(product1Id, AttributeType.Size, "XL").GetAwaiter().GetResult();
-            fedoraItems = productService.GetByAttributeAsync(product1Id, AttributeType.Style, "Fedora").GetAwaiter().GetResult();
-            ballcapItems = productService.GetByAttributeAsync(product1Id, AttributeType.Style, "Ballcap").GetAwaiter().GetResult();
+                redItems = productService.GetByAttributeAsync(product1Id, "Color", "Red").GetAwaiter().GetResult();
+              greenItems = productService.GetByAttributeAsync(product1Id, "Color", "Green").GetAwaiter().GetResult();
+              blackItems = productService.GetByAttributeAsync(product1Id, "Color", "Black").GetAwaiter().GetResult();
+              smallItems = productService.GetByAttributeAsync(product1Id, "Size", "S").GetAwaiter().GetResult();
+             mediumItems = productService.GetByAttributeAsync(product1Id, "Size", "M").GetAwaiter().GetResult();
+              largeItems = productService.GetByAttributeAsync(product1Id, "Size", "L").GetAwaiter().GetResult();
+                 xlItems = productService.GetByAttributeAsync(product1Id, "Size", "XL").GetAwaiter().GetResult();
+             fedoraItems = productService.GetByAttributeAsync(product1Id, "Style", "Fedora").GetAwaiter().GetResult();
+            ballcapItems = productService.GetByAttributeAsync(product1Id, "Style", "Ballcap").GetAwaiter().GetResult();
         };
 
         It Should_Return_All_Items_Matching_Attribute = () =>
@@ -1120,57 +1125,57 @@ namespace Payment_Processing.Specs
             red = hats.Where(h => h.Attributes.Where(a => a.Value == "Red").Any()).ToList();
             for(var i=0; i<redItems.Count(); i++)
             {
-                redItems.ToList()[i].Attributes.ShouldContain(new ItemAttribute { Type = AttributeType.Color, Value = "Red" });
+                redItems.ToList()[i].Attributes.ShouldContain(new ItemAttribute { Type = "Color", Value = "Red" });
             }
             green = hats.Where(h => h.Attributes.Where(a => a.Value == "Green").Any()).ToList();
             for (var i = 0; i < redItems.Count(); i++)
             {
-                greenItems.ToList()[i].Attributes.ShouldContain(new ItemAttribute { Type = AttributeType.Color, Value = "Green" });
+                greenItems.ToList()[i].Attributes.ShouldContain(new ItemAttribute { Type = "Color", Value = "Green" });
             }
             black = hats.Where(h => h.Attributes.Where(a => a.Value == "Black").Any()).ToList();
             for (var i = 0; i < redItems.Count(); i++)
             {
-                blackItems.ToList()[i].Attributes.ShouldContain(new ItemAttribute { Type = AttributeType.Color, Value = "Black" });
+                blackItems.ToList()[i].Attributes.ShouldContain(new ItemAttribute { Type = "Color", Value = "Black" });
             }
             small = hats.Where(h => h.Attributes.Where(a => a.Value == "S").Any()).ToList();
             for (var i = 0; i < redItems.Count(); i++)
             {
-                smallItems.ToList()[i].Attributes.ShouldContain(new ItemAttribute { Type = AttributeType.Color, Value = "S" });
+                smallItems.ToList()[i].Attributes.ShouldContain(new ItemAttribute { Type = "Color", Value = "S" });
             }
             medium = hats.Where(h => h.Attributes.Where(a => a.Value == "M").Any()).ToList();
             for (var i = 0; i < redItems.Count(); i++)
             {
-                mediumItems.ToList()[i].Attributes.ShouldContain(new ItemAttribute { Type = AttributeType.Color, Value = "M" });
+                mediumItems.ToList()[i].Attributes.ShouldContain(new ItemAttribute { Type = "Color", Value = "M" });
             }
             large = hats.Where(h => h.Attributes.Where(a => a.Value == "L").Any()).ToList();
             for (var i = 0; i < redItems.Count(); i++)
             {
-                largeItems.ToList()[i].Attributes.ShouldContain(new ItemAttribute { Type = AttributeType.Color, Value = "L" });
+                largeItems.ToList()[i].Attributes.ShouldContain(new ItemAttribute { Type = "Color", Value = "L" });
             }
             xl = hats.Where(h => h.Attributes.Where(a => a.Value == "XL").Any()).ToList();
             for (var i = 0; i < redItems.Count(); i++)
             {
-                xlItems.ToList()[i].Attributes.ShouldContain(new ItemAttribute { Type = AttributeType.Color, Value = "XL" });
+                xlItems.ToList()[i].Attributes.ShouldContain(new ItemAttribute { Type = "Color", Value = "XL" });
             }
             fedoras = hats.Where(h => h.Attributes.Where(a => a.Value == "Fedora").Any()).ToList();
             for (var i = 0; i < redItems.Count(); i++)
             {
-                fedoraItems.ToList()[i].Attributes.ShouldContain(new ItemAttribute { Type = AttributeType.Color, Value = "Fedora" });
+                fedoraItems.ToList()[i].Attributes.ShouldContain(new ItemAttribute { Type = "Color", Value = "Fedora" });
             }
             ballcaps = hats.Where(h => h.Attributes.Where(a => a.Value == "Ballcap").Any()).ToList();
             for (var i = 0; i < redItems.Count(); i++)
             {
-                ballcapItems.ToList()[i].Attributes.ShouldContain(new ItemAttribute { Type = AttributeType.Color, Value = "Ballcap" });
+                ballcapItems.ToList()[i].Attributes.ShouldContain(new ItemAttribute { Type = "Color", Value = "Ballcap" });
             }
         };
 
-        It Should_Get_Items_From_Repo = () => itemRepoMock.Verify(i => i.GetByAttributeAsync(Moq.It.IsAny<string>(), Moq.It.IsAny<AttributeType>(),Moq.It.IsAny<string>()), Times.Exactly(9));
+        It Should_Get_Items_From_Repo = () => itemRepoMock.Verify(i => i.GetByAttributeAsync(Moq.It.IsAny<string>(), Moq.It.IsAny<string>(),Moq.It.IsAny<string>()), Times.Exactly(9));
 
         private static List<string> colors;
         private static List<string> sizes;
         private static List<string> hatTypes;
         private static List<string> attributeValues;
-        private static List<AttributeType> attributes;
+        private static List<string> attributes;
         private static List<Item> hats;
         private static ProductService productService;
         private static IEnumerable<Item> redItems;
@@ -1211,11 +1216,11 @@ namespace Payment_Processing.Specs
             {
                 "Ballcap","Fedora"
             };
-            attributes = new List<AttributeType>
+            attributes = new List<string>
             {
-                AttributeType.Color,
-                AttributeType.Size,
-                AttributeType.Style
+                "Color",
+                "Size",
+                "Style"
             };
             attributeValues = new List<string>
             {
@@ -1237,17 +1242,17 @@ namespace Payment_Processing.Specs
                     {
                         new ItemAttribute
                         {
-                            Type = AttributeType.Color,
+                            Type = "Color",
                             Value = colors[i%3]
                         },
                         new ItemAttribute
                         {
-                            Type = AttributeType.Size,
+                            Type = "Size",
                             Value = sizes[i%4]
                         },
                         new ItemAttribute
                         {
-                            Type = AttributeType.Style,
+                            Type = "Style",
                             Value = hatTypes[i%2]
                         }
                     }
@@ -1290,7 +1295,7 @@ namespace Payment_Processing.Specs
         private static List<string> colors;
         private static List<string> sizes;
         private static List<string> hatTypes;
-        private static List<AttributeType> attributes;
+        private static List<string> attributes;
         private static List<string> attributeValues;
         private static List<Item> hats;
         private static ProductService productService;
@@ -1313,11 +1318,11 @@ namespace Payment_Processing.Specs
             {
                 "Ballcap","Fedora"
             };
-            attributes = new List<AttributeType>
+            attributes = new List<string>
             {
-                AttributeType.Color,
-                AttributeType.Size,
-                AttributeType.Style
+                "Color",
+                "Size",
+                "Style"
             };
             attributeValues = new List<string>
             {
@@ -1339,17 +1344,17 @@ namespace Payment_Processing.Specs
                     {
                         new ItemAttribute
                         {
-                            Type = AttributeType.Color,
+                            Type = "Color",
                             Value = colors[i%3]
                         },
                         new ItemAttribute
                         {
-                            Type = AttributeType.Size,
+                            Type = "Size",
                             Value = sizes[i%4]
                         },
                         new ItemAttribute
                         {
-                            Type = AttributeType.Style,
+                            Type = "Style",
                             Value = hatTypes[i%2]
                         }
                     }
@@ -1375,7 +1380,7 @@ namespace Payment_Processing.Specs
             loginServiceMock.Setup(l => l.ValidateTokenAsync(Moq.It.IsAny<string>(), Moq.It.IsAny<string>())).ReturnsAsync(true);
             loginServiceMock.Setup(l => l.ValidatePermissionsAsync(account1,PermissionType.User,Moq.It.IsAny<string>())).ReturnsAsync(true);
             accountRepoMock.Setup(a => a.GetByUsernameAsync(Moq.It.IsAny<string>())).ReturnsAsync(account1);
-            itemRepoMock.Setup(i => i.GetByAttributeAsync(product1Name,Moq.It.IsAny<AttributeType>(), Moq.It.IsAny<string>())).ReturnsAsync(hats);
+            itemRepoMock.Setup(i => i.GetByAttributeAsync(product1Name,Moq.It.IsAny<string>(), Moq.It.IsAny<string>())).ReturnsAsync(hats);
             productService = new ProductService(productRepoMock.Object, itemRepoMock.Object, accountRepoMock.Object, loginServiceMock.Object);
             items = new List<Item>();
         };
@@ -1410,7 +1415,7 @@ namespace Payment_Processing.Specs
         private static List<string> colors;
         private static List<string> sizes;
         private static List<string> hatTypes;
-        private static List<AttributeType> attributes;
+        private static List<string> attributes;
         private static List<string> attributeValues;
         private static List<Item> hats;
         private static IProductService productService;

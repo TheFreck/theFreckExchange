@@ -54,7 +54,7 @@ namespace Payment_Processing.Server.Controllers
         [HttpPost("create")]
         public async Task<Product> CreateProduct(ProductDTO input)
         {
-            var product = await productService.CreateProductAsync(input.Name, input.Description, input.Price, input.Credentials);
+            var product = await productService.CreateProductAsync(input.Name, input.Description, input.Attributes, input.Price, input.Credentials);
             return product;
         }
 
@@ -119,7 +119,7 @@ namespace Payment_Processing.Server.Controllers
         /// <param name="value"></param>
         /// <returns></returns>
         [HttpGet("items/product/{productName}/attribute/{attribute}/{value}")]
-        public async Task<IEnumerable<Item>> GetItemsByAttribute(string productName, AttributeType attribute, string value)
+        public async Task<IEnumerable<Item>> GetItemsByAttribute(string productName, string attribute, string value)
         {
             var product = await productService.GetByNameAsync(productName);
             var items = await productService.GetByAttributeAsync(productName, attribute, value);
@@ -131,7 +131,7 @@ namespace Payment_Processing.Server.Controllers
         /// </summary>
         /// <param name="productName"></param>
         /// <returns></returns>
-        [HttpGet("items/product/{productName}/allAttributes")]
+        [HttpGet("items/product/{productName}/attributes")]
         public async Task<IEnumerable<GroupedAttributes>> GetAttributesAsync(string productName)
         {
             var groups = await productService.GetAttributesAsync(productName);
@@ -146,11 +146,11 @@ namespace Payment_Processing.Server.Controllers
         /// <param name="productName"></param>
         /// <param name="attributes"></param>
         /// <returns></returns>
-        [HttpPost("items/create/{qty}/{productName}/{username}")]
-        public async Task<IEnumerable<Item>> CreateItems(string username, int qty, string productName, Item item)
+        [HttpPost("items/create/{qty}")]
+        public async Task<IEnumerable<Item>> CreateItems(int qty, Item item)
         {
-            var products = await productService.GetByNameAsync(productName);
-            var items = await productService.CreateManyItemsAsync(productName,qty, item.Attributes, item.Credentials);
+            var products = await productService.GetByNameAsync(item.Name);
+            var items = await productService.CreateManyItemsAsync(item.Name,qty, item.Attributes, item.Credentials);
             return items; ;
         }
 
