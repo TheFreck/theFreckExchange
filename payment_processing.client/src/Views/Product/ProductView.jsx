@@ -11,8 +11,6 @@ export const ProductView = ({ product, attributes }) => {
     const [quantity, setQuantity] = useState(0);
     const [item, setItem] = useState();
     const [attributeObjects, setAttributeObjects] = useState([]);
-    const [image, setImage] = useState({});
-    const [hasImage, setHasImage] = useState(false);
 
     useEffect(() => {
         product.attributes = [];
@@ -22,13 +20,7 @@ export const ProductView = ({ product, attributes }) => {
         setItem(product);
         setAttributeObjects(product.attributes);
     }, []);
-
-    const uploadImage = (e) => {
-        console.log("target: ", e.target.files);
-        setImage(URL.createObjectURL(e.target.files[0]));
-        setHasImage(true);
-    }
-
+    
     return (
         <Box
             sx={{ width: "60vw", height: "auto" }}
@@ -41,17 +33,7 @@ export const ProductView = ({ product, attributes }) => {
                     spacing={1}
                     sx={{ display: "flex", flexDirection: "column" }}
                 >
-                    <Grid2 size={4}>
-                        <>
-                            <input type="file" onChange={uploadImage} />
-                            {hasImage &&
-                                <img src={image} style={{minWidth: "5vw", maxWidth: "20vw", borderRadius: "5px"}}/>
-                            }
-                            {!hasImage &&
-                                <BathtubIcon sx={{ width: "200%", height: "auto" }} />
-                            }
-                        </>
-                    </Grid2>
+                    
                     <Grid2 size={12}>
                         {
                             item && attributes.length > 0 &&

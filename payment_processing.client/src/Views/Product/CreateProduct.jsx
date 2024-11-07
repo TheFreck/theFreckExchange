@@ -1,6 +1,7 @@
 import { Box, Button, Chip, Stack, TextField } from "@mui/material";
 import react, { useContext, useEffect, useState } from "react";
 import { ProductContext } from "../../Context";
+import BathtubIcon from '@mui/icons-material/Bathtub';
 
 export const CreateProduct = ({created}) => {
     const { createProductAsync } = useContext(ProductContext);
@@ -9,6 +10,20 @@ export const CreateProduct = ({created}) => {
     const [description, setDescription] = useState("");
     const [attributeInput, setAttributeInput] = useState("");
     const [attributes, setAttributes] = useState([]);
+    const [images, setImages] = useState({});
+    const [hasImages, setHasImages] = useState(false);
+
+    
+
+    const uploadImage = (e) => {
+        console.log("target: ", e.target.files);
+        let targetImages = [];
+        for(var i = 0; i<e.target.files.length; i++){
+            targetImages.push(URL.createObjectURL(e.target.files[0]));
+        }
+        setImages(targetImages);
+        setHasImages(true);
+    }
 
     return <div>
         <div>Create Product Here</div>
@@ -52,7 +67,6 @@ export const CreateProduct = ({created}) => {
                 }}
                 value={attributeInput}
                 onKeyDown={k => {
-                    console.log(k);
                     if (k.code === "NumpadEnter" || k.code === "Enter") {
                         setAttributes([...attributes, attributeInput])
                         setAttributeInput("");
@@ -60,13 +74,23 @@ export const CreateProduct = ({created}) => {
                     }
                 }}
             />
+            <>
+                <input type="file" multiple onChange={uploadImage} />
+                {hasImages &&
+                    <img src={images} style={{minWidth: "5vw", maxWidth: "20vw", borderRadius: "5px"}}/>
+                }
+                {!hasImages &&
+                    <BathtubIcon sx={{ width: "100%", height: "auto" }} />
+                }
+            </>
             <br/>
             <Button
                 id="createProductButton"
                 variant="contained"
                 onClick={() => {
-                    createProductAsync({ name, description, attributes, price });
-                    created();
+                    createProductAsync({ name, description, attributes, price, images },() => {
+                        created();
+                    });
                 }}
             >
                 Create

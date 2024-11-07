@@ -4,6 +4,7 @@ import './App.css';
 import {AccountContext, ProductContext} from './Context';
 import Welcome from './Views/Welcome';
 import Login from './Views/Login';
+import { useBeforeUnload } from "react-router-dom";
 import { Button } from '@mui/material';
 
 const viewEnum = {

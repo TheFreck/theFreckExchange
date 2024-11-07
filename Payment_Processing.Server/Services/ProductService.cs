@@ -11,7 +11,7 @@ namespace Payment_Processing.Server.Services
 {
     public interface IProductService
     {
-        Task<Item> CreateItemAsync(string productId, Item item, LoginCredentials credentials);
+        Task<Item> CreateItemAsync(string productId, Item item);
         Task<IEnumerable<Item>> CreateManyItemsAsync(string productName, int itemQuantity, List<ItemAttribute> attributes, LoginCredentials credentials);
         Task<Product> CreateProductAsync(string name, string description, List<string> attributes, double price, LoginCredentials credentials);
         Task<IEnumerable<Product>> GetAllAsync();
@@ -22,8 +22,9 @@ namespace Payment_Processing.Server.Services
         Task<Product> ModifyDescriptionAsync(string productName, string newDescription, LoginCredentials credentials);
         Task<Product> ModifyNameAsync(string oldName, string newName, LoginCredentials credentials);
         Task<Product> ModifyPriceAsync(string productName, double price, LoginCredentials credentials);
-        Task<Item> PurchaseItem(Item item, LoginCredentials credentials);
+        Task<Item> PurchaseItem(Item items);
         Task<List<string>> GetAvailableAttributes(string productName);
+        Task UpdateProductWithImageAsync(string productId, List<IFormFile> images);
     }
     public class ProductService : IProductService
     {
@@ -39,10 +40,10 @@ namespace Payment_Processing.Server.Services
             this.loginService = loginService;
         }
 
-        public async Task<Item> CreateItemAsync(string productId, Item item, LoginCredentials credentials)
+        public async Task<Item> CreateItemAsync(string productId, Item item)
         {
-            var account = await accountRepo.GetByUsernameAsync(credentials.Username);
-            if (await loginService.ValidatePermissionsAsync(account, PermissionType.Admin, credentials.AdminToken))
+            var account = await accountRepo.GetByUsernameAsync(item.Credentials.Username);
+            if (await loginService.ValidatePermissionsAsync(account, PermissionType.Admin, item.Credentials.AdminToken))
             {
                 var product = await productRepo.GetByProductIdAsync(productId);
                 var newItem = new Item
@@ -105,6 +106,29 @@ namespace Payment_Processing.Server.Services
                 return product;
             }
             return null;
+        }
+
+        public async Task UpdateProductWithImageAsync(string productId, List<IFormFile> images)
+        {
+            var product = await productRepo.GetByProductIdAsync(productId);
+            long size = images.Sum(f => f.Length);
+
+            foreach (FormFile formFile in images)
+            {
+                if (formFile.Length > 0)
+                {
+                    using (var stream = new MemoryStream())
+                    {
+                        formFile.CopyTo(stream);
+                        var fileBytes = stream.ToArray();
+
+                        product.ImageBytes.Add(fileBytes);
+                        await productRepo.UpdateAsync(product);
+                    }
+
+                }
+            }
+            return;
         }
 
         public async Task<IEnumerable<Product>> GetAllAsync()
@@ -189,11 +213,11 @@ namespace Payment_Processing.Server.Services
             return null;
         }
 
-        public async Task<Item> PurchaseItem(Item item, LoginCredentials credentials)
+        public async Task<Item> PurchaseItem(Item item)
         {
-            var account = await accountRepo.GetByUsernameAsync(credentials.Username);
-            var loggedIn = await loginService.ValidateTokenAsync(credentials.Username, credentials.LoginToken);
-            var hasPermission = await loginService.ValidatePermissionsAsync(account, PermissionType.User, credentials.UserToken);
+            var account = await accountRepo.GetByUsernameAsync(item.Credentials.Username);
+            var loggedIn = await loginService.ValidateTokenAsync(item.Credentials.Username, item.Credentials.LoginToken);
+            var hasPermission = await loginService.ValidatePermissionsAsync(account, PermissionType.User, item.Credentials.UserToken);
             if (loggedIn && hasPermission)
             {
                 var items = new List<Item>();

@@ -42,7 +42,7 @@ export const Welcome = () => {
         .catch(nope => console.error(nope));
     }
 
-    const createProductAsync = async ({name,description,attributes,price}) => {
+    const createProductAsync = async ({name,description,attributes,price, images},cb) => {
         productApi.post(`create`,{name,description,price,attributes,credentials:{
             username: localStorage.getItem("username"),
             loginToken: localStorage.getItem("loginToken"),
@@ -50,11 +50,45 @@ export const Welcome = () => {
             userToken: localStorage.getItem("permissions.user")
         }})
             .then(yup => {
-                getProductsAsync(prods => {
-                    setProducts(prods);
-                })
+                console.log("createProduct yup: ", yup.data);
+                readImagesAsync(images,read => {
+                    var formData = new FormData();
+                    console.log("read[o]: ", read[0]);
+                    formData.append("images", read[0]);
+                    console.log("formData: ", formData.entries());
+                    productApi.post(`image/uploadImage/${yup.data.productId}`,{content:formData})
+                    .then(() => {
+                        getProductsAsync(prods => {
+                            setProducts(prods);
+                            cb();
+                        });
+                    })
+                    .catch(nope => console.error(nope));
+                });
+
             })
             .catch(nope => console.error(nope));
+    }
+
+    const readImagesAsync = async (images, cb) => {
+        let bas64Images = [];
+        for (var image of images) {
+            console.log("image: ", image);
+            bas64Images.push(await fetch(image)
+                .then(res => res.blob())
+                .then(blob => {
+                    const reader = new FileReader();
+                    reader.readAsDataURL(blob);
+                    return new Promise(resolve => {
+                        reader.onloadend = () => {
+                            resolve(reader.result);
+                        };
+                    })
+                }));
+                if(bas64Images.length === images.length){
+                    cb(bas64Images);
+                }
+        }
     }
 
     const createItemsAsync = async ({item,quantity,image}) => {

@@ -1,6 +1,8 @@
 ﻿using Microsoft.AspNetCore.Mvc;
 using Payment_Processing.Server.DTO;
 using Payment_Processing.Server.Services;
+using System.Linq;
+using System.Net;
 
 namespace Payment_Processing.Server.Controllers
 {
@@ -161,7 +163,6 @@ namespace Payment_Processing.Server.Controllers
         [HttpPost("items/create/{qty}")]
         public async Task<IEnumerable<Item>> CreateItems(int qty, Item item)
         {
-            var products = await productService.GetByNameAsync(item.Name);
             var items = await productService.CreateManyItemsAsync(item.Name,qty, item.Attributes, item.Credentials);
             return items; ;
         }
@@ -185,12 +186,28 @@ namespace Payment_Processing.Server.Controllers
                 {
                     items.AddRange(await productService.GetByAttributeAsync(item.Name, item.Attributes[i].Type, item.Attributes[i].Value));
                 }
-                return await productService.PurchaseItem(items.FirstOrDefault(), item.Credentials);
+                if(items.Count > 0)
+                    return await productService.PurchaseItem(items.FirstOrDefault());
+                return new Item
+                {
+                    Name = item.Name,
+                    ProductDescription = "Out of Stock",
+                    Price = item.Price,
+                    ProductId = item.ProductId,
+                    SKU = "Out of Stock"
+                };
             }
             else
             {
                 return null;
             }
+        }
+
+        [HttpPost("image/uploadImage/{productId}")]
+        public async Task<IActionResult> UuploadImagesForItemsAsync([FromForm]List<IFormFile> images, string productId)
+        {
+            await productService.UpdateProductWithImageAsync(productId, images);
+            return Ok();
         }
     }
 }
