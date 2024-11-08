@@ -15,7 +15,7 @@ namespace Payment_Processing.Server.DTO
         public required string ProductDescription { get; set; }
         public List<string> AvailableAttributes { get; set; }
         public required double Price { get; set; }
-        public List<byte[]> ImageBytes = new List<byte[]>();
+        public List<byte[]> ImageBytes { get; set; } = new List<byte[]>();
 
         public Product()
         {

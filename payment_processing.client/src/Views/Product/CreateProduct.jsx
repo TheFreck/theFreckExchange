@@ -16,10 +16,9 @@ export const CreateProduct = ({created}) => {
     
 
     const uploadImage = (e) => {
-        console.log("target: ", e.target.files);
         let targetImages = [];
         for(var i = 0; i<e.target.files.length; i++){
-            targetImages.push(URL.createObjectURL(e.target.files[0]));
+            targetImages.push(URL.createObjectURL(e.target.files[i]));
         }
         setImages(targetImages);
         setHasImages(true);
@@ -56,7 +55,7 @@ export const CreateProduct = ({created}) => {
                 sx={{ border: "solid", borderWidth: "1px", borderColor: "lightgray", margin: ".5vh 0", padding: ".5em" }}
             >
                 {attributes.map((a, i) => (
-                    <Chip label={a} key={i} />
+                    <Chip onClick={() => setAttributes([...attributes.filter(at => at !== a)])} label={a} key={i} />
                 ))}
             </Stack>
             <TextField
@@ -76,8 +75,12 @@ export const CreateProduct = ({created}) => {
             />
             <>
                 <input type="file" multiple onChange={uploadImage} />
-                {hasImages &&
-                    <img src={images} style={{minWidth: "5vw", maxWidth: "20vw", borderRadius: "5px"}}/>
+                {hasImages && images.length > 0 &&
+                <>
+                    {images.map((i,j) => (
+                        <img src={i} key={j} style={{minWidth: "5vw", maxWidth: "20vw", borderRadius: "5px"}}/>
+                    ))}
+                </>
                 }
                 {!hasImages &&
                     <BathtubIcon sx={{ width: "100%", height: "auto" }} />

@@ -829,7 +829,7 @@ namespace Payment_Processing.Specs
                 SKU = "SKU",
             };
             var stream = new MemoryStream(Encoding.ASCII.GetBytes("these are the image bytes"));
-            images = new List<FormFile>
+            images = new List<IFormFile>
             {
                 new FormFile(stream,0,stream.Length,"hatImage","hatImageName")
             };
@@ -854,7 +854,7 @@ namespace Payment_Processing.Specs
 
         private static List<ItemAttribute> attributes;
         private static Item hat;
-        private static List<FormFile> images;
+        private static List<IFormFile> images;
         private static Product product;
         private static ProductService productService;
     }

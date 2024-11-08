@@ -5,22 +5,25 @@ import BathtubIcon from '@mui/icons-material/Bathtub';
 
 import { Box, Button, FormControl, Grid2, InputAdornment, InputLabel, MenuItem, Select, TextField, Typography } from "@mui/material";
 import { ProductContext } from "../../Context";
+import Carousel from "react-material-ui-carousel";
 
 export const ProductView = ({ product, attributes }) => {
     const { createItemsAsync } = useContext(ProductContext);
     const [quantity, setQuantity] = useState(0);
-    const [item, setItem] = useState();
+    const [selectedProduct, setSelectedProduct] = useState();
     const [attributeObjects, setAttributeObjects] = useState([]);
+    const [imageObjects, setImageObjects] = useState([]);
 
     useEffect(() => {
         product.attributes = [];
         for (var attribute of attributes) {
             product.attributes.push({ type: attribute, value: "" });
         }
-        setItem(product);
+        setSelectedProduct(product);
         setAttributeObjects(product.attributes);
+        setImageObjects(product.imageBytes);
     }, []);
-    
+
     return (
         <Box
             sx={{ width: "60vw", height: "auto" }}
@@ -33,10 +36,31 @@ export const ProductView = ({ product, attributes }) => {
                     spacing={1}
                     sx={{ display: "flex", flexDirection: "column" }}
                 >
-                    
+                    <Grid2 size={12}>
+                        {selectedProduct?.imageBytes !== undefined &&
+                            <Carousel
+                                sx={{minHeight: "20em",maxHeight: "20em", height: "20em"}}
+                                cycleNavigation="false"
+                                autoPlay="false"
+                                interval="100000000"
+                                indicatorContainerProps={{
+                                    style: {
+                                        position: "absolute",
+                                        bottom: "1em"
+                                    }
+                                }}
+                            >
+                                {
+                                    imageObjects.map((image, i) => (
+                                        <img style={{ width: "100%" }} src={window.atob(image)} height={"auto"} key={i} />
+                                    ))
+                                }
+                            </Carousel>
+                        }
+                    </Grid2>
                     <Grid2 size={12}>
                         {
-                            item && attributes.length > 0 &&
+                            selectedProduct && attributes.length > 0 &&
                             <Grid2
                                 size={12}
                                 sx={{ display: "flex", flexDirection: "column" }}
@@ -45,9 +69,9 @@ export const ProductView = ({ product, attributes }) => {
                                     attributes.map((type, i) => (
                                         <TextField
                                             label={type}
-                                            value={item.attributes[i].value}
+                                            value={selectedProduct.attributes[i].value}
                                             onChange={(a) => {
-                                                item.attributes[i].value = a.target.value;
+                                                selectedProduct.attributes[i].value = a.target.value;
                                                 attributeObjects[i].value = a.target.value;
                                                 setAttributeObjects([...attributeObjects.filter(a => a.key !== type), attributeObjects[i]])
                                             }}
@@ -73,7 +97,7 @@ export const ProductView = ({ product, attributes }) => {
                         <Grid2 size={7}>
                             {
 
-                                <Button onClick={() => createItemsAsync({ item, quantity, image })} variant="contained">Create</Button>
+                                <Button onClick={() => createItemsAsync({ item: selectedProduct, quantity, image })} variant="contained">Create</Button>
                             }
                         </Grid2>
                     </Grid2>

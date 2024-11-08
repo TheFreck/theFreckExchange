@@ -21,18 +21,13 @@ export const CreateItems = ({products}) => {
     }, []);
     
     useEffect(() => {
-            // console.log("product useeffect: ", product);
+            console.log("product useeffect: ", product);
     },[product]);
 
-    useEffect(() => {
-        // console.log("attributes useeffect: ", attributes);
-    },[attributes]);
-
     const selectProduct = async (p) => {
-        // console.log("selected: ", p.target.value);
+        console.log("selected: ", p.target.value);
         setProduct(p.target.value);
         getAvailableAttributesAsync(p.target.value.name, att => {
-            // console.log("got attributes async: ", att);
             setAttributes(att);
             setReady(!ready);
         })
