@@ -24,7 +24,6 @@ export const AccountView = ({userAcct, setUserAcct}) => {
         const cleanEmail = email.replace("@", "%40");
         api.get(`email/${cleanEmail}`)
             .then(yup => {
-                console.log("yup: ", yup.data);
                 setAccount(yup.data);
                 setUserAcct(yup.data);
             })
@@ -33,22 +32,18 @@ export const AccountView = ({userAcct, setUserAcct}) => {
 
     const submitPayment = (e) => {
         e.preventDefault();
-        console.log("submitting payment");
         const cleanEmail = account.email.replace("@", "%40");
         api.put(`make_payment/${cleanEmail}/${payment}`)
             .then(yup => {
-                console.log("made payment: ", yup.data);
                 setAccount(yup.data);
             })
             .catch(nope => console.error(nope));
     }
 
     const createAccount = (acct) => {
-        console.log("create account: ", acct);
         const cleanEmail = acct.email.replace("@", "%40");
         api.post(`createAccount/${acct.name}/${cleanEmail}/${acct.balance}`)
             .then(yup => {
-                console.log("account created: ", yup.data);
                 setAccount(yup.data);
             })
             .catch(nope => console.error(nope));

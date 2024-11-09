@@ -30,6 +30,7 @@ namespace Payment_Processing.Server.DTO
         public required string Description { get; set; }
         public LoginCredentials Credentials { get; set; }
         public List<string> Attributes { get; set; }
+        public List<byte[]> ImageBytes { get; set; }
     }
 
     public class Item : Product

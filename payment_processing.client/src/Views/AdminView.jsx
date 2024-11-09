@@ -4,6 +4,7 @@ import { ExpandMore } from "@mui/icons-material";
 import CreateProduct from "./Product/CreateProduct";
 import CreateItems from "./Item/CreateItems";
 import { ProductContext } from "../Context";
+import ModifyProduct from "./Product/ModifyProduct";
 
 const accordionEnum = {
     none: 0,
@@ -99,7 +100,9 @@ export const AdminView = () => {
                 <Typography >Modify Products</Typography>
             </AccordionSummary>
             <AccordionDetails>
-                <Typography>Place Holder</Typography>
+                <ModifyProduct 
+                    products={products}
+                />
             </AccordionDetails>
         </Accordion>
     </Box>,[ready,accordionView]);

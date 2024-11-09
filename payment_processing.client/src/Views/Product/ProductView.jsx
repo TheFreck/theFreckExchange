@@ -19,6 +19,7 @@ export const ProductView = ({ product, attributes }) => {
         for (var attribute of attributes) {
             product.attributes.push({ type: attribute, value: "" });
         }
+        console.log("useeffect product: ", product);
         setSelectedProduct(product);
         setAttributeObjects(product.attributes);
         setImageObjects(product.imageBytes);
@@ -52,7 +53,7 @@ export const ProductView = ({ product, attributes }) => {
                             >
                                 {
                                     imageObjects.map((image, i) => (
-                                        <img style={{ width: "100%" }} src={window.atob(image)} height={"auto"} key={i} />
+                                        <img style={{ backgroundSize: "contain", maxHeight: "20em", maxWidth: "100%" }} src={window.atob(image.bytes)}  height={"auto"} key={i} />
                                     ))
                                 }
                             </Carousel>
@@ -68,6 +69,7 @@ export const ProductView = ({ product, attributes }) => {
                                 {
                                     attributes.map((type, i) => (
                                         <TextField
+                                            key={i}
                                             label={type}
                                             value={selectedProduct.attributes[i].value}
                                             onChange={(a) => {
@@ -115,12 +117,15 @@ export const ProductView = ({ product, attributes }) => {
                     <Grid2 size={12}>
                         <Typography
                             sx={{ width: "100%", textAlign: "left", paddingLeft: "1em", fontSize: "1.5rem", display: "flex", flexDirection: "row" }}
-                        ><InputAdornment variant="standard" position="start">$</InputAdornment>{product.price}</Typography>
+                        >${product.price}</Typography>
                     </Grid2>
                     <Grid2 size={12}>
                         <Typography
-                            sx={{ width: "100%", textAlign: "left", paddingLeft: "1em", fontSize: "1rem" }}
-                        ><InputAdornment variant="standard" position="start">Description:</InputAdornment>{product.productDescription}</Typography>
+                            sx={{textAlign: "left", paddingLeft: '1em', fontSize: "1.25rem"}}
+                        >Description:</Typography>
+                        <Typography
+                            sx={{ width: "100%", textAlign: "left", paddingLeft: "2em", fontSize: "1rem" }}
+                        >{product.productDescription}</Typography>
                     </Grid2>
                 </Grid2>
             </Grid2>

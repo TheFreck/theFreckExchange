@@ -2,10 +2,6 @@ import react, {useEffect, useState} from "react";
 
 export const AccountPaymentView = ({account, payment, setPayment, submit}) => {
 
-    useEffect(() => {
-        console.log("account: ", account);
-    },[]);
-
     return <div>
         <h1>Account</h1>
         <div>{account.name}</div>

@@ -56,47 +56,32 @@ namespace Payment_Processing.Server.Controllers
         [HttpPost("create")]
         public async Task<Product> CreateProduct(ProductDTO input)
         {
-            var product = await productService.CreateProductAsync(input.Name, input.Description, input.Attributes, input.Price, input.Credentials);
-            return product;
+            if (await loginService.ValidateTokenAsync(input.Credentials.Username, input.Credentials.LoginToken))
+            {
+                var product = await productService.CreateProductAsync(input.Name, input.Description, input.Attributes, input.Price, input.Credentials);
+                return product;
+            }
+            else return null;
         }
 
         /// <summary>
-        /// Update the Name of Product
+        /// To modify a product. Cannot modify [productId, name, id];
         /// </summary>
-        /// <param name="oldName"></param>
-        /// <param name="newName"></param>
+        /// <param name="input"></param>
         /// <returns></returns>
-        [HttpPut("modify/name/{oldName}/{newName}/{username}")]
-        public async Task<Product> ModifyName(string username, string oldName, string newName, LoginCredentials credentials)
+        [HttpPut("modify/product")]
+        public async Task<Product> ModifyProduct([FromBody] ProductDTO input)
         {
-            var product = await productService.ModifyNameAsync(oldName, newName, credentials);
-            return product;
-        }
-
-        /// <summary>
-        /// Update the Price of a Product
-        /// </summary>
-        /// <param name="name"></param>
-        /// <param name="price"></param>
-        /// <returns></returns>
-        [HttpPut("modify/price/{name}/{price}/{username}")]
-        public async Task<Product> ModifyPrice(string username, string name, double price, LoginCredentials credentials)
-        {
-            var product = await productService.ModifyPriceAsync(name, price, credentials);
-            return product;
-        }
-
-        /// <summary>
-        /// Update the Description of a Product
-        /// </summary>
-        /// <param name="name"></param>
-        /// <param name="description"></param>
-        /// <returns></returns>
-        [HttpPut("modify/description/{productName}")]
-        public async Task<Product> ModifyDescription(string productName, [FromBody] ProductDTO product)
-        {
-            var prod = await productService.ModifyDescriptionAsync(productName, product.Description, product.Credentials);
-            return prod;
+            if (await loginService.ValidateTokenAsync(input.Credentials.Username, input.Credentials.LoginToken))
+            {
+                var oldProduct = await productService.GetByNameAsync(input.Name);
+                oldProduct.Price = input.Price;
+                oldProduct.ProductDescription = input.Description;
+                oldProduct.AvailableAttributes = input.Attributes;
+                oldProduct.ImageBytes = input.ImageBytes;
+                return await productService.ModifyProductAsync(oldProduct);
+            }
+            return null;
         }
 
         // ITEMS

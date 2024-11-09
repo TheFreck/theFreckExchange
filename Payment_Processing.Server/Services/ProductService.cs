@@ -25,6 +25,7 @@ namespace Payment_Processing.Server.Services
         Task<Item> PurchaseItem(Item items);
         Task<List<string>> GetAvailableAttributes(string productName);
         Task UpdateProductWithImageAsync(string productId, List<IFormFile> images);
+        Task<Product> ModifyProductAsync(Product newProduct);
     }
     public class ProductService : IProductService
     {
@@ -236,6 +237,17 @@ namespace Payment_Processing.Server.Services
                 return item;
             }
             else return null;
+        }
+
+        public async Task<Product> ModifyProductAsync(Product newProduct)
+        {
+            var product = await productRepo.GetByNameAsync(newProduct.Name);
+            product.Price = newProduct.Price;
+            product.ProductDescription = newProduct.ProductDescription;
+            product.AvailableAttributes = newProduct.AvailableAttributes;
+            product.ImageBytes = newProduct.ImageBytes;
+            await productRepo.UpdateAsync(product);
+            return product;
         }
     }
 }

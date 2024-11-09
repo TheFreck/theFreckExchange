@@ -62,15 +62,17 @@ export const CreateProduct = ({created}) => {
                 label="Product Attributes"
                 onChange={p => {
                     setAttributeInput(p.target.value);
-                    console.log(p.target.value);
                 }}
                 value={attributeInput}
                 onKeyDown={k => {
                     if (k.code === "NumpadEnter" || k.code === "Enter") {
                         setAttributes([...attributes, attributeInput])
                         setAttributeInput("");
-                        console.log("attributeInput: ", attributeInput);
                     }
+                }}
+                onBlur={() => {
+                    setAttributes([...attributes, attributeInput])
+                    setAttributeInput("");
                 }}
             />
             <>

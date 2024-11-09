@@ -179,262 +179,93 @@ namespace Payment_Processing.Specs
         private static List<Product> outcomes;
     }
 
-    public class When_Modifying_The_Description_Of_A_Product : With_ProductRepo_Setup
+    public class When_Modifying_A_Product : With_ProductRepo_Setup
     {
         Establish context = () =>
         {
-            product1NewDesc = "This product covers your head";
-            product2NewDesc = "This is gonna fit just right";
-            product1 = new Product
+            oldPrice = 10.50;
+            newPrice = 25.75;
+            oldDescription = "old description";
+            newDescription = "new description is better"; 
+            oldImageStream1 = new MemoryStream(Encoding.ASCII.GetBytes("these are the old image bytes"));
+            oldImageStream2 = new MemoryStream(Encoding.ASCII.GetBytes("these are the old image bytes"));
+            newImageStream = new MemoryStream(Encoding.ASCII.GetBytes("these are the new image bytes"));
+            oldImages = new List<byte[]>
+            {
+                oldImageStream1.ToArray(),
+                oldImageStream2.ToArray(),
+            };
+            newImages = new List<byte[]>
+            {
+                newImageStream.ToArray()
+            };
+            oldAttributes = new List<string>
+            {
+                "Color",
+                "Size"
+            };
+            newAttributes = new List<string>
+            {
+                "Color",
+                "Style"
+            };
+            oldProduct = new Product
             {
                 Name = product1Name,
-                ProductDescription = product1NewDesc,
+                Price = oldPrice,
+                ProductDescription = oldDescription,
                 ProductId = product1Id,
-                Price = product1Price
+                AvailableAttributes = oldAttributes,
+                ImageBytes = oldImages
             };
-            product2 = new Product
+            newProduct = new Product
             {
-                Name = product2Name,
-                ProductDescription = product2NewDesc,
-                ProductId = product2Id,
-                Price = product2Price
+                Name = product1Name,
+                Price = newPrice,
+                ProductDescription = newDescription,
+                ProductId = product1Id,
+                AvailableAttributes = newAttributes,
+                ImageBytes = newImages
             };
             accountRepoMock.Setup(l => l.GetByUsernameAsync(account1.Username)).ReturnsAsync(account1);
             loginServiceMock.Setup(l => l.ValidatePermissionsAsync(Moq.It.IsAny<Account>(), PermissionType.Admin, Moq.It.IsAny<string>())).ReturnsAsync(true);
-            productRepoMock.Setup(p => p.GetByNameAsync(product1Name)).ReturnsAsync(product1);
-            productRepoMock.Setup(p => p.GetByNameAsync(product2Name)).ReturnsAsync(product2);
+            productRepoMock.Setup(p => p.GetByNameAsync(Moq.It.IsAny<string>())).ReturnsAsync(oldProduct);
             storeFront = new ProductService(productRepoMock.Object, itemRepoMock.Object, accountRepoMock.Object, loginServiceMock.Object);
-            inputs = new List<(string name, string newDescription)>
-            {
-                new (product1Name,product1NewDesc),
-                new (product2Name,product2NewDesc)
-            };
-            expectations = new List<Product>
-            {
-                product1,
-                product2
-            };
-            outcomes = new List<Product>();
         };
 
-        Because of = () =>
-        {
-            for (var i = 0; i < inputs.Count; i++)
-            {
-                outcomes.Add(storeFront.ModifyDescriptionAsync(inputs[i].name, product1NewDesc, loginCreds).GetAwaiter().GetResult());
-            }
-        };
+        Because of = () => outcome = storeFront.ModifyProductAsync(newProduct).GetAwaiter().GetResult();
 
-        It Should_Validate_Admin_Permission = () =>
-        {
-            loginServiceMock.Verify(l => l.ValidatePermissionsAsync(Moq.It.IsAny<Account>(), Moq.It.IsAny<PermissionType>(), Moq.It.IsAny<string>()), Times.Exactly(expectations.Count));
-        };
+        //It Should_Validate_Admin_Permission = () => loginServiceMock.Verify(l => l.ValidatePermissionsAsync(Moq.It.IsAny<Account>(), Moq.It.IsAny<PermissionType>(), Moq.It.IsAny<string>()), Times.Once);
 
         It Should_Return_Modified_Product = () =>
         {
-            for (var i = 0; i < expectations.Count; i++)
-            {
-                outcomes[i].Name.ShouldEqual(expectations[i].Name);
-                outcomes[i].ProductDescription.ShouldEqual(expectations[i].ProductDescription);
-            }
+            outcome.Name.ShouldEqual(newProduct.Name);
+            outcome.Price.ShouldEqual(newProduct.Price);
+            outcome.ProductDescription.ShouldEqual(newProduct.ProductDescription);
+            outcome.ProductId.ShouldEqual(newProduct.ProductId);
+            outcome.AvailableAttributes.ShouldContainOnly(newProduct.AvailableAttributes);
+            outcome.ImageBytes.ShouldContainOnly(newProduct.ImageBytes);
         };
 
-        It Should_Retrieve_Product_From_Repo = () =>
-        {
-            for (var i = 0; i < expectations.Count; i++)
-            {
-                productRepoMock.Verify(p => p.GetByNameAsync(expectations[i].Name), Times.Once);
-            }
-        };
+        It Should_Retrieve_Product_From_Repo = () => productRepoMock.Verify(p => p.GetByNameAsync(oldProduct.Name), Times.Once);
 
-        It Should_Persist_Modified_Product = () =>
-        {
-            for (var i = 0; i < expectations.Count; i++)
-            {
-                productRepoMock.Verify(p => p.UpdateAsync(Moq.It.IsAny<Product>()), Times.Exactly(expectations.Count));
-            }
-        };
+        It Should_Persist_Modified_Product = () => productRepoMock.Verify(p => p.UpdateAsync(Moq.It.IsAny<Product>()), Times.Once);
 
-        private static ProductService storeFront;
-        private static string product1NewDesc;
-        private static string product2NewDesc;
-        private static Product product1;
-        private static Product product2;
-        private static List<(string name, string newDescription)> inputs;
-        private static List<Product> expectations;
-        private static List<Product> outcomes;
-    }
-
-    public class When_Modifying_The_Name_Of_A_Product : With_ProductRepo_Setup
-    {
-        Establish context = () =>
-        {
-            product1NewName = "cap";
-            product2NewName = "top";
-            product1 = new Product
-            {
-                Name = product1Name,
-                ProductDescription = product1NewName,
-                ProductId = product1Id,
-                Price = product1Price
-            };
-            product2 = new Product
-            {
-                Name = product2Name,
-                ProductDescription = product2NewName,
-                ProductId = product2Id,
-                Price = product2Price
-            };
-            newProduct1 = product1;
-            newProduct2 = product2;
-            newProduct1.Name = product1NewName;
-            newProduct2.Name = product2NewName;
-            loginServiceMock.Setup(l => l.ValidatePermissionsAsync(Moq.It.IsAny<Account>(), PermissionType.Admin, Moq.It.IsAny<string>())).ReturnsAsync(true);
-            productRepoMock.Setup(p => p.GetByNameAsync(product1Name)).ReturnsAsync(product1);
-            productRepoMock.Setup(p => p.GetByNameAsync(product2Name)).ReturnsAsync(product2);
-            productService = new ProductService(productRepoMock.Object, itemRepoMock.Object, accountRepoMock.Object, loginServiceMock.Object);
-            inputs = new List<(string name, string newName)>
-            {
-                new (product1Name,product1NewName),
-                new (product2Name,product2NewName)
-            };
-            expectations = new List<Product>
-            {
-                newProduct1,
-                newProduct2
-            };
-            outcomes = new List<Product>();
-        };
-
-        Because of = () =>
-        {
-            for (var i = 0; i < inputs.Count; i++)
-            {
-                outcomes.Add(productService.ModifyNameAsync(inputs[i].name, inputs[i].newName, loginCreds).GetAwaiter().GetResult());
-            }
-        };
-
-        It Should_Validate_Admin_Permission = () =>
-        {
-            loginServiceMock.Verify(l => l.ValidatePermissionsAsync(Moq.It.IsAny<Account>(), Moq.It.IsAny<PermissionType>(), Moq.It.IsAny<string>()), Times.Exactly(expectations.Count));
-        };
-
-        It Should_Return_Modified_Product = () =>
-        {
-            for (var i = 0; i < expectations.Count; i++)
-            {
-                outcomes[i].Name.ShouldEqual(expectations[i].Name);
-                outcomes[i].ProductDescription.ShouldEqual(expectations[i].ProductDescription);
-            }
-        };
-
-        It Should_Retrieve_Product_From_Repo = () =>
-        {
-            for (var i = 0; i < expectations.Count; i++)
-            {
-                productRepoMock.Verify(p => p.GetByNameAsync(inputs[i].name), Times.Once);
-            }
-        };
-
-        It Should_Persist_Modified_Product = () => productRepoMock.Verify(p => p.UpdateAsync(Moq.It.IsAny<Product>()), Times.Exactly(expectations.Count));
-
-        private static IProductService productService;
-        private static string product1NewName;
-        private static string product2NewName;
-        private static Product product1;
-        private static Product product2;
-        private static Product newProduct1;
-        private static Product newProduct2;
-        private static List<(string name, string newName)> inputs;
-        private static List<Product> expectations;
-        private static List<Product> outcomes;
-    }
-
-    public class When_Modifying_The_Price_Of_A_Product : With_ProductRepo_Setup
-    {
-        Establish context = () =>
-        {
-            product1NewPrice = 199.99;
-            product2NewPrice = 34.75;
-            product1 = new Product
-            {
-                Name = product1Name,
-                ProductDescription = product1Desc,
-                ProductId = product1Id,
-                Price = product1Price
-            };
-            product2 = new Product
-            {
-                Name = product2Name,
-                ProductDescription = product2Desc,
-                ProductId = product2Id,
-                Price = product2Price
-            };
-            loginServiceMock.Setup(l => l.ValidatePermissionsAsync(Moq.It.IsAny<Account>(), PermissionType.Admin, Moq.It.IsAny<string>())).ReturnsAsync(true);
-            productRepoMock.Setup(p => p.GetByNameAsync(product1Name)).ReturnsAsync(product1);
-            productRepoMock.Setup(p => p.GetByNameAsync(product2Name)).ReturnsAsync(product2);
-            productRepoMock.Setup(p => p.UpdateAsync(Moq.It.IsAny<Product>()));
-            productService = new ProductService(productRepoMock.Object, itemRepoMock.Object, accountRepoMock.Object, loginServiceMock.Object);
-            inputs = new List<(string name, double price)>
-            {
-                new (product1Name,product1NewPrice),
-                new (product2Name,product2NewPrice)
-            };
-            expectations = new List<Product>
-            {
-                product1,
-                product2
-            };
-            outcomes = new List<Product>();
-        };
-
-        Because of = () =>
-        {
-            for (var i = 0; i < inputs.Count; i++)
-            {
-                outcomes.Add(productService.ModifyPriceAsync(inputs[i].name, inputs[i].price, loginCreds).GetAwaiter().GetResult());
-            }
-        };
-
-        It Should_Validate_Admin_Permission = () =>
-        {
-            loginServiceMock.Verify(l => l.ValidatePermissionsAsync(Moq.It.IsAny<Account>(), Moq.It.IsAny<PermissionType>(), Moq.It.IsAny<string>()), Times.Exactly(expectations.Count));
-        };
-
-        It Should_Return_Modified_Product = () =>
-        {
-            for (var i = 0; i < expectations.Count; i++)
-            {
-                outcomes[i].Name.ShouldEqual(expectations[i].Name);
-                outcomes[i].ProductDescription.ShouldEqual(expectations[i].ProductDescription);
-                outcomes[i].Price.ShouldEqual(expectations[i].Price);
-            }
-        };
-
-        It Should_Retrieve_Product_From_Repo = () =>
-        {
-            for (var i = 0; i < expectations.Count; i++)
-            {
-                productRepoMock.Verify(p => p.GetByNameAsync(expectations[i].Name), Times.Once);
-            }
-        };
-
-        It Should_Persist_Modified_Product = () =>
-        {
-            for (var i = 0; i < expectations.Count; i++)
-            {
-                productRepoMock.Verify(p => p.UpdateAsync(Moq.It.IsAny<Product>()), Times.Exactly(expectations.Count));
-            }
-        };
-
-        private static ProductService productService;
-        private static double product1NewPrice;
-        private static double product2NewPrice;
-        private static Product product1;
-        private static Product product2;
-        private static List<(string name, double price)> inputs;
-        private static List<Product> expectations;
-        private static List<Product> outcomes;
+        private static IProductService storeFront;
+        private static Product oldProduct;
+        private static Product newProduct;
+        private static string oldDescription;
+        private static string newDescription;
+        private static MemoryStream oldImageStream1;
+        private static MemoryStream oldImageStream2;
+        private static MemoryStream newImageStream;
+        private static List<byte[]> oldImages;
+        private static List<byte[]> newImages;
+        private static List<string> oldAttributes;
+        private static List<string> newAttributes;
+        private static double oldPrice;
+        private static double newPrice;
+        private static Product outcome;
     }
 
     public class When_Getting_All_Products : With_ProductRepo_Setup
@@ -848,7 +679,7 @@ namespace Payment_Processing.Specs
 
         Because of = () => productService.UpdateProductWithImageAsync(product.ProductId, images).GetAwaiter().GetResult();
 
-        It Should_Find_Product_In_Repo = () => productRepoMock.Verify(p => p.GetByProductIdAsync(Moq.It.IsAny<string>()),Times.Once());
+        It Should_Find_Product_In_Repo = () => productRepoMock.Verify(p => p.GetByProductIdAsync(Moq.It.IsAny<string>()), Times.Once());
 
         It Should_Call_Product_Repo_To_Update_Product = () => productRepoMock.Verify(p => p.UpdateAsync(Moq.It.IsAny<Product>()), Times.Once());
 

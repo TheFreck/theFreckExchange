@@ -57,7 +57,7 @@ function App() {
     const createAccount = ({ name,email,username,password,permissions }) => {
         accountApi.post(`createAccount/${name}/${email}`,{username,password,permissions})
             .then(yup => {
-                console.log("yup: ", yup.data);
+                console.info("account created: ", yup.data);
             })
             .catch(nope => console.error(nope));
     }
