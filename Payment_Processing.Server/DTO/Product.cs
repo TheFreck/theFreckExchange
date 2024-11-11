@@ -42,6 +42,13 @@ namespace Payment_Processing.Server.DTO
         public LoginCredentials Credentials { get; set; }
     }
 
+    public class ItemDTO
+    {
+        public required string Name { get; set; }
+        public LoginCredentials Credentials { get; set; }
+        public List<ItemAttribute> Attributes { get; set; }
+    }
+
     public class ItemAttribute
     {
         public required string Type { get; set; }

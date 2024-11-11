@@ -1,8 +1,8 @@
 import { Box, TextField } from "@mui/material";
 import react, { useCallback, useContext, useEffect, useState } from "react";
 import { AccountContext, ProductContext } from "../Context";
-import AdminView from "./AdminView";
-import UserView from "./UserView";
+import AdminView from "./Admin/AdminView";
+import UserView from "./User/UserView";
 import axios from "axios";
 
 export const Welcome = () => {
@@ -108,7 +108,7 @@ export const Welcome = () => {
         }
     }
 
-    const createItemsAsync = async ({item,quantity,image}) => {
+    const createItemsAsync = async ({item,quantity}) => {
         item.credentials = {
             username: localStorage.getItem("username"),
             loginToken: localStorage.getItem("loginToken"),
@@ -116,7 +116,11 @@ export const Welcome = () => {
             userToken: localStorage.getItem("permissions.user")
         }
         item.sku = "";
-        item.image = image;
+        const imagesBytes = [];
+        for(var imageBytes of item.imageBytes){
+            imagesBytes.push(imageBytes.bytes);
+        }
+        item.imageBytes = imagesBytes;
         productApi.post(`items/create/${quantity}`,item)
         .then(yup => {
             console.info("item created: ", yup.data);
@@ -131,6 +135,14 @@ export const Welcome = () => {
         })
         .catch(nope => console.error(nope));
         cb(item);
+    }
+
+    const purchaseItemAsync = async (item,qty) => {
+        productApi.delete("item/buy")
+        .then(yup => {
+            console.log("purchased: ", yup.data);
+        })
+        .catch(nope => console.error(nope));
     }
     
     const productApi = axios.create({
@@ -148,7 +160,7 @@ export const Welcome = () => {
         else return;
     }, [userPermissions,products,ready]);
 
-    return <ProductContext.Provider value={{products,getProductsAsync,getItemsAsync,createProductAsync,createItemsAsync,getAvailableAttributesAsync, updateItemsAsync}}>
+    return <ProductContext.Provider value={{products,getProductsAsync,getItemsAsync,createProductAsync,createItemsAsync,getAvailableAttributesAsync, updateItemsAsync, purchaseItemAsync}}>
             <WelcomeCallback />
         </ProductContext.Provider>
 

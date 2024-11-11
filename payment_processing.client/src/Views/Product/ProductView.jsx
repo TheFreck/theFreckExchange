@@ -1,34 +1,34 @@
 import react, { useCallback, useContext, useEffect, useState } from "react";
 import axios from 'axios';
-import NewProduct from "./NewProduct";
 import BathtubIcon from '@mui/icons-material/Bathtub';
 
 import { Box, Button, FormControl, Grid2, InputAdornment, InputLabel, MenuItem, Select, TextField, Typography } from "@mui/material";
 import { ProductContext } from "../../Context";
 import Carousel from "react-material-ui-carousel";
+import { Label } from "@mui/icons-material";
 
-export const ProductView = ({ product, attributes }) => {
-    const { createItemsAsync } = useContext(ProductContext);
+export const ProductView = ({ product, attributes, view }) => {
+    const { createItemsAsync, purchaseItemAsync } = useContext(ProductContext);
     const [quantity, setQuantity] = useState(0);
-    const [selectedProduct, setSelectedProduct] = useState();
-    const [attributeObjects, setAttributeObjects] = useState([]);
     const [imageObjects, setImageObjects] = useState([]);
+    const [ready, setReady] = useState(false);
 
     useEffect(() => {
+        console.log("product: ", product);
+        console.log("attributes: ", attributes);
         product.attributes = [];
         for (var attribute of attributes) {
             product.attributes.push({ type: attribute, value: "" });
         }
-        console.log("useeffect product: ", product);
-        setSelectedProduct(product);
-        setAttributeObjects(product.attributes);
         setImageObjects(product.imageBytes);
+        setReady(true);
     }, []);
 
     return (
         <Box
             sx={{ width: "60vw", height: "auto" }}
         >
+            {ready &&
             <Grid2 size={12}
                 container
             >
@@ -38,7 +38,7 @@ export const ProductView = ({ product, attributes }) => {
                     sx={{ display: "flex", flexDirection: "column" }}
                 >
                     <Grid2 size={12}>
-                        {selectedProduct?.imageBytes !== undefined &&
+                        {product?.imageBytes !== undefined &&
                             <Carousel
                                 sx={{minHeight: "20em",maxHeight: "20em", height: "20em"}}
                                 cycleNavigation="false"
@@ -53,7 +53,7 @@ export const ProductView = ({ product, attributes }) => {
                             >
                                 {
                                     imageObjects.map((image, i) => (
-                                        <img style={{ backgroundSize: "contain", maxHeight: "20em", maxWidth: "100%" }} src={window.atob(image.bytes)}  height={"auto"} key={i} />
+                                        <img style={{ backgroundSize: "contain", maxHeight: "20em", maxWidth: "100%" }} src={window.atob(image.bytes)} height={"auto"} key={i} />
                                     ))
                                 }
                             </Carousel>
@@ -61,23 +61,58 @@ export const ProductView = ({ product, attributes }) => {
                     </Grid2>
                     <Grid2 size={12}>
                         {
-                            selectedProduct && attributes.length > 0 &&
+                            product && attributes.length > 0 &&
                             <Grid2
                                 size={12}
                                 sx={{ display: "flex", flexDirection: "column" }}
                             >
                                 {
-                                    attributes.map((type, i) => (
+                                    view ==="admin" && attributes.map((type, i) => (
                                         <TextField
                                             key={i}
                                             label={type}
-                                            value={selectedProduct.attributes[i].value}
+                                            value={product.attributes[i].value}
                                             onChange={(a) => {
-                                                selectedProduct.attributes[i].value = a.target.value;
-                                                attributeObjects[i].value = a.target.value;
-                                                setAttributeObjects([...attributeObjects.filter(a => a.key !== type), attributeObjects[i]])
+                                                product.attributes[i].value = a.target.value;
                                             }}
                                         />
+                                    ))
+                                }
+                                {console.log("attributes: ", attributes)}
+                                {
+                                    view ==="user" && 
+                                    attributes.map((type, i) => (
+                                    <Grid2 size={12} key={i}
+                                        sx={{width: "100%"}}
+                                    >
+                                        <InputLabel
+                                            id={`${type.type}-label`}
+                                        >
+                                            {type.type}
+                                        </InputLabel>
+                                        <Select
+                                            sx={{width: "100%"}}
+                                            labelId={`${type.type}-label`}
+                                            label={type.type}
+                                            value={product.attributes[i].value}
+                                            onChange={s => {
+                                                product.attributes[i].value = s.target.value
+                                            }
+                                        }
+                                        >
+                                            {
+                                                type.value.map((v,j) => (
+                                                    <MenuItem
+                                                        key={j}
+                                                        name={v}
+                                                        value={v}
+                                                    >
+                                                        {v}
+                                                    </MenuItem>
+                                                ))
+                                                }
+                                        </Select>
+                                    </Grid2>
                                     ))
                                 }
                             </Grid2>
@@ -96,10 +131,19 @@ export const ProductView = ({ product, attributes }) => {
                                 onChange={q => setQuantity(q.target.value)}
                             />
                         </Grid2>
-                        <Grid2 size={7}>
+                        <Grid2 size={7}
+                            sx={{
+                                display: 'flex',
+                                justifyContent: "center"
+                            }}
+                        >
                             {
-
-                                <Button onClick={() => createItemsAsync({ item: selectedProduct, quantity, image })} variant="contained">Create</Button>
+                                view === "admin" &&
+                                <Button onClick={() => createItemsAsync({ item: product, quantity })} variant="contained">Create</Button>
+                            }
+                            {
+                                view === "user" &&
+                                <Button onClick={() => purchaseItemAsync()} variant="contained" >Purchase</Button>
                             }
                         </Grid2>
                     </Grid2>
@@ -129,6 +173,7 @@ export const ProductView = ({ product, attributes }) => {
                     </Grid2>
                 </Grid2>
             </Grid2>
+            }
         </Box >
     )
 }

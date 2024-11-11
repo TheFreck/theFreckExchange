@@ -90,7 +90,8 @@ namespace Payment_Processing.Server.Services
         public async Task<bool> ValidateTokenAsync(string username, string token)
         {
             var account = await accountRepo.GetByUsernameAsync(username);
-            return account != null && account.LoginToken == token;
+            var isIt = account != null && account.LoginToken == token;
+            return isIt;
         }
 
         public bool VerifyHash(string password, string hashword, byte[] salt)

@@ -160,25 +160,31 @@ namespace Payment_Processing.Server.Controllers
         /// <param name="attributes"></param>
         /// <returns></returns>
         [HttpDelete("item/buy")]
-        public async Task<Item> PurchaseItem(Item item)
+        public async Task<Item> PurchaseItem(ItemDTO item)
         {
             var account = await accountService.GetByUsernameAsync(item.Credentials.Username);
 
-            if(await loginService.ValidateTokenAsync(item.Credentials.Username, item.Credentials.UserToken))
+            if(await loginService.ValidateTokenAsync(item.Credentials.Username, item.Credentials.LoginToken))
             {
+                var product = await productService.GetByNameAsync(item.Name);
                 var items = new List<Item>();
                 for(var i=0; i<item.Attributes.Count; i++)
                 {
                     items.AddRange(await productService.GetByAttributeAsync(item.Name, item.Attributes[i].Type, item.Attributes[i].Value));
                 }
                 if(items.Count > 0)
-                    return await productService.PurchaseItem(items.FirstOrDefault());
+                {
+                    var purchaseItem = items.FirstOrDefault();
+                    purchaseItem.Credentials = item.Credentials;
+
+                    return await productService.PurchaseItem(purchaseItem);
+                }
                 return new Item
                 {
                     Name = item.Name,
                     ProductDescription = "Out of Stock",
-                    Price = item.Price,
-                    ProductId = item.ProductId,
+                    Price = product.Price,
+                    ProductId = product.ProductId,
                     SKU = "Out of Stock"
                 };
             }

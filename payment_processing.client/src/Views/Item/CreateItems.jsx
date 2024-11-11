@@ -1,8 +1,7 @@
-import react, { Suspense, useCallback, useContext, useEffect, useState } from "react";
+import react, { useCallback, useContext, useEffect, useState } from "react";
 import { ProductContext } from "../../Context";
 import { FormControl, InputLabel, MenuItem, Select } from "@mui/material";
 import ProductView from "../Product/ProductView";
-import { Label } from "@mui/icons-material";
 
 export const CreateItems = ({products}) => {
     const { getProductsAsync, getAvailableAttributesAsync } = useContext(ProductContext);
@@ -61,7 +60,7 @@ export const CreateItems = ({products}) => {
             }
         </div>
         <div>
-            {attributes.length > 0 && product.name !== undefined && <ProductView product={product} attributes={attributes} setAttributes={setAttributes} />}
+            {attributes.length > 0 && product.name !== undefined && <ProductView product={product} attributes={attributes} view="admin" />}
         </div>
     </div>, [ready, product, productsArray, attributes]);
 

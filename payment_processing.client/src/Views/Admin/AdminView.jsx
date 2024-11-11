@@ -1,10 +1,10 @@
 import react, { useCallback, useContext, useEffect, useState } from "react";
 import { Box, Accordion, AccordionDetails, AccordionSummary, Typography } from "@mui/material";
 import { ExpandMore } from "@mui/icons-material";
-import CreateProduct from "./Product/CreateProduct";
-import CreateItems from "./Item/CreateItems";
-import { ProductContext } from "../Context";
-import ModifyProduct from "./Product/ModifyProduct";
+import { ProductContext } from "../../Context";
+import CreateItems from "../Item/CreateItems";
+import CreateProduct from "../Product/CreateProduct";
+import ModifyProduct from "../Product/ModifyProduct";
 
 const accordionEnum = {
     none: 0,
