@@ -1243,6 +1243,7 @@ namespace Payment_Processing.Specs
     {
         Establish context = () =>
         {
+            qty = 3;
             colors = new List<string>
             {
                 "Red","Green","Black"
@@ -1267,7 +1268,37 @@ namespace Payment_Processing.Specs
                 "S","M","L","XL",
                 "Ballcap","Fedora"
             };
-            hats = new List<Item>();
+            product = new Product
+            {
+                Name = product1Name,
+                Price = product1Price,
+                ProductDescription = product1Desc,
+                ProductId = product1Id,
+            };
+            hatDTO = new ItemDTO
+            {
+                Name = product1Name,
+                Attributes = new List<ItemAttribute>
+                    {
+                        new ItemAttribute
+                        {
+                            Type = "Color",
+                            Value = "Black"
+                        },
+                        new ItemAttribute
+                        {
+                            Type = "Size",
+                            Value = "M"
+                        },
+                        new ItemAttribute
+                        {
+                            Type = "Style",
+                            Value = "Ballcap"
+                        }
+                    },
+                Credentials = loginCreds
+            };
+            selectedHats = new List<Item>();
             for (var i = 0; i < 10; i++)
             {
                 var newHat = new Item
@@ -1282,58 +1313,48 @@ namespace Payment_Processing.Specs
                         new ItemAttribute
                         {
                             Type = "Color",
-                            Value = colors[i%3]
+                            Value = "Black"
                         },
                         new ItemAttribute
                         {
                             Type = "Size",
-                            Value = sizes[i%4]
+                            Value = "M"
                         },
                         new ItemAttribute
                         {
                             Type = "Style",
-                            Value = hatTypes[i%2]
+                            Value = "Ballcap"
                         }
                     },
                     Credentials = loginCreds
                 };
-                hats.Add(newHat);
+                selectedHats.Add(newHat);
             }
-            productRepoMock.Setup(p => p.GetByProductIdAsync(product1Id))
-            .ReturnsAsync(new Product
-            {
-                Name = product1Name,
-                Price = product1Price,
-                ProductDescription = product1Desc,
-                ProductId = product1Id,
-            });
-            productRepoMock.Setup(p => p.GetByNameAsync(product1Name))
-            .ReturnsAsync(new Product
-            {
-                Name = product1Name,
-                Price = product1Price,
-                ProductDescription = product1Desc,
-                ProductId = product1Id,
-            });
+            productRepoMock.Setup(p => p.GetByProductIdAsync(product1Id)).ReturnsAsync(product);
+            productRepoMock.Setup(p => p.GetByNameAsync(product1Name)).ReturnsAsync(product);
             loginServiceMock.Setup(l => l.ValidateTokenAsync(Moq.It.IsAny<string>(), Moq.It.IsAny<string>())).ReturnsAsync(true);
             loginServiceMock.Setup(l => l.ValidatePermissionsAsync(account1, PermissionType.User, Moq.It.IsAny<string>())).ReturnsAsync(true);
             accountRepoMock.Setup(a => a.GetByUsernameAsync(Moq.It.IsAny<string>())).ReturnsAsync(account1);
-            itemRepoMock.Setup(i => i.GetByAttributeAsync(product1Name, Moq.It.IsAny<string>(), Moq.It.IsAny<string>())).ReturnsAsync(hats);
+            itemRepoMock.Setup(i => i.GetByAttributesAsync(product1Name, Moq.It.IsAny<List<ItemAttribute>>())).ReturnsAsync(selectedHats);
             productService = new ProductService(productRepoMock.Object, itemRepoMock.Object, accountRepoMock.Object, loginServiceMock.Object);
             items = new List<Item>();
         };
 
-        Because of = () => item = productService.PurchaseItem(hats[0]).GetAwaiter().GetResult();
+        Because of = () => items = productService.PurchaseItem(hatDTO,qty).GetAwaiter().GetResult();
 
-        It Should_Return_Item_To_Purchase = () =>
+        It Should_Return_Items_To_Purchase = () =>
         {
-            hats[0].Attributes.OrderBy(o => o.Type).ToList();
-            item.Name.ShouldEqual(product1Name);
-            item.Attributes.OrderBy(o => o.Type).ToList();
-            for (var i = 0; i < item.Attributes.Count; i++)
+            for(var i=0; i<items.Count; i++)
             {
-                item.Attributes[i].Type.ShouldEqual(hats[0].Attributes[i].Type);
-                item.Attributes[i].Value.ShouldEqual(hats[0].Attributes[i].Value);
+                selectedHats[0].Attributes.OrderBy(o => o.Type).ToList();
+                items[i].Name.ShouldEqual(product1Name);
+                items[i].Attributes.OrderBy(o => o.Type).ToList();
+                for (var j = 0; j < items[i].Attributes.Count; j++)
+                {
+                    items[i].Attributes[j].Type.ShouldEqual(selectedHats[0].Attributes[j].Type);
+                    items[i].Attributes[j].Value.ShouldEqual(selectedHats[0].Attributes[j].Value);
+                }
+
             }
         };
 
@@ -1344,20 +1365,22 @@ namespace Payment_Processing.Specs
             loginServiceMock.Verify(l => l.ValidatePermissionsAsync(account1, PermissionType.User, Moq.It.IsAny<string>()), Times.Once);
         };
 
-        It Should_Delete_The_Item_From_Repo = () => itemRepoMock.Verify(r => r.DeleteItemAsync(Moq.It.IsAny<Item>()), Times.Once);
+        It Should_Delete_The_Item_From_Repo = () => itemRepoMock.Verify(r => r.DeleteItemAsync(Moq.It.IsAny<Item>()), Times.Exactly(qty));
 
         It Should_Get_The_Account_From_Repo = () => accountRepoMock.Verify(a => a.GetByUsernameAsync(account1.Username), Times.Once);
 
         It Should_Add_The_Price_To_Account_Balance = () => accountRepoMock.Verify(r => r.UpdateAsync(Moq.It.IsAny<Account>()), Times.Once);
 
+        private static int qty;
         private static List<string> colors;
         private static List<string> sizes;
         private static List<string> hatTypes;
         private static List<string> attributes;
         private static List<string> attributeValues;
-        private static List<Item> hats;
+        private static Product product;
+        private static ItemDTO hatDTO;
+        private static List<Item> selectedHats;
         private static IProductService productService;
         private static List<Item> items;
-        private static Item item;
     }
 }

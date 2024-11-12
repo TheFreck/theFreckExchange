@@ -12,6 +12,8 @@ namespace Payment_Processing.Server.Repos
         Task<IEnumerable<Item>> GetByAttributeAsync(string itemName, string attributeName, string attributeValue);
         Task<Item> GetBySKUAsync(string sku);
         Task<Item> UpdateAsync(Item item);
+        Task<IEnumerable<Item>> GetByNameAsync(string name);
+        Task<IEnumerable<Item>> GetByAttributesAsync(string itemName, List<ItemAttribute> attributes);
     }
 
     public class ItemRepo : IItemRepo
@@ -48,6 +50,12 @@ namespace Payment_Processing.Server.Repos
             return items.ToEnumerable();
         }
 
+        public async Task<IEnumerable<Item>> GetByNameAsync(string name)
+        {
+            var items = await itemsCollection.FindAsync(i => i.Name == name);
+            return items.ToEnumerable();
+        }
+
         public async Task<Item> GetBySKUAsync(string sku)
         {
             var item = await itemsCollection.FindAsync(i => i.SKU == sku);
@@ -67,6 +75,25 @@ namespace Payment_Processing.Server.Repos
                 ProductId = item.ProductId,
             };
             return await itemsCollection.FindOneAndReplaceAsync(i => i.SKU==item.SKU,newItem);
+        }
+
+        public async Task<IEnumerable<Item>> GetByAttributesAsync(string itemName, List<ItemAttribute> attributes)
+        {
+            var items = (await itemsCollection.FindAsync(i => i.Name==itemName)).ToList();
+            var matchingItems = new List<Item>();
+            for(var i=0; i<attributes.Count; i++)
+            {
+                var att = attributes[i].Type;
+                var val = attributes[i].Value;
+                for(var j=0; j < items.Count; j++)
+                {
+                    if (items[j].Attributes.Where(a => a.Type == att).FirstOrDefault().Value != val)
+                    {
+                        items.Remove(items[j--]);
+                    }
+                }
+            }
+            return items;
         }
     }
 }

@@ -1,91 +1,149 @@
 import react, { useCallback, useEffect, useState } from "react";
 import axios from "axios";
-import Login from "../Login";
+import { Autocomplete, Box, Grid2, TextField, Typography } from "@mui/material";
+import SearchIcon from '@mui/icons-material/Search';
+import ProductView from "../Product/ProductView";
 
-export const StoreFront = ({userAcct,setUserAcct}) => {
-    const [products,setProducts] = useState([]);
-    const [items, setItems] = useState([]);
-    const [email, setEmail] = useState();
-    const [purchaseOptions,setPurchaseOptions] = useState(false);
-    const [purchaseItem, setPurchaseItem] = useState({});
-
-    const productApi = axios.create({
-        baseURL: `https://localhost:7299/Product`
-    });
-
-    
-    const accountApi = axios.create({
-        baseURL: `https://localhost:7299/Account`
-    });
+export const StoreFront = ({ }) => {
+    const productApi = axios.create({ baseURL: `https://localhost:7299/Product` });
+    const [products, setProducts] = useState([]);
+    const [productNames, setProductNames] = useState([""]);
+    const [items,setItems] = useState([]);
+    const [selectedProduct, setSelectedProduct] = useState({});
+    const [ready,setReady] = useState(false);
 
     useEffect(() => {
-        var prods = [];
-        var prodCount = 0;
-        productApi.get()
-            .then(yup => {
-                prodCount = yup.data.length;
-                for(var product of yup.data){
-                    getAttributes(product);
-                }
-            })
-            .catch(nope => console.error(nope));
-
-        const getAttributes = async (product) => {
-            productApi.get(`items/product/${product.name}/allAttributes`)
-            .then(yep => {
-                product.attributes = yep.data;
-                prods.push(product);
-                if(prods.length === prodCount){
-                    setProducts(prods);
-                }
-            })
-            .catch(nope => console.error(nope));
-        }
+        if(ready) return;
+        getProductsAsync(async prods => {
+            let allProds = [];
+            let prodItems = [];
+            let prodNames = [];
+            let count = 0;
+            for(var prod of prods){
+                prodNames.push({label:prod.name,id:count++});
+                await getAttributesAsync(prod.name,async atts => {
+                    let pImages = [];
+                    for(let pImage of prod.imageBytes){
+                        pImages.push({bytes:pImage});
+                    }
+                    prod.imageBytes = pImages;
+    
+                    if(selectedProduct.name !== undefined && atts[0].product === prod.name){
+                        prod.attributes = atts;
+                        allProds.push(prod);
+                        await getItemsAsync(prod.name,pItems => {
+                            prodItems.push(pItems);
+                            if(prodItems.length === prods.length){
+                                setItems(prodItems);
+                                setProductNames(prodNames);
+                                setProducts(allProds);
+                                setReady(true);
+                            }
+                        });
+                    }
+                });
+            }
+        })
     },[]);
 
+    useEffect(() => {
+        console.log("selectedProduct ue: ", selectedProduct);
+    },[selectedProduct]);
 
-    const ItemsCallback = useCallback(() => <>
-    
-    <div>
-        {products.length > 0 && products.map((p,i) => 
-            <div style={{display:"flex", flexDirection: "row", textAlign: "left"}} key={i} onClick={() => {
-            }}>
-                <div style={{display:"flex",flexDirection: "column", float: "left", textJustify: "left",width: "20vw"}}>
-                    <h2>{p.name}</h2>
-                    <div>Price: {p.price}</div>
-                    <div>Description: {p.productDescription}</div>
-                </div>
-                <div style={{display:"flex",flexDirection: "column"}}>
-                    <ChooseAttributes item={p} />
-                </div>
-            </div>
-        )}
-    </div>
-    </>,[purchaseOptions,userAcct]);
+    useEffect(() => {
+        if(selectedProduct.name !== undefined){
+            let prodItems = [];
+            let pImages = [];
+            for(let pImage of selectedProduct.imageBytes){
+                pImages.push({bytes:pImage.bytes});
+            }
+            selectedProduct.imageBytes = pImages;
+            getAttributesAsync(selectedProduct.name,atts => {
+                if(atts[0].product === selectedProduct.name){
+                    selectedProduct.attributes = atts;
+                    getItemsAsync(selectedProduct.name,pItems => {
+                        prodItems.push(pItems);
+                        if(prodItems.length === products.length){
+                            setItems(prodItems);
+                        }
+                    });
+                }
+            });
+        }
+    },[selectedProduct]);
 
-    const ChooseAttributes = ({item}) => <div>
-            { <ul style={{alignItems: "start"}}>
-                {item.attributes.map((a,i) => (
-                    <li key={i}>
-                        {a.type}&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
-                        <select>
-                            {
-                                a.value.map((t,j) => (
-                                    <option  name={t} id={`att${j}`} key={j} >
-                                        {t}
-                                    </option>
-                                ))
-                            }
-                        </select>
-                        <br/>
-                        <br/>
-                    </li>
-                ))}
-            </ul>}
-            {item.attributes.length > 0 && <button style={{display:'flex'}}>Buy</button>}
-        </div>
+    const getProductsAsync = async (cb) => {
+        await productApi.get()
+        .then(yup => {
+            cb(yup.data);
+        })
+        .catch(nope => console.error(nope));
+    }
 
-    return userAcct.accountId !== undefined ? <ItemsCallback purchaseOptions={purchaseOptions} /> : <Login login={login} email={email} setEmail={setEmail} setNewAccount={() => {}} />
+    const getItemsAsync = async (item,cb) => {
+        await productApi.get(`items/${item}`)
+        .then(yup => {
+            cb({[item]:yup.data});
+        })
+        .catch(nope => console.error(nope));
+    }
+
+    const getAttributesAsync = async (prod, cb) => {
+        await productApi.get(`items/product/${prod}/attributes`)
+        .then(yup => {
+            for(var att of yup.data){
+                att.product = prod;
+                att.values = att.value;
+                att.value = "";
+            }
+            cb(yup.data);
+        })
+        .catch(nope => console.error(nope));
+    }
+
+    const updateProduct = (product,cb) => {
+        setSelectedProduct(product);
+        cb(product);
+    }
+
+    const ProductViewCallback = useCallback(() => {
+        return selectedProduct && selectedProduct.attributes &&
+        <ProductView 
+            product={selectedProduct}
+            view="user"
+        />
+    },[selectedProduct,setSelectedProduct]);
+
+    return <Grid2
+        container
+        size={12}
+    >
+        <Grid2 size={12}>
+            <Typography
+                sx={{ fontSize: "2em" }}
+            >
+                TheFreck Store
+            </Typography>
+        </Grid2>
+        <Grid2 size={12}
+            sx={{display:"flex"}}
+        >
+            <Autocomplete
+                sx={{width: "100%"}}
+                options={productNames}
+                onChange={c => setSelectedProduct(products.find(p => p.name === c.target.innerHTML))}
+                renderInput={(params) => <TextField {...params} label="Product Search" />}
+            />
+            <SearchIcon 
+                sx={{width:"auto", height: "2em"}}
+            />
+        </Grid2>
+        { selectedProduct.name !== undefined &&
+            <Grid2 size={12}>
+                <ProductViewCallback />
+            </Grid2>
+        }
+    </Grid2>
 }
 
 export default StoreFront;

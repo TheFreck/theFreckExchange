@@ -5,27 +5,23 @@ import BathtubIcon from '@mui/icons-material/Bathtub';
 import { Box, Button, FormControl, Grid2, InputAdornment, InputLabel, MenuItem, Select, TextField, Typography } from "@mui/material";
 import { ProductContext } from "../../Context";
 import Carousel from "react-material-ui-carousel";
-import { Label } from "@mui/icons-material";
 
-export const ProductView = ({ product, attributes, view }) => {
+export const ProductView = ({ product, view }) => {
     const { createItemsAsync, purchaseItemAsync } = useContext(ProductContext);
     const [quantity, setQuantity] = useState(0);
     const [imageObjects, setImageObjects] = useState([]);
     const [ready, setReady] = useState(false);
+    const [attributes, setAttributes] = useState([]);
 
     useEffect(() => {
-        console.log("product: ", product);
-        console.log("attributes: ", attributes);
-        product.attributes = [];
-        for (var attribute of attributes) {
-            product.attributes.push({ type: attribute, value: "" });
-        }
         setImageObjects(product.imageBytes);
-        setReady(true);
+        if(product?.attributes?.length > 0)
+            setAttributes(product.attributes);
+            setReady(true);
     }, []);
 
     return (
-        <Box
+            <Box
             sx={{ width: "60vw", height: "auto" }}
         >
             {ready &&
@@ -61,57 +57,67 @@ export const ProductView = ({ product, attributes, view }) => {
                     </Grid2>
                     <Grid2 size={12}>
                         {
-                            product && attributes.length > 0 &&
+                            product && product?.attributes?.length > 0 &&
                             <Grid2
                                 size={12}
                                 sx={{ display: "flex", flexDirection: "column" }}
                             >
                                 {
-                                    view ==="admin" && attributes.map((type, i) => (
+                                    view ==="admin" && product?.attributes?.map((type, i) => (
                                         <TextField
                                             key={i}
-                                            label={type}
+                                            label={type.type}
                                             value={product.attributes[i].value}
-                                            onChange={(a) => {
-                                                product.attributes[i].value = a.target.value;
+                                            onChange={(s) => {
+                                                product.attributes[i].value = s.target.value;
+                                                setAttributes([...attributes.filter(a => a.key !== type.type), {type: type.type,value: s.target.value, product: product.name}]);
                                             }}
-                                        />
+                                        >{console.log("product textfield: ", product)}</TextField>
                                     ))
                                 }
-                                {console.log("attributes: ", attributes)}
                                 {
                                     view ==="user" && 
-                                    attributes.map((type, i) => (
+                                    product.attributes.map((type, i) => (
                                     <Grid2 size={12} key={i}
                                         sx={{width: "100%"}}
                                     >
-                                        <InputLabel
-                                            id={`${type.type}-label`}
-                                        >
-                                            {type.type}
-                                        </InputLabel>
-                                        <Select
+                                        <FormControl
                                             sx={{width: "100%"}}
-                                            labelId={`${type.type}-label`}
-                                            label={type.type}
-                                            value={product.attributes[i].value}
-                                            onChange={s => {
-                                                product.attributes[i].value = s.target.value
-                                            }
-                                        }
+                                            defaultValue=""
                                         >
-                                            {
-                                                type.value.map((v,j) => (
-                                                    <MenuItem
-                                                        key={j}
-                                                        name={v}
-                                                        value={v}
-                                                    >
-                                                        {v}
-                                                    </MenuItem>
-                                                ))
-                                                }
-                                        </Select>
+                                            <InputLabel
+                                            >
+                                                {type.type}
+                                            </InputLabel>
+                                            {console.log("atts of type: ", type)}
+                                            <Select
+                                                sx={{width: "100%"}}
+                                                labelId={`${type.type}-label`}
+                                                label={type.type}
+                                                value={type.value}
+                                                onChange={s => {
+                                                    product.attributes[i].value = s.target.value;
+                                                    setAttributes([...attributes.filter(a => a.key !== type.type), {type: type.type,value: s.target.value, product: product.name}]);
+                                                }}
+                                            >
+                                                <MenuItem
+                                                    name="attribute"
+                                                    value="attribute"
+                                                    disabled
+                                                >Choose the {type.type}</MenuItem>
+                                                {
+                                                    type.values.map((v,j) => (
+                                                        <MenuItem
+                                                            key={j}
+                                                            name={v}
+                                                            value={v}
+                                                        >
+                                                            {v}
+                                                        </MenuItem>
+                                                    ))
+                                                    }
+                                            </Select>
+                                        </FormControl>
                                     </Grid2>
                                     ))
                                 }
@@ -138,12 +144,13 @@ export const ProductView = ({ product, attributes, view }) => {
                             }}
                         >
                             {
-                                view === "admin" &&
-                                <Button onClick={() => createItemsAsync({ item: product, quantity })} variant="contained">Create</Button>
+                                view === "admin" && attributes &&
+                                <Button onClick={() => createItemsAsync({ item: product, quantity, attributes })} disabled={quantity == 0 || attributes?.filter(a => a.value === "").length > 0} variant="contained">Create</Button>
                             }
+                            {console.log("attributes: ", attributes)}
                             {
-                                view === "user" &&
-                                <Button onClick={() => purchaseItemAsync()} variant="contained" >Purchase</Button>
+                                view === "user" && attributes &&
+                                <Button onClick={() => purchaseItemAsync()} disabled={quantity === 0 || attributes?.filter(a => a.value === "").length > 0} variant="contained" >Purchase</Button>
                             }
                         </Grid2>
                     </Grid2>

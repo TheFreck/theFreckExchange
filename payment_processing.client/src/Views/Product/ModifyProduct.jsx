@@ -43,7 +43,6 @@ export const ModifyProduct = ({products}) => {
 
     const updateAsync = () => {
         let keepers = imageObjects.filter(o => !o.delete);
-        console.log("selectedProduct Pre: ", selectedProduct.imageBytes);
         selectedProduct.imageBytes = keepers.map(k => k.bytes);
         selectedProduct.description = productDescription;
         selectedProduct.attributes = selectedProduct.availableAttributes;
@@ -54,7 +53,6 @@ export const ModifyProduct = ({products}) => {
             adminToken: localStorage.getItem("permissions.admin"),
             userToken: localStorage.getItem("permissions.user")
         }
-        console.log("selectedProduct Post: ", selectedProduct.imageBytes);
         updateItemsAsync(selectedProduct,prod => {
             console.log("prod back from update: ", prod);
         });

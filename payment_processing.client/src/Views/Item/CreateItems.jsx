@@ -20,8 +20,17 @@ export const CreateItems = ({products}) => {
     }, []);
 
     const selectProduct = (p) => {
-        setProduct(p.target.value);
         getAvailableAttributesAsync(p.target.value.name, att => {
+            console.log("att: ", att);
+            let attArray = [];
+            for(let at of att){
+                attArray.push({
+                    type: at,
+                    value: ""
+                });
+            }
+            p.target.value.attributes = attArray;
+            setProduct(p.target.value);
             setAttributes(att);
             setReady(!ready);
         })
@@ -60,7 +69,8 @@ export const CreateItems = ({products}) => {
             }
         </div>
         <div>
-            {attributes.length > 0 && product.name !== undefined && <ProductView product={product} attributes={attributes} view="admin" />}
+            {console.log("product to view: ", product)}
+            {attributes.length > 0 && product.name !== undefined && <ProductView product={product} view="admin" />}
         </div>
     </div>, [ready, product, productsArray, attributes]);
 

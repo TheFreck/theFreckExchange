@@ -108,13 +108,14 @@ export const Welcome = () => {
         }
     }
 
-    const createItemsAsync = async ({item,quantity}) => {
+    const createItemsAsync = async ({item,quantity, attributes}) => {
         item.credentials = {
             username: localStorage.getItem("username"),
             loginToken: localStorage.getItem("loginToken"),
             adminToken: localStorage.getItem("permissions.admin"),
             userToken: localStorage.getItem("permissions.user")
         }
+        item.attributes = attributes;
         item.sku = "";
         const imagesBytes = [];
         for(var imageBytes of item.imageBytes){
@@ -131,7 +132,7 @@ export const Welcome = () => {
     const updateItemsAsync = (item,cb) => {
         productApi.put("modify/product",item)
         .then(yup => {
-            console.log("updated: ", yup.data);
+            console.info("updated: ", yup.data);
         })
         .catch(nope => console.error(nope));
         cb(item);
@@ -140,7 +141,7 @@ export const Welcome = () => {
     const purchaseItemAsync = async (item,qty) => {
         productApi.delete("item/buy")
         .then(yup => {
-            console.log("purchased: ", yup.data);
+            console.info("purchased: ", yup.data);
         })
         .catch(nope => console.error(nope));
     }

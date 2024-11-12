@@ -22,7 +22,7 @@ namespace Payment_Processing.Server.Services
         Task<Product> ModifyDescriptionAsync(string productName, string newDescription, LoginCredentials credentials);
         Task<Product> ModifyNameAsync(string oldName, string newName, LoginCredentials credentials);
         Task<Product> ModifyPriceAsync(string productName, double price, LoginCredentials credentials);
-        Task<Item> PurchaseItem(Item items);
+        Task<List<Item>> PurchaseItem(ItemDTO item, int qty);
         Task<List<string>> GetAvailableAttributes(string productName);
         Task UpdateProductWithImageAsync(string productId, List<IFormFile> images);
         Task<Product> ModifyProductAsync(Product newProduct);
@@ -214,29 +214,31 @@ namespace Payment_Processing.Server.Services
             return null;
         }
 
-        public async Task<Item> PurchaseItem(Item item)
+        public async Task<List<Item>> PurchaseItem(ItemDTO item, int qty)
         {
             var account = await accountRepo.GetByUsernameAsync(item.Credentials.Username);
             var loggedIn = await loginService.ValidateTokenAsync(item.Credentials.Username, item.Credentials.LoginToken);
             var hasPermission = await loginService.ValidatePermissionsAsync(account, PermissionType.User, item.Credentials.UserToken);
             if (loggedIn && hasPermission)
             {
-                var items = new List<Item>();
-                for (var i = 0; i < item.Attributes.Count; i++)
+                var product = await productRepo.GetByNameAsync(item.Name);
+                var productItems = await itemRepo.GetByNameAsync(item.Name);
+
+                var selectedItems = productItems.Where(p => p.Attributes.Select(a => a.Value).ToList().ContainsAll(item.Attributes.Select(b => b.Value).ToList()));
+
+                var itemsReturned = (await itemRepo.GetByAttributesAsync(item.Name, item.Attributes)).ToList();
+
+                var purchased = new List<Item>();
+                for(var i=0; i<qty; i++)
                 {
-                    items.AddRange(await itemRepo.GetByAttributeAsync(item.Name, item.Attributes[i].Type, item.Attributes[i].Value));
+                    await itemRepo.DeleteItemAsync(itemsReturned[i]);
+                    purchased.Add(itemsReturned[i]);
                 }
-                var toBuy = new List<Item>();
-                for (var i = 0; i < item.Attributes.Count; i++)
-                {
-                    toBuy.AddRange(items.Where(i => i.Attributes.ContainsAll(item.Attributes)));
-                }
-                account.Balance += items[0].Price;
+                account.Balance += product.Price * qty;
                 await accountRepo.UpdateAsync(account);
-                await itemRepo.DeleteItemAsync(items[0]);
-                return item;
+                return purchased;
             }
-            else return null;
+            else return new List<Item>();
         }
 
         public async Task<Product> ModifyProductAsync(Product newProduct)

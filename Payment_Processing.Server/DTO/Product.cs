@@ -35,7 +35,6 @@ namespace Payment_Processing.Server.DTO
 
     public class Item : Product
     {
-
         [BsonElement("SKU")]
         public required string SKU { get; set; } = Guid.NewGuid().ToString();
         public List<ItemAttribute> Attributes { get; set; }
