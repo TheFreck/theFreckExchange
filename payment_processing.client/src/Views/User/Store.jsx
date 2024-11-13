@@ -4,7 +4,7 @@ import { Autocomplete, Box, Grid2, TextField, Typography } from "@mui/material";
 import SearchIcon from '@mui/icons-material/Search';
 import ProductView from "../Product/ProductView";
 
-export const StoreFront = ({ }) => {
+export const Store = ({ }) => {
     const productApi = axios.create({ baseURL: `https://localhost:7299/Product` });
     const [products, setProducts] = useState([]);
     const [productNames, setProductNames] = useState([""]);
@@ -28,7 +28,7 @@ export const StoreFront = ({ }) => {
                     }
                     prod.imageBytes = pImages;
     
-                    if(selectedProduct.name !== undefined && atts[0].product === prod.name){
+                    if(prod.name !== undefined && atts[0].product === prod.name){
                         prod.attributes = atts;
                         allProds.push(prod);
                         await getItemsAsync(prod.name,pItems => {
@@ -45,10 +45,6 @@ export const StoreFront = ({ }) => {
             }
         })
     },[]);
-
-    useEffect(() => {
-        console.log("selectedProduct ue: ", selectedProduct);
-    },[selectedProduct]);
 
     useEffect(() => {
         if(selectedProduct.name !== undefined){
@@ -122,7 +118,7 @@ export const StoreFront = ({ }) => {
             <Typography
                 sx={{ fontSize: "2em" }}
             >
-                TheFreck Store
+                TheFreck Exchange
             </Typography>
         </Grid2>
         <Grid2 size={12}
@@ -146,4 +142,4 @@ export const StoreFront = ({ }) => {
     </Grid2>
 }
 
-export default StoreFront;
+export default Store;

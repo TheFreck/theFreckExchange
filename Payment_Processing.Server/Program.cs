@@ -9,6 +9,7 @@ builder.Services.Configure<MongoSettings>(builder.Configuration.GetSection("Mong
 builder.Services.AddSingleton<IAccountRepo, AccountRepo>();
 builder.Services.AddSingleton<IProductRepo, ProductRepo>();
 builder.Services.AddSingleton<IItemRepo, ItemRepo>();
+builder.Services.AddSingleton<IImageRepo, ImageRepo>();
 builder.Services.AddSingleton<IAccountService, AccountService>();
 builder.Services.AddSingleton<IProductService, ProductService>();
 builder.Services.AddSingleton<ILoginService, LoginService>();

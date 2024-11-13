@@ -58,7 +58,12 @@ namespace Payment_Processing.Server.Controllers
         {
             if (await loginService.ValidateTokenAsync(input.Credentials.Username, input.Credentials.LoginToken))
             {
-                var product = await productService.CreateProductAsync(input.Name, input.Description, input.Attributes, input.Price, input.Credentials);
+                var imageFiles = new List<IFormFile>();
+                for(var i=0; i<input.ImageBytes.Count; i++)
+                {
+                    imageFiles.Add(new FormFile(new MemoryStream(input.ImageBytes[i]), 0, input.ImageBytes[i].LongLength,$"{input.Name}-{i}", $"{input.Name}-{i}"));
+                }
+                var product = await productService.CreateProductAsync(input.Name, input.Description, input.Attributes, input.Price, input.Credentials, imageFiles);
                 return product;
             }
             else return null;
@@ -74,12 +79,13 @@ namespace Payment_Processing.Server.Controllers
         {
             if (await loginService.ValidateTokenAsync(input.Credentials.Username, input.Credentials.LoginToken))
             {
-                var oldProduct = await productService.GetByNameAsync(input.Name);
-                oldProduct.Price = input.Price;
-                oldProduct.ProductDescription = input.Description;
-                oldProduct.AvailableAttributes = input.Attributes;
-                oldProduct.ImageBytes = input.ImageBytes;
-                return await productService.ModifyProductAsync(oldProduct);
+
+                var product = await productService.GetByNameAsync(input.Name);
+                product.Price = input.Price;
+                product.ProductDescription = input.Description;
+                product.AvailableAttributes = input.Attributes;
+                product.ImageBytes = input.ImageBytes;
+                return await productService.ModifyProductAsync(product);
             }
             return null;
         }
@@ -190,6 +196,13 @@ namespace Payment_Processing.Server.Controllers
         {
             await productService.UpdateProductWithImageAsync(productId, images);
             return Ok();
+        }
+
+        [HttpGet("images")]
+        public IEnumerable<ImageFile> GetAllImages()
+        {
+            var images = productService.GetAllImages().ToList();
+            return images;
         }
     }
 }

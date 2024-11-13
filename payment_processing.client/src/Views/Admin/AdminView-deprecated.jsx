@@ -1,22 +1,23 @@
 import react, { useCallback, useContext, useEffect, useState } from "react";
 import { Box, Accordion, AccordionDetails, AccordionSummary, Typography } from "@mui/material";
 import { ExpandMore } from "@mui/icons-material";
-import { ProductContext } from "../../Context";
+import { AccountContext, ProductContext } from "../../Context";
 import CreateItems from "../Item/CreateItems";
 import CreateProduct from "../Product/CreateProduct";
 import ModifyProduct from "../Product/ModifyProduct";
 
 const accordionEnum = {
-    none: 0,
+    home: 0,
     createProduct: 1,
     createItems: 2,
-    modifyProducts: 3
+    updateProduct: 3
 }
 
 export const AdminView = () => {
-    const [accordionView, setAccordionView] = useState(accordionEnum.none);
+    const [accordionView, setAccordionView] = useState(accordionEnum.home);
     const [products, setProducts] = useState(new Set());
     const [ready, setReady] = useState(false);
+    const {adminView,adminEnum} = useContext(AccountContext);
     const { getProductsAsync } = useContext(ProductContext);
     
 
@@ -49,13 +50,13 @@ export const AdminView = () => {
                     cursor: "pointer"
                 }
             }}
-            onClick={() => setAccordionView(accordionEnum.none)}
+            onClick={() => setAccordionView(accordionEnum.home)}
         >
             Admin View
         </Typography>
         <Accordion
-            expanded={accordionView === accordionEnum.createProduct}
-            onClick={() => setAccordionView(accordionEnum.createProduct)}
+            expanded={adminView === adminEnum.createProduct}
+            // onClick={() => setAccordionView(accordionEnum.createProduct)}
         >
             <AccordionSummary
                 expandIcon={<ExpandMore />}
@@ -71,10 +72,10 @@ export const AdminView = () => {
         {
             products && products.size > 0 &&
             <Accordion
-                expanded={accordionView === accordionEnum.createItems}
-                onClick={() => {
-                    setAccordionView(accordionEnum.createItems);
-                }}
+                expanded={adminView === adminEnum.createItems}
+                // onClick={() => {
+                //     setAccordionView(accordionEnum.createItems);
+                // }}
             >
                 <AccordionSummary
                     expandIcon={<ExpandMore />}
@@ -89,8 +90,8 @@ export const AdminView = () => {
             </Accordion>
         }
         <Accordion
-            expanded={accordionView === accordionEnum.modifyProducts}
-            onClick={() => setAccordionView(accordionEnum.modifyProducts)}
+            expanded={adminView === adminEnum.updateProduct}
+            // onClick={() => setAccordionView(accordionEnum.updateProduct)}
         >
             <AccordionSummary
                 expandIcon={<ExpandMore />}
@@ -110,4 +111,4 @@ export const AdminView = () => {
     return <AdminCallback />
 }
 
-export default AdminView;
+// export default AdminView;

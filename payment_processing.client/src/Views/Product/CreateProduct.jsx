@@ -15,11 +15,21 @@ export const CreateProduct = ({created}) => {
 
     
 
-    const uploadImage = (e) => {
+    const uploadImage = async (e) => {
         let targetImages = [];
         for(var i = 0; i<e.target.files.length; i++){
+            console.log("target iamges: ", e.target.files[i]);
             targetImages.push(URL.createObjectURL(e.target.files[i]));
+            let url = URL.createObjectURL(e.target.files[i]);
+            console.log("image url: ", url);
+            await fetch(url)
+            .then(yup => yup.blob())
+            .then(blob => {
+                console.log("blob: ", blob);
+            })
+            .catch(nope => console.error(nope));
         }
+        console.log("targetImages: ", targetImages);
         setImages(targetImages);
         setHasImages(true);
     }
@@ -93,6 +103,7 @@ export const CreateProduct = ({created}) => {
                 id="createProductButton"
                 variant="contained"
                 onClick={() => {
+                    console.log("images: ", images);
                     createProductAsync({ name, description, attributes, price, images },() => {
                         created();
                     });

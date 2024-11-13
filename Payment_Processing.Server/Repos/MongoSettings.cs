@@ -28,5 +28,7 @@ namespace Payment_Processing.Server.Repos
 
         [Required]
         public string ItemCollectionName { get; init; } = null;
+        [Required]
+        public string ImageCollectionName { get; init; } = null;
     }
 }

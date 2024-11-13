@@ -1,10 +1,10 @@
 import react, { useCallback } from "react";
-import StoreFront from "./StoreFront";
+import Store from "./Store";
 import { Box, Typography } from "@mui/material";
 
 export const UserView = () => {
 
-    const StorefrontCallback = useCallback(() => <StoreFront />,[]);
+    const StorefrontCallback = useCallback(() => <Store />,[]);
 
     return <Box>
             <Typography>User View</Typography>
@@ -12,4 +12,4 @@ export const UserView = () => {
         </Box>
 }
 
-export default UserView;
+// export default UserView;

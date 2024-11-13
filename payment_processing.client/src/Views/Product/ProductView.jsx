@@ -37,9 +37,7 @@ export const ProductView = ({ product, view }) => {
                         {product?.imageBytes !== undefined &&
                             <Carousel
                                 sx={{minHeight: "20em",maxHeight: "20em", height: "20em"}}
-                                cycleNavigation="false"
-                                autoPlay="false"
-                                interval="100000000"
+                                autoPlay={false}
                                 indicatorContainerProps={{
                                     style: {
                                         position: "absolute",
@@ -89,7 +87,6 @@ export const ProductView = ({ product, view }) => {
                                             >
                                                 {type.type}
                                             </InputLabel>
-                                            {console.log("atts of type: ", type)}
                                             <Select
                                                 sx={{width: "100%"}}
                                                 labelId={`${type.type}-label`}
@@ -147,7 +144,6 @@ export const ProductView = ({ product, view }) => {
                                 view === "admin" && attributes &&
                                 <Button onClick={() => createItemsAsync({ item: product, quantity, attributes })} disabled={quantity == 0 || attributes?.filter(a => a.value === "").length > 0} variant="contained">Create</Button>
                             }
-                            {console.log("attributes: ", attributes)}
                             {
                                 view === "user" && attributes &&
                                 <Button onClick={() => purchaseItemAsync()} disabled={quantity === 0 || attributes?.filter(a => a.value === "").length > 0} variant="contained" >Purchase</Button>

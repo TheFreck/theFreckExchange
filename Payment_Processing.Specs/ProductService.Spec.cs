@@ -4,6 +4,7 @@ using Moq;
 using Payment_Processing.Server.DTO;
 using Payment_Processing.Server.Repos;
 using Payment_Processing.Server.Services;
+using System.IO;
 using System.Text;
 using static System.Net.Mime.MediaTypeNames;
 using It = Machine.Specifications.It;
@@ -17,6 +18,7 @@ namespace Payment_Processing.Specs
             productRepoMock = new Mock<IProductRepo>();
             itemRepoMock = new Mock<IItemRepo>();
             accountRepoMock = new Mock<IAccountRepo>();
+            imageRepoMock = new Mock<IImageRepo>();
             loginServiceMock = new Mock<ILoginService>();
             loginService = new LoginService(accountRepoMock.Object);
             account1Id = Guid.NewGuid().ToString();
@@ -78,6 +80,7 @@ namespace Payment_Processing.Specs
         protected static Mock<IProductRepo> productRepoMock;
         protected static Mock<IItemRepo> itemRepoMock;
         protected static Mock<IAccountRepo> accountRepoMock;
+        protected static Mock<IImageRepo> imageRepoMock;
         protected static Mock<ILoginService> loginServiceMock;
         protected static ILoginService loginService;
         protected static string account1Id;
@@ -112,13 +115,21 @@ namespace Payment_Processing.Specs
     {
         Establish context = () =>
         {
+            stream1 = new MemoryStream(Encoding.ASCII.GetBytes("these are the first image bytes"));
+            stream2 = new MemoryStream(Encoding.ASCII.GetBytes("these are the second image bytes"));
+            
+            images = new List<IFormFile>
+            {
+                new FormFile(stream1,0,stream1.Length,"hatImage1","hatImageName1"),
+                new FormFile(stream2,0,stream2.Length,"hatImage2","hatImageName2")
+            };
             loginServiceMock.Setup(l => l.ValidatePermissionsAsync(Moq.It.IsAny<Account>(), PermissionType.Admin, Moq.It.IsAny<string>())).ReturnsAsync(true);
             inputs = new List<(string name, string id, string desccription, double price)>
             {
                 new (product1Name,product1Id,product1Desc,product1Price),
                 new (product2Name,product2Id,product2Desc,product2Price)
             };
-            storeFront = new ProductService(productRepoMock.Object, itemRepoMock.Object, accountRepoMock.Object, loginServiceMock.Object);
+            storeFront = new ProductService(productRepoMock.Object, itemRepoMock.Object, accountRepoMock.Object, loginServiceMock.Object, imageRepoMock.Object);
             attributes = new List<string>
             {
                 "Color","Size","Style"
@@ -147,7 +158,7 @@ namespace Payment_Processing.Specs
         {
             for (var i = 0; i < inputs.Count; i++)
             {
-                outcomes.Add(storeFront.CreateProductAsync(inputs[i].name, inputs[i].desccription, attributes, inputs[i].price, loginCreds).GetAwaiter().GetResult());
+                outcomes.Add(storeFront.CreateProductAsync(inputs[i].name, inputs[i].desccription, attributes, inputs[i].price, loginCreds, images).GetAwaiter().GetResult());
             }
         };
 
@@ -172,11 +183,16 @@ namespace Payment_Processing.Specs
             productRepoMock.Verify(p => p.CreateAsync(Moq.It.IsAny<Product>()), Times.Exactly(inputs.Count));
         };
 
+        It Should_Upload_Image_To_ImageRepo = () => imageRepoMock.Verify(r => r.UploadImageAsync(Moq.It.IsAny<ImageFile>()),Times.Exactly(images.Count*inputs.Count));
+
         private static IProductService storeFront;
         private static List<string> attributes;
         private static List<(string name, string id, string desccription, double price)> inputs;
         private static List<Product> expectations;
         private static List<Product> outcomes;
+        private static List<IFormFile> images;
+        private static MemoryStream stream1;
+        private static MemoryStream stream2;
     }
 
     public class When_Modifying_A_Product : With_ProductRepo_Setup
@@ -230,7 +246,7 @@ namespace Payment_Processing.Specs
             accountRepoMock.Setup(l => l.GetByUsernameAsync(account1.Username)).ReturnsAsync(account1);
             loginServiceMock.Setup(l => l.ValidatePermissionsAsync(Moq.It.IsAny<Account>(), PermissionType.Admin, Moq.It.IsAny<string>())).ReturnsAsync(true);
             productRepoMock.Setup(p => p.GetByNameAsync(Moq.It.IsAny<string>())).ReturnsAsync(oldProduct);
-            storeFront = new ProductService(productRepoMock.Object, itemRepoMock.Object, accountRepoMock.Object, loginServiceMock.Object);
+            storeFront = new ProductService(productRepoMock.Object, itemRepoMock.Object, accountRepoMock.Object, loginServiceMock.Object,imageRepoMock.Object);
         };
 
         Because of = () => outcome = storeFront.ModifyProductAsync(newProduct).GetAwaiter().GetResult();
@@ -290,7 +306,7 @@ namespace Payment_Processing.Specs
                 }
             };
             productRepoMock.Setup(p => p.GetAllProductsAsync()).ReturnsAsync(products);
-            productService = new ProductService(productRepoMock.Object, itemRepoMock.Object, accountRepoMock.Object, loginServiceMock.Object);
+            productService = new ProductService(productRepoMock.Object, itemRepoMock.Object, accountRepoMock.Object, loginServiceMock.Object, imageRepoMock.Object);
             expectations = products;
             outcomes = new List<Product>();
         };
@@ -347,7 +363,7 @@ namespace Payment_Processing.Specs
             };
             productRepoMock.Setup(p => p.GetByNameAsync(product1Name)).ReturnsAsync(product1);
             productRepoMock.Setup(p => p.GetByNameAsync(product2Name)).ReturnsAsync(product2);
-            productService = new ProductService(productRepoMock.Object, itemRepoMock.Object, accountRepoMock.Object, loginServiceMock.Object);
+            productService = new ProductService(productRepoMock.Object, itemRepoMock.Object, accountRepoMock.Object, loginServiceMock.Object, imageRepoMock.Object);
             expectations = products;
             outcomes = new List<Product>();
         };
@@ -459,7 +475,7 @@ namespace Payment_Processing.Specs
             {
                 itemRepoMock.Setup(p => p.CreateAsync(Moq.It.IsAny<Item>())).ReturnsAsync(hats[i]);
             }
-            productService = new ProductService(productRepoMock.Object, itemRepoMock.Object, accountRepoMock.Object, loginServiceMock.Object);
+            productService = new ProductService(productRepoMock.Object, itemRepoMock.Object, accountRepoMock.Object, loginServiceMock.Object, imageRepoMock.Object);
         };
 
         Because of = () =>
@@ -579,7 +595,7 @@ namespace Payment_Processing.Specs
             {
                 itemRepoMock.Setup(p => p.CreateAsync(Moq.It.IsAny<Item>())).ReturnsAsync(hats[i]);
             }
-            productService = new ProductService(productRepoMock.Object, itemRepoMock.Object, accountRepoMock.Object, loginServiceMock.Object);
+            productService = new ProductService(productRepoMock.Object, itemRepoMock.Object, accountRepoMock.Object, loginServiceMock.Object, imageRepoMock.Object);
         };
 
         Because of = () => hatOutcomes = productService.CreateManyItemsAsync(product1Name, itemQuantity, attributes, loginCreds).GetAwaiter().GetResult().ToList();
@@ -664,6 +680,7 @@ namespace Payment_Processing.Specs
             {
                 new FormFile(stream,0,stream.Length,"hatImage","hatImageName")
             };
+            imageRepoMock.Setup(r => r.UploadImageAsync(Moq.It.IsAny<ImageFile>()));
             itemRepoMock.Setup(r => r.CreateAsync(Moq.It.IsAny<Item>())).ReturnsAsync(hat);
             loginServiceMock.Setup(l => l.ValidatePermissionsAsync(Moq.It.IsAny<Account>(), PermissionType.Admin, Moq.It.IsAny<string>())).ReturnsAsync(true);
             productRepoMock.Setup(p => p.GetByProductIdAsync(product1Id)).ReturnsAsync(new Product
@@ -674,7 +691,7 @@ namespace Payment_Processing.Specs
                 ProductId = product1Id,
             });
             productRepoMock.Setup(p => p.UpdateAsync(Moq.It.IsAny<Product>()));
-            productService = new ProductService(productRepoMock.Object, itemRepoMock.Object, accountRepoMock.Object, loginServiceMock.Object);
+            productService = new ProductService(productRepoMock.Object, itemRepoMock.Object, accountRepoMock.Object, loginServiceMock.Object, imageRepoMock.Object);
         };
 
         Because of = () => productService.UpdateProductWithImageAsync(product.ProductId, images).GetAwaiter().GetResult();
@@ -683,11 +700,13 @@ namespace Payment_Processing.Specs
 
         It Should_Call_Product_Repo_To_Update_Product = () => productRepoMock.Verify(p => p.UpdateAsync(Moq.It.IsAny<Product>()), Times.Once());
 
+        It Should_Store_Image_In_ImageRepo = () => imageRepoMock.Verify(r => r.UploadImageAsync(Moq.It.IsAny<ImageFile>()), Times.Once);
+
         private static List<ItemAttribute> attributes;
         private static Item hat;
         private static List<IFormFile> images;
         private static Product product;
-        private static ProductService productService;
+        private static IProductService productService;
     }
 
     public class When_Getting_All_Items_For_A_Product : With_ProductRepo_Setup
@@ -743,7 +762,7 @@ namespace Payment_Processing.Specs
             }
             hatOutcomes = new List<Item>();
             itemRepoMock.Setup(p => p.GetAllItemsAsync(product1Id)).ReturnsAsync(hats);
-            productService = new ProductService(productRepoMock.Object, itemRepoMock.Object, accountRepoMock.Object, loginServiceMock.Object);
+            productService = new ProductService(productRepoMock.Object, itemRepoMock.Object, accountRepoMock.Object, loginServiceMock.Object, imageRepoMock.Object);
         };
 
         Because of = () =>
@@ -894,7 +913,7 @@ namespace Payment_Processing.Specs
                     .ReturnsAsync(hats.Where(h => h.Attributes.Where(a => a.Value == attributeValues[j]).Any()));
                 }
             }
-            productService = new ProductService(productRepoMock.Object, itemRepoMock.Object, accountRepoMock.Object, loginServiceMock.Object);
+            productService = new ProductService(productRepoMock.Object, itemRepoMock.Object, accountRepoMock.Object, loginServiceMock.Object, imageRepoMock.Object);
             attributeOutcome = new List<GroupedAttributes>();
         };
 
@@ -941,7 +960,7 @@ namespace Payment_Processing.Specs
                 AvailableAttributes = product1AvailableAttributes
             };
             productRepoMock.Setup(p => p.GetByNameAsync(Moq.It.IsAny<string>())).ReturnsAsync(product);
-            service = new ProductService(productRepoMock.Object, itemRepoMock.Object, accountRepoMock.Object, loginServiceMock.Object);
+            service = new ProductService(productRepoMock.Object, itemRepoMock.Object, accountRepoMock.Object, loginServiceMock.Object, imageRepoMock.Object);
         };
 
         Because of = () => attributes = service.GetAvailableAttributes(product.Name).GetAwaiter().GetResult();
@@ -1030,7 +1049,7 @@ namespace Payment_Processing.Specs
                     .ReturnsAsync(hats.Where(h => h.Attributes.Where(a => a.Value == attributeValues[j]).Any()));
                 }
             }
-            productService = new ProductService(productRepoMock.Object, itemRepoMock.Object, accountRepoMock.Object, loginServiceMock.Object);
+            productService = new ProductService(productRepoMock.Object, itemRepoMock.Object, accountRepoMock.Object, loginServiceMock.Object, imageRepoMock.Object);
             redItems = new List<Item>();
             greenItems = new List<Item>();
             blackItems = new List<Item>();
@@ -1213,7 +1232,7 @@ namespace Payment_Processing.Specs
                 ProductId = product1Id,
             });
             itemRepoMock.Setup(i => i.GetAllItemsAsync(product1Name)).ReturnsAsync(hats);
-            productService = new ProductService(productRepoMock.Object, itemRepoMock.Object, accountRepoMock.Object, loginServiceMock.Object);
+            productService = new ProductService(productRepoMock.Object, itemRepoMock.Object, accountRepoMock.Object, loginServiceMock.Object, imageRepoMock.Object);
             items = new List<Item>();
         };
 
@@ -1336,7 +1355,7 @@ namespace Payment_Processing.Specs
             loginServiceMock.Setup(l => l.ValidatePermissionsAsync(account1, PermissionType.User, Moq.It.IsAny<string>())).ReturnsAsync(true);
             accountRepoMock.Setup(a => a.GetByUsernameAsync(Moq.It.IsAny<string>())).ReturnsAsync(account1);
             itemRepoMock.Setup(i => i.GetByAttributesAsync(product1Name, Moq.It.IsAny<List<ItemAttribute>>())).ReturnsAsync(selectedHats);
-            productService = new ProductService(productRepoMock.Object, itemRepoMock.Object, accountRepoMock.Object, loginServiceMock.Object);
+            productService = new ProductService(productRepoMock.Object, itemRepoMock.Object, accountRepoMock.Object, loginServiceMock.Object, imageRepoMock.Object);
             items = new List<Item>();
         };
 
@@ -1382,5 +1401,51 @@ namespace Payment_Processing.Specs
         private static List<Item> selectedHats;
         private static IProductService productService;
         private static List<Item> items;
+    }
+
+    public class When_Getting_All_Images_For_Site : With_ProductRepo_Setup
+    {
+        Establish context = () =>
+        {
+            //var stream = new MemoryStream(Encoding.ASCII.GetBytes("these are the image bytes"));
+            //images = new List<IFormFile>
+            //{
+            //    new FormFile(stream,0,stream.Length,"hatImage","hatImageName")
+            //};
+            images = new List<ImageFile>
+            {
+                new ImageFile
+                {
+                    Name = "image1",
+                    ImageId = Guid.NewGuid().ToString(),
+                    Image = Encoding.ASCII.GetBytes("the first image bytes")
+                },
+                new ImageFile
+                {
+                    Name = "image2",
+                    ImageId = Guid.NewGuid().ToString(),
+                    Image = Encoding.ASCII.GetBytes("the second image bytes")
+                }
+            };
+            imageRepoMock.Setup(r => r.GetAll()).Returns(images);
+            productService = new ProductService(productRepoMock.Object, itemRepoMock.Object, accountRepoMock.Object, loginServiceMock.Object, imageRepoMock.Object);
+        };
+
+        Because of = () => outcome = productService.GetAllImages();
+
+        It Should_Return_A_List_Of_ImageFiles = () =>
+        {
+            for (var i = 0; i < outcome.ToList().Count; i++)
+            {
+                outcome.Where(o => o.Name == images[i].Name).FirstOrDefault().ImageId.ShouldEqual(images[i].ImageId);
+                outcome.Where(o => o.Name == images[i].Name).FirstOrDefault().Image.ShouldEqual(images[i].Image);
+            }
+        };
+
+        It Should_Get_Images_From_ImageRepo = () => imageRepoMock.Verify(r => r.GetAll(), Times.Once);
+
+        private static List<ImageFile> images;
+        private static IProductService productService;
+        private static IEnumerable<ImageFile> outcome;
     }
 }

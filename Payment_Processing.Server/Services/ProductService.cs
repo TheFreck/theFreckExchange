@@ -13,7 +13,7 @@ namespace Payment_Processing.Server.Services
     {
         Task<Item> CreateItemAsync(string productId, Item item);
         Task<IEnumerable<Item>> CreateManyItemsAsync(string productName, int itemQuantity, List<ItemAttribute> attributes, LoginCredentials credentials);
-        Task<Product> CreateProductAsync(string name, string description, List<string> attributes, double price, LoginCredentials credentials);
+        Task<Product> CreateProductAsync(string name, string description, List<string> attributes, double price, LoginCredentials credentials, List<IFormFile> images);
         Task<IEnumerable<Product>> GetAllAsync();
         Task<IEnumerable<GroupedAttributes>> GetAttributesAsync(string productName);
         Task<IEnumerable<Item>> GetByAttributeAsync(string productName, string type, string value);
@@ -26,6 +26,7 @@ namespace Payment_Processing.Server.Services
         Task<List<string>> GetAvailableAttributes(string productName);
         Task UpdateProductWithImageAsync(string productId, List<IFormFile> images);
         Task<Product> ModifyProductAsync(Product newProduct);
+        IEnumerable<ImageFile> GetAllImages();
     }
     public class ProductService : IProductService
     {
@@ -33,12 +34,14 @@ namespace Payment_Processing.Server.Services
         private readonly IItemRepo itemRepo;
         private readonly IAccountRepo accountRepo;
         private readonly ILoginService loginService;
-        public ProductService(IProductRepo productRepo, IItemRepo itemRepo, IAccountRepo accountRepo, ILoginService loginService)
+        private readonly IImageRepo imageRepo;
+        public ProductService(IProductRepo productRepo, IItemRepo itemRepo, IAccountRepo accountRepo, ILoginService loginService, IImageRepo imageRepo)
         {
             this.productRepo = productRepo;
             this.itemRepo = itemRepo;
             this.accountRepo = accountRepo;
             this.loginService = loginService;
+            this.imageRepo = imageRepo;
         }
 
         public async Task<Item> CreateItemAsync(string productId, Item item)
@@ -88,20 +91,43 @@ namespace Payment_Processing.Server.Services
             return null;
         }
 
-        public async Task<Product> CreateProductAsync(string name, string description, List<string> attributes, double price, LoginCredentials credentials)
+        public async Task<Product> CreateProductAsync(string name, string description, List<string> attributes, double price, LoginCredentials credentials, List<IFormFile> images)
         {
             var account = await accountRepo.GetByUsernameAsync(credentials.Username);
 
             if (await loginService.ValidatePermissionsAsync(account, PermissionType.Admin, credentials.AdminToken))
             {
+                var count = 0;
                 var product = new Product
                 {
                     Name = name,
                     ProductDescription = description,
                     ProductId = Guid.NewGuid().ToString(),
                     Price = price,
-                    AvailableAttributes = attributes
+                    AvailableAttributes = attributes,
+                    ImageBytes = new List<byte[]>()
                 };
+                foreach (FormFile formFile in images)
+                {
+                    if (formFile.Length > 0)
+                    {
+                        using (var stream = new MemoryStream())
+                        {
+                            formFile.CopyTo(stream);
+                            var fileBytes = stream.ToArray();
+
+                            product.ImageBytes.Add(fileBytes);
+                            await productRepo.UpdateAsync(product);
+
+                            await imageRepo.UploadImageAsync(new ImageFile
+                            {
+                                Image = fileBytes,
+                                ImageId = Guid.NewGuid().ToString(),
+                                Name = product.Name + count++
+                            });
+                        }
+                    }
+                }
 
                 await productRepo.CreateAsync(product);
                 return product;
@@ -113,7 +139,7 @@ namespace Payment_Processing.Server.Services
         {
             var product = await productRepo.GetByProductIdAsync(productId);
             long size = images.Sum(f => f.Length);
-
+            var count = 0;
             foreach (FormFile formFile in images)
             {
                 if (formFile.Length > 0)
@@ -125,8 +151,14 @@ namespace Payment_Processing.Server.Services
 
                         product.ImageBytes.Add(fileBytes);
                         await productRepo.UpdateAsync(product);
-                    }
 
+                        await imageRepo.UploadImageAsync(new ImageFile
+                        {
+                            Image = fileBytes,
+                            ImageId = Guid.NewGuid().ToString(),
+                            Name = product.Name + count++
+                        });
+                    }
                 }
             }
             return;
@@ -250,6 +282,11 @@ namespace Payment_Processing.Server.Services
             product.ImageBytes = newProduct.ImageBytes;
             await productRepo.UpdateAsync(product);
             return product;
+        }
+
+        public IEnumerable<ImageFile> GetAllImages()
+        {
+            return imageRepo.GetAll();
         }
     }
 }

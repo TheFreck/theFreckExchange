@@ -2,6 +2,7 @@ import { Box, Button, Modal, TextField } from "@mui/material";
 import react, { useContext, useEffect, useRef, useState } from "react";
 import { AccountContext } from "../Context";
 import NewAccount from "./Account/NewAccount";
+import Helpers from "../helpers";
 
 export const Login = () => {
     const [username, setUsername] = useState("");
@@ -11,7 +12,7 @@ export const Login = () => {
     const modalRef = useRef();
 
     return <div>
-        <h1>Welcome To The Store</h1>
+        <h1>Welcome To theFreck Store</h1>
         <Box
             component="form"
             noValidate

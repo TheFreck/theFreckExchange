@@ -4,19 +4,28 @@ import './App.css';
 import {AccountContext, ProductContext} from './Context';
 import Welcome from './Views/Welcome';
 import Login from './Views/Login';
-import { useBeforeUnload } from "react-router-dom";
-import { Button } from '@mui/material';
+import Layout from './Views/Layout';
 
-const viewEnum = {
+const homeViewEnum = {
     home: 0,
     account: 1,
     product: 2,
-    storeFront: 3
+    storeFront: 3,
+    login: 4
 };
 
+const userEnum = {
+    home: 0,
+    createProduct: 1,
+    createItems: 2,
+    updateProduct: 3,
+    shop: 4,
+    viewAccount: 5
+};
 
 function App() {
-    const [view, setView] = useState(viewEnum.home);
+    const [view, setView] = useState(homeViewEnum.home);
+    const [userView, setUserView] = useState(userEnum.home);
     const [userAcct, setUserAcct] = useState({});
     
     const accountApi = axios.create({
@@ -49,7 +58,7 @@ function App() {
         accountApi.post(`logout/${userAcct.username}`)
         .then(yup => {
             setUserAcct({});
-            setView(viewEnum.home);
+            setView(homeViewEnum.home);
         })
         .catch(nope => console.error(nope));
     }
@@ -62,11 +71,23 @@ function App() {
             .catch(nope => console.error(nope));
     }
 
-    const AppCallback = useCallback(() => <AccountContext.Provider value={{login,userAcct,createAccount}}>
-        {localStorage.getItem("loginToken") !== null && <Button onClick={logout} >Logout</Button>}
-        {localStorage.getItem("loginToken") === null && <Login />}
-        {localStorage.getItem("loginToken") !== null && <Welcome />}
-    </AccountContext.Provider>,[userAcct,view]);
+    const AppCallback = useCallback(() => <AccountContext.Provider value={{
+        login,
+        userAcct,
+        createAccount,
+        userView,
+        setUserView,
+        userEnum
+        }}>
+        <Layout login={() => setView(homeViewEnum.login)} logout={logout}>
+            {view === homeViewEnum.login && localStorage.getItem("loginToken") === null && 
+                <Login />
+            }
+            { localStorage.getItem("loginToken") !== null && 
+                <Welcome />
+            }
+        </Layout>
+    </AccountContext.Provider>,[userAcct,view,userView]);
     return <AppCallback />
 }
 

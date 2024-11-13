@@ -69,7 +69,6 @@ export const CreateItems = ({products}) => {
             }
         </div>
         <div>
-            {console.log("product to view: ", product)}
             {attributes.length > 0 && product.name !== undefined && <ProductView product={product} view="admin" />}
         </div>
     </div>, [ready, product, productsArray, attributes]);
