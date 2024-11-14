@@ -1,9 +1,12 @@
 ﻿using Machine.Specifications;
 using Microsoft.AspNetCore.Http;
+using Microsoft.AspNetCore.Mvc;
+using Microsoft.VisualStudio.TestPlatform.PlatformAbstractions.Interfaces;
 using Moq;
 using Payment_Processing.Server.DTO;
 using Payment_Processing.Server.Repos;
 using Payment_Processing.Server.Services;
+using System.Collections.Generic;
 using System.IO;
 using System.Text;
 using static System.Net.Mime.MediaTypeNames;
@@ -1447,5 +1450,31 @@ namespace Payment_Processing.Specs
         private static List<ImageFile> images;
         private static IProductService productService;
         private static IEnumerable<ImageFile> outcome;
+    }
+
+    public class When_Uploading_An_Image_To_The_Site : With_ProductRepo_Setup
+    {
+        Establish context = () =>
+        {
+            stream1 = new MemoryStream(Encoding.ASCII.GetBytes("these are the first image bytes"));
+            stream2 = new MemoryStream(Encoding.ASCII.GetBytes("these are the second image bytes"));
+
+            images = new List<IFormFile>
+            {
+                new FormFile(stream1,0,stream1.Length,"hatImage1","hatImageName1"),
+                new FormFile(stream2,0,stream2.Length,"hatImage2","hatImageName2")
+            };
+            imageRepoMock.Setup(r => r.UploadImageAsync(Moq.It.IsAny<ImageFile>()));
+            productService = new ProductService(productRepoMock.Object, itemRepoMock.Object, accountRepoMock.Object, loginServiceMock.Object, imageRepoMock.Object);
+        };
+
+        Because of = () => productService.UploadImagesAsync(images).GetAwaiter().GetResult();
+
+        It Should_Upload_Images_To_ImageRepo = () => imageRepoMock.Verify(r => r.UploadImageAsync(Moq.It.IsAny<ImageFile>()), Times.Exactly(images.Count));
+
+        private static List<IFormFile> images;
+        private static IProductService productService;
+        private static MemoryStream stream1;
+        private static MemoryStream stream2;
     }
 }

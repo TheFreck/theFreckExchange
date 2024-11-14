@@ -19,8 +19,9 @@ const userEnum = {
     createProduct: 1,
     createItems: 2,
     updateProduct: 3,
-    shop: 4,
-    viewAccount: 5
+    uploadImages: 4,
+    shop: 5,
+    viewAccount: 6
 };
 
 function App() {

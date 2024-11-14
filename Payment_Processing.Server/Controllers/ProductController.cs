@@ -192,7 +192,7 @@ namespace Payment_Processing.Server.Controllers
         }
 
         [HttpPost("image/uploadImage/{productId}")]
-        public async Task<IActionResult> UuploadImagesForItemsAsync([FromForm]List<IFormFile> images, string productId)
+        public async Task<IActionResult> UploadImagesForItemsAsync([FromForm]List<IFormFile> images, string productId)
         {
             await productService.UpdateProductWithImageAsync(productId, images);
             return Ok();
@@ -203,6 +203,13 @@ namespace Payment_Processing.Server.Controllers
         {
             var images = productService.GetAllImages().ToList();
             return images;
+        }
+
+        [HttpPost("images/upload")]
+        public async Task<IActionResult> UploadImages(List<IFormFile> images)
+        {
+            await productService.UploadImagesAsync(images);
+            return Ok();
         }
     }
 }

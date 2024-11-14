@@ -2,39 +2,46 @@ import { Box, Button, Card, FormControl, Grid2, InputLabel, MenuItem, Select, Te
 import react, { useCallback, useContext, useEffect, useState } from "react";
 import { ProductContext } from "../../Context";
 import Carousel from "react-material-ui-carousel";
-import ClearIcon from '@mui/icons-material/Clear';
-import CheckIcon from '@mui/icons-material/Check';
 import DisabledByDefaultIcon from '@mui/icons-material/DisabledByDefault';
 import CheckBoxIcon from '@mui/icons-material/CheckBox';
 
-export const ModifyProduct = ({products}) => {
-    const { getAvailableAttributesAsync,updateItemsAsync } = useContext(ProductContext);
+export const ModifyProduct = () => {
+    const { getAvailableAttributesAsync,updateItemsAsync, products, ready, setReady } = useContext(ProductContext);
     const [productsArray, setProductsArray] = useState([]);
     const [selectedProduct, setSelectedProduct] = useState("");
-    const [ready, setReady] = useState(false);
     const [imageObjects, setImageObjects] = useState([]);
     const [productPrice, setProductPrice] = useState(0.0);
     const [productDescription, setProductDescription] = useState("");
     const [isDirty, setIsDirty] = useState(false);
 
     useEffect(() => {
-        if(products.size === 0) return;
+        if(products.length === 0 || ready) return;
+        console.log("initialize products: ", products);
         var prods = [];
         for(var prod of products.values()){
+            let ibs = [];
+            prod.imageBytes = ibs;
             prods.push(prod);
         }
         setProductsArray(prods);
+        setIsDirty(!isDirty);
+        setReady(true);
     }, []);
 
     const selectProduct = (p) => {
+        console.log("products: ", products);
         setSelectedProduct(p.target.value);
         setImageObjects(p.target.value.imageBytes);
         setProductPrice(p.target.value.price);
         setProductDescription(p.target.value.productDescription);
         getAvailableAttributesAsync(p.target.value.name, att => {
-            setReady(!ready);
+            setIsDirty(!isDirty);
         });
     }
+
+    useEffect(() => {
+        console.log("selectedProduct: ", selectedProduct);
+    },[selectedProduct]);
 
     const removeImage = image => {
         image.delete = undefined ? true : !image.delete;
@@ -59,6 +66,9 @@ export const ModifyProduct = ({products}) => {
     }
 
     const ImageCardCallback = useCallback(({image,i}) => (<Card>
+        {console.log("image bytes: ", image)}
+        {console.log("image bytes atob: ", window.atob(image.bytes))}
+        {console.log("image bytes btoa: ", window.btoa(image.bytes))}
         {image.delete && 
             <DisabledByDefaultIcon 
                 onClick={() => {
@@ -71,16 +81,16 @@ export const ModifyProduct = ({products}) => {
         }
         {image.delete !== undefined && !image.delete &&
             <CheckBoxIcon
-            onClick={() => {
-                if(image.delete !== undefined)
-                    image.delete = !image.delete
-                setIsDirty(!isDirty);
-            }}
+                onClick={() => {
+                    if(image.delete !== undefined)
+                        image.delete = !image.delete
+                    setIsDirty(!isDirty);
+                }}
                 sx={{color: "green", position: "absolute", top: 0, right: "1em", width: "5vw", height: "5vh"}}
             />
         }
         <img style={{ backgroundSize: "contain", maxHeight: "20em", maxWidth: "100%" }} src={window.atob(image.bytes)} onClick={() => removeImage(image)} height={"auto"} key={i} />
-    </Card>),[isDirty]);
+    </Card>),[isDirty,ready,selectedProduct]);
 
     return (
         <Box
@@ -91,7 +101,7 @@ export const ModifyProduct = ({products}) => {
                 container
                 spacing={1}
             >
-                {productsArray.length > 0 && 
+                {products.length > 0 && 
                     <FormControl fullWidth>
                         <InputLabel id="productLabel">Product</InputLabel>
                         <Select
@@ -109,7 +119,7 @@ export const ModifyProduct = ({products}) => {
                             >
                                 Select a product
                             </MenuItem>
-                            {productsArray.map((p, i) => (
+                            {products.map((p, i) => (
                                 <MenuItem 
                                     name={p.name} 
                                     key={i} 

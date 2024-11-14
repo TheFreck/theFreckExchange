@@ -21,7 +21,6 @@ export const CreateItems = ({products}) => {
 
     const selectProduct = (p) => {
         getAvailableAttributesAsync(p.target.value.name, att => {
-            console.log("att: ", att);
             let attArray = [];
             for(let at of att){
                 attArray.push({
@@ -30,6 +29,11 @@ export const CreateItems = ({products}) => {
                 });
             }
             p.target.value.attributes = attArray;
+            let imArray = [];
+            for(let im of p.target.value.imageBytes){
+                imArray.push({bytes: im.bytes.bytes})
+            }
+            p.target.value.imageBytes = imArray;
             setProduct(p.target.value);
             setAttributes(att);
             setReady(!ready);

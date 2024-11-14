@@ -5,7 +5,7 @@ import { Dropdown } from "@mui/base";
 import { AccountContext } from "../Context";
 
 export const Layout = (props) => {
-    const {setAdminView,adminEnum,setUserView,userEnum} = useContext(AccountContext);
+    const {setUserView,userEnum} = useContext(AccountContext);
     const {login,logout} = props;
     const [menuOpen, setMenuOpen] = useState(false);
     const anchorEl = useRef();
@@ -29,7 +29,7 @@ export const Layout = (props) => {
                 color="inherit"
                 aria-label="menu"
                 sx={{ mr: 2 }}
-                onClick={() => setMenuOpen(true)} 
+                onClick={() => setMenuOpen(!menuOpen)} 
                 ref={anchorEl}
             >
             <MenuIcon />
@@ -59,6 +59,11 @@ export const Layout = (props) => {
                         <MenuItem onClick={() => {
                             setUserView(userEnum.updateProduct);
                         }}>Update Product</MenuItem>
+                        <MenuItem onClick={() => {
+                            setUserView(userEnum.uploadImages)
+                        }}>
+                            Upload Images
+                        </MenuItem>
                     </MenuList>}
                     <Divider />
                     {localStorage.getItem("permissions.user") !== null && 

@@ -10,6 +10,7 @@ import Store from "./User/Store";
 import CreateProduct from "./Product/CreateProduct";
 import ModifyProduct from "./Product/ModifyProduct";
 import CreateItems from "./Item/CreateItems";
+import ImageUpload from "./Admin/ImageUpload";
 
 const viewEnum = {
     none: 0,
@@ -18,40 +19,41 @@ const viewEnum = {
 }
 
 export const Welcome = () => {
-    const {adminView, setAdminView, adminEnum,userView,setUserView,userEnum} = useContext(AccountContext);
-    const [products, setProducts] = useState(new Set());
+    const {userView,setUserView,userEnum} = useContext(AccountContext);
+    const [products, setProducts] = useState([]);
     const [ready, setReady] = useState(false);
     const [view, setView] = useState(viewEnum.none);
 
     useEffect(() => {
         getProductsAsync(prods => {
-            for (let prod of prods) {
-                let imageObjects = [];
-                for (let image of prod.imageBytes) {
-                    imageObjects.push({
-                        bytes: image
-                    })
-                }
-                prod.imageBytes = imageObjects;
-            }
             setProducts(prods);
             setReady(true);
         })
     }, []);
 
     const getProductsAsync = async (cb) => {
+        // console.log("getting products");
         await productApi.get()
             .then(yup => {
+                let prods = [];
                 for (let prod of yup.data) {
                     let imageObjects = [];
                     for (let image of prod.imageBytes) {
+                        // console.log("image of prod.imageBytes: ", image);
+                        let bytes = image;
+                        // console.log("bytes: ", bytes);
                         imageObjects.push({
-                            bytes: image
+                            bytes
                         })
+                        // console.log("iamgeObjects: ", imageObjects);
                     }
                     prod.imageBytes = imageObjects;
+                    // console.log("prod: ", prod);
+                    prods.push(prod);
                 }
-                cb(new Set(yup.data));
+                // console.log("get prods callback: ", prods);
+                // console.log("set prods: ", new Set(prods));
+                cb(prods);
             })
             .catch(nope => console.error(nope));
     }
@@ -163,7 +165,7 @@ export const Welcome = () => {
         if (ready) return (
             <>
                 {/* <Typography variant="h1" onClick={() => setView(viewEnum.none)}>Welcome</Typography> */}
-                <StoreFront />
+                {userView !== userEnum.uploadImages && <StoreFront />}
                 {/* {check local storage against server} */}
                 {/* {view === viewEnum.none && localStorage.getItem("permissions.admin") !== null && <Button variant="outlined" onClick={() => setView(viewEnum.admin)}>Admin View</Button>}
                 {view === viewEnum.none && localStorage.getItem("permissions.user") !== null && <Button variant="outlined" onClick={() => setView(viewEnum.user)}>User View</Button>} */}
@@ -172,7 +174,8 @@ export const Welcome = () => {
 
                 {userView === userEnum.createProduct && localStorage.getItem("permissions.admin") !== null && <CreateProduct created={created} />}
                 {userView === userEnum.createItems && localStorage.getItem("permissions.admin") !== null && <CreateItemsCallback />}
-                {userView === userEnum.updateProduct && localStorage.getItem("permissions.admin") !== null && <ModifyProduct products={products} />}
+                {userView === userEnum.updateProduct && localStorage.getItem("permissions.admin") !== null && <ModifyProduct />}
+                {userView === userEnum.uploadImages && localStorage.getItem("permissions.admin") !== null && <ImageUpload />}
                 
                 {userView === userEnum.shop && localStorage.getItem("permissions.user") !== null && <Store />}
                 {userView === userEnum.viewAccount && localStorage.getItem("permissions.user") !== null && <div>Placeholder for account view</div>}
@@ -181,7 +184,7 @@ export const Welcome = () => {
         else return;
     }, [products, ready, view]);
 
-    return <ProductContext.Provider value={{ products, getProductsAsync, getItemsAsync, createProductAsync, createItemsAsync, getAvailableAttributesAsync, updateItemsAsync, purchaseItemAsync }}>
+    return <ProductContext.Provider value={{ products, ready, setReady, getProductsAsync, getItemsAsync, createProductAsync, createItemsAsync, getAvailableAttributesAsync, updateItemsAsync, purchaseItemAsync }}>
         <WelcomeCallback />
     </ProductContext.Provider>
 

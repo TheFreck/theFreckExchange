@@ -18,16 +18,14 @@ export const CreateProduct = ({created}) => {
     const uploadImage = async (e) => {
         let targetImages = [];
         for(var i = 0; i<e.target.files.length; i++){
-            console.log("target iamges: ", e.target.files[i]);
             targetImages.push(URL.createObjectURL(e.target.files[i]));
-            let url = URL.createObjectURL(e.target.files[i]);
-            console.log("image url: ", url);
-            await fetch(url)
-            .then(yup => yup.blob())
-            .then(blob => {
-                console.log("blob: ", blob);
-            })
-            .catch(nope => console.error(nope));
+            // let url = URL.createObjectURL(e.target.files[i]);
+            // await fetch(url)
+            // .then(yup => yup.blob())
+            // .then(blob => {
+            //     console.log("blob: ", blob);
+            // })
+            // .catch(nope => console.error(nope));
         }
         console.log("targetImages: ", targetImages);
         setImages(targetImages);

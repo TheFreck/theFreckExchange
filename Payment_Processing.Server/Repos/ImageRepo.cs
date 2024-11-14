@@ -8,6 +8,7 @@ namespace Payment_Processing.Server.Repos
     {
         IEnumerable<ImageFile> GetAll();
         Task UploadImageAsync(ImageFile imageFile);
+        Task UploadImagesAsync(List<ImageFile> imageFiles);
     }
     public class ImageRepo : IImageRepo
     {
@@ -28,6 +29,11 @@ namespace Payment_Processing.Server.Repos
         public async Task UploadImageAsync(ImageFile imageFile)
         {
             await imageCollection.InsertOneAsync(imageFile);
+        }
+
+        public async Task UploadImagesAsync(List<ImageFile> imageFiles)
+        {
+            await imageCollection.InsertManyAsync(imageFiles);
         }
     }
 }

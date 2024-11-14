@@ -27,6 +27,7 @@ namespace Payment_Processing.Server.Services
         Task UpdateProductWithImageAsync(string productId, List<IFormFile> images);
         Task<Product> ModifyProductAsync(Product newProduct);
         IEnumerable<ImageFile> GetAllImages();
+        Task UploadImagesAsync(List<IFormFile> images);
     }
     public class ProductService : IProductService
     {
@@ -287,6 +288,30 @@ namespace Payment_Processing.Server.Services
         public IEnumerable<ImageFile> GetAllImages()
         {
             return imageRepo.GetAll();
+        }
+
+        public async Task UploadImagesAsync(List<IFormFile> images)
+        {
+            long size = images.Sum(f => f.Length);
+            foreach (FormFile formFile in images)
+            {
+                if (formFile.Length > 0)
+                {
+                    using (var stream = new MemoryStream())
+                    {
+                        formFile.CopyTo(stream);
+                        var fileBytes = stream.ToArray();
+
+                        await imageRepo.UploadImageAsync(new ImageFile
+                        {
+                            Image = fileBytes,
+                            ImageId = Guid.NewGuid().ToString(),
+                            Name = Guid.NewGuid().ToString()
+                        });
+                    }
+                }
+            }
+            return;
         }
     }
 }
