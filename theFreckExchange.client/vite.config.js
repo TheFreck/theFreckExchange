@@ -12,6 +12,7 @@ const baseFolder =
         ? `${env.APPDATA}/ASPNET/https`
         : `${env.HOME}/.aspnet/https`;
 
+
 const certificateName = "theFreckExchange.client";
 const certFilePath = path.join(baseFolder, `${certificateName}.pem`);
 const keyFilePath = path.join(baseFolder, `${certificateName}.key`);
