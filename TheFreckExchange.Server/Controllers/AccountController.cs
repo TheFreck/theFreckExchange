@@ -57,9 +57,9 @@ namespace TheFreckExchange.Server.Controllers
 
         public class NewAccountRequest
         {
-            public string Username { get; set; }
-            public string Password { get; set; }
-            public List<AccountPermissions> Permissions { get; set; }
+            public string Username { get; set; } = String.Empty;
+            public string Password { get; set; } = String.Empty;
+            public List<AccountPermissions> Permissions { get; set; } = new List<AccountPermissions>();
         }
 
         [HttpPut("make_payment/{email}/{pmt}")]

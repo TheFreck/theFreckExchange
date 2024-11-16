@@ -10,6 +10,6 @@ namespace TheFreckExchange.Server.DTO
         public virtual string? Id { get; set; }
         public required byte[] Image { get; set; }
         public required string Name { get; set; }
-        public string ImageId { get; set; }
+        public string ImageId { get; set; } = string.Empty;
     }
 }

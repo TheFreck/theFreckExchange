@@ -16,30 +16,24 @@
                 case "Bowler":
                 case "bowler":
                     return Bowler;
-                    break;
                 case "Trilby":
                 case "trilby":
                     return Trilby;
-                    break;
                 case "Porkpie":
                 case "porkpie":
                     return Porkpie;
-                    break;
                 case "Ballcap":
                 case "ballcap":
                     return Ballcap;
-                    break;
                 case "Fedora":
                 case "fedora":
                     return Fedora;
-                    break;
                 case "WritingCap":
                 case "writingCap":
                 case "writingcap":
                 case "Writing Cap":
                 case "writing cap":
                     return WritingCap;
-                    break;
                 default: return name;
             }
         }

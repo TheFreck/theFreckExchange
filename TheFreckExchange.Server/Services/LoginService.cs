@@ -41,7 +41,7 @@ namespace TheFreckExchange.Server.Services
             {
                 account.LoginToken = MakeHash(Guid.NewGuid().ToString(),out var tokenSalt);
                 account.TokenSalt = tokenSalt;
-                await accountRepo.UpdateAsync(account);
+                accountRepo.Update(account);
                 return account;
             }
             return new Account();
@@ -55,7 +55,7 @@ namespace TheFreckExchange.Server.Services
                 var account = await accountRepo.GetByUsernameAsync(username);
                 account.LoginToken = Guid.Empty.ToString();
                 account.TokenSalt = new byte[64];
-                await accountRepo.UpdateAsync(account);
+                accountRepo.Update(account);
                 return true;
             }
             catch (Exception)
@@ -83,7 +83,7 @@ namespace TheFreckExchange.Server.Services
             var gotten = await accountRepo.GetByUsernameAsync(account.Username);
             if (account.LoginToken == string.Empty) return false;
 
-            if (account.Permissions.Where(p => p.Type == permission).FirstOrDefault().Token == token) return true;
+            if (account.Permissions?.Where(p => p.Type == permission)?.FirstOrDefault()?.Token == token) return true;
             return false;
         }
 

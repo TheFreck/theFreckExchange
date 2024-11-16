@@ -10,7 +10,7 @@ namespace TheFreckExchange.Server.Repos
         Task UpdateAsync(Product product);
         Task<Product> GetByProductIdAsync(string productId);
         Task<Product> GetByNameAsync(string name);
-        Task<IEnumerable<Product>> GetAllProductsAsync();
+        IEnumerable<Product> GetAllProducts();
     }
     public class ProductRepo : IProductRepo
     {
@@ -29,20 +29,20 @@ namespace TheFreckExchange.Server.Repos
 
         public async Task UpdateAsync(Product product)
         {
-            productsCollection.ReplaceOne(a => a.ProductId == product.ProductId, product);
+            await productsCollection.ReplaceOneAsync(a => a.ProductId == product.ProductId, product);
         }
 
         public async Task<Product> GetByProductIdAsync(string productId)
         {
-            return productsCollection.FindAsync<Product>(a => a.ProductId == productId).Result.FirstOrDefault();
+            return (await productsCollection.FindAsync(a => a.ProductId == productId)).FirstOrDefault();
         }
 
         public async Task<Product> GetByNameAsync(string name)
         {
-            return productsCollection.FindAsync<Product>(a => a.Name == name).Result.FirstOrDefault();
+            return (await productsCollection.FindAsync(a => a.Name == name)).FirstOrDefault();
         }
 
-        public async Task<IEnumerable<Product>> GetAllProductsAsync()
+        public IEnumerable<Product> GetAllProducts()
         {
             var products = productsCollection.AsQueryable();
             return products;

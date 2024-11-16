@@ -13,30 +13,29 @@ namespace TheFreckExchange.Server.DTO
         public string? Id { get; set; }
 
         [BsonElement("Name")]
-        new public string Name { get; set; }
+        public string Name { get; set; } = String.Empty;
         [BsonElement("AccountId")]
-        new public string AccountId { get; init; }
+        public string AccountId { get; init; } = String.Empty;
         [BsonElement("UserName")]
-        public string Username {  get; set; }
+        public string Username { get; set; } = String.Empty;
         [BsonElement("Password")]
-        public string Password;
-        public string Email { get; set; }
-        public double Balance { get; set; }
-        public DateTime DateOpened { get; set; }
-        public List<AccountPermissions> Permissions { get; set; }
+        public string Password = String.Empty;
+        public string Email { get; set; } = String.Empty;
+        public double Balance { get; set; } = 0;
+        public DateTime? DateOpened { get; set; }
+        public List<AccountPermissions> Permissions { get; set; } = new List<AccountPermissions>();
 
         /// <summary>
         /// a token that is created when an account is checked out and destroyed when it is checked back in 
         /// </summary>
-        public string LoginToken { get; set; } = Guid.Empty.ToString();
-        public byte[] PasswordSalt {  get; set; }
-        public byte[] TokenSalt;
+        public string? LoginToken { get; set; } = Guid.Empty.ToString();
+        public byte[]? PasswordSalt {  get; set; } = new byte[0];
+        public byte[]? TokenSalt = new byte[0];
 
 
-        public Account(string name, string username, string password, string email, List<AccountPermissions> permissions)
+        public Account(string name, string username, string email, List<AccountPermissions> permissions)
         {
             Username = username;
-           
             Email = email;
             DateOpened = DateTime.Now;
             Name = name;

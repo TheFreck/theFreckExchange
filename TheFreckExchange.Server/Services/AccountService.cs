@@ -32,7 +32,7 @@ namespace TheFreckExchange.Server.Services
         {
             var acct = await accountRepo.GetByUsernameAsync(username);
             acct.Balance += balanceIncrease;
-            await accountRepo.UpdateAsync(acct);
+            accountRepo.Update(acct);
             acct.Username = string.Empty;
             acct.Password = string.Empty;
             acct.LoginToken = string.Empty;
@@ -43,7 +43,7 @@ namespace TheFreckExchange.Server.Services
 
         public async Task<Account> CreateAccountAsync(string name, string email, string username, string password, List<AccountPermissions> permissions)
         {
-            var account = new Account(name, username, password, email, permissions);
+            var account = new Account(name, username, email, permissions);
 
             var (passwordHash,passwordSalt) = loginService.CreateLogin(password);
             account.Password = passwordHash;
@@ -91,7 +91,7 @@ namespace TheFreckExchange.Server.Services
 
         public async Task<IEnumerable<Account>> GetAllAccountsAsync()
         {
-            var accounts = (await accountRepo.GetAllAccountsAsync()).ToList();
+            var accounts = accountRepo.GetAllAccounts().ToList();
             accounts.ForEach(a =>
             {
                 a.Username = string.Empty;
@@ -107,7 +107,7 @@ namespace TheFreckExchange.Server.Services
         {
             var account = await accountRepo.GetByEmailAsync(email);
             account.Balance -= payment;
-            await accountRepo.UpdateAsync(account);
+            accountRepo.Update(account);
             account.Username = string.Empty;
             account.Password = string.Empty;
             account.LoginToken = string.Empty;

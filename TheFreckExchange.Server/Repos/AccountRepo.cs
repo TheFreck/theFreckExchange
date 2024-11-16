@@ -6,10 +6,10 @@ namespace TheFreckExchange.Server.Repos
 {
     public interface IAccountRepo
     {
-        Task UpdateAsync(Account account);
+        void Update(Account account);
         Task<Account> GetByAccountIdAsync(string accountId);
         Task<Account> GetByEmailAsync(string email);
-        Task<IEnumerable<Account>> GetAllAccountsAsync();
+        IEnumerable<Account> GetAllAccounts();
         Task CreateAsync(Account account);
         Task<Account> GetByUsernameAsync(string username);
     }
@@ -30,14 +30,14 @@ namespace TheFreckExchange.Server.Repos
             await accountsCollection.InsertOneAsync(account);
         }
 
-        public async Task UpdateAsync(Account account)
+        public void Update(Account account)
         {
             accountsCollection.ReplaceOne(a => a.AccountId == account.AccountId, account);
         }
 
         public async Task<Account> GetByAccountIdAsync(string accountId)
         {
-            return accountsCollection.FindAsync<Account>(a => a.AccountId == accountId).Result.FirstOrDefault();
+            return (await accountsCollection.FindAsync<Account>(a => a.AccountId == accountId)).FirstOrDefault();
         }
 
         public async Task<Account> GetByEmailAsync(string email)
@@ -45,7 +45,7 @@ namespace TheFreckExchange.Server.Repos
             return (await accountsCollection.FindAsync<Account>(a => a.Email == email)).FirstOrDefault();
         }
 
-        public async Task<IEnumerable<Account>> GetAllAccountsAsync()
+        public IEnumerable<Account> GetAllAccounts()
         {
             var accounts = accountsCollection.AsQueryable();
             return accounts;

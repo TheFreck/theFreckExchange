@@ -3,6 +3,7 @@ using TheFreckExchange.Server.DTO;
 using TheFreckExchange.Server.Services;
 using System.Linq;
 using System.Net;
+using System.Xml.Linq;
 
 namespace TheFreckExchange.Server.Controllers
 {
@@ -59,14 +60,20 @@ namespace TheFreckExchange.Server.Controllers
             if (await loginService.ValidateTokenAsync(input.Credentials.Username, input.Credentials.LoginToken))
             {
                 var imageFiles = new List<IFormFile>();
-                for(var i=0; i<input.ImageBytes.Count; i++)
+                for (var i = 0; i < input.ImageBytes.Count; i++)
                 {
-                    imageFiles.Add(new FormFile(new MemoryStream(input.ImageBytes[i]), 0, input.ImageBytes[i].LongLength,$"{input.Name}-{i}", $"{input.Name}-{i}"));
+                    imageFiles.Add(new FormFile(new MemoryStream(input.ImageBytes[i]), 0, input.ImageBytes[i].LongLength, $"{input.Name}-{i}", $"{input.Name}-{i}"));
                 }
                 var product = await productService.CreateProductAsync(input.Name, input.Description, input.Attributes, input.Price, input.Credentials, imageFiles);
                 return product;
             }
-            else return null;
+            else return new Product
+            {
+                Name = "Couldn't Create the product",
+                Price = input.Price,
+                ProductDescription = input.Description,
+                ProductId = Guid.Empty.ToString(),
+            };
         }
 
         /// <summary>
@@ -87,7 +94,13 @@ namespace TheFreckExchange.Server.Controllers
                 product.ImageBytes = input.ImageBytes;
                 return await productService.ModifyProductAsync(product);
             }
-            return null;
+            return new Product
+            { 
+                Name = "Couldn't Create the product",
+                Price = input.Price,
+                ProductDescription = input.Description,
+                ProductId = Guid.Empty.ToString(),
+            };
         }
 
         // ITEMS
@@ -187,7 +200,7 @@ namespace TheFreckExchange.Server.Controllers
             }
             else
             {
-                return null;
+                return new List<Item>();
             }
         }
 

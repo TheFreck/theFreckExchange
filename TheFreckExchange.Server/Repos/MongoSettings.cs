@@ -9,26 +9,26 @@ namespace TheFreckExchange.Server.Repos
         /// MongoDB connection string
         /// </summary>
         [Required, Url]
-        public string ConnectionString { get; init; } = null;
+        public string ConnectionString { get; init; } = String.Empty;
 
         /// <summary>
         /// MongoDB  database name
         /// </summary>
         [Required]
-        public string Database { get; init; } = null;
+        public string Database { get; init; } = String.Empty;
 
         [Required]
-        public string CollectionName { get; init; } = null;
+        public string CollectionName { get; init; } = String.Empty;
 
         [Required]
-        public string AccountCollectionName { get; init; } = null;
+        public string AccountCollectionName { get; init; } = String.Empty;
 
         [Required]
-        public string ProductCollectionName { get; init; } = null;
+        public string ProductCollectionName { get; init; } = String.Empty;
 
         [Required]
-        public string ItemCollectionName { get; init; } = null;
+        public string ItemCollectionName { get; init; } = String.Empty;
         [Required]
-        public string ImageCollectionName { get; init; } = null;
+        public string ImageCollectionName { get; init; } = String.Empty;
     }
 }

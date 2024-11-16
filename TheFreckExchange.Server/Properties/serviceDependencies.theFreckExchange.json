@@ -1,7 +1,7 @@
 {
   "dependencies": {
     "apis1": {
-      "resourceId": "/subscriptions/[parameters('subscriptionId')]/resourceGroups/[parameters('resourceGroupName')]/providers/Microsoft.ApiManagement/service/PaymentProcessingServerapi/apis/theFreckExchange",
+      "resourceId": "/subscriptions/[parameters('subscriptionId')]/resourceGroups/[parameters('resourceGroupName')]/providers/Microsoft.ApiManagement/service/TheFreckExchangeServerapi/apis/TheFreckExchangeServer",
       "type": "apis.azure"
     }
   }

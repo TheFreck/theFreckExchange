@@ -63,7 +63,8 @@ namespace TheFreckExchange.Server.Services
                 var outcome = await itemRepo.CreateAsync(newItem);
                 return outcome;
             }
-            return null;
+            item.Name = "Unable to create Item";
+            return item;
         }
 
         public async Task<IEnumerable<Item>> CreateManyItemsAsync(string productName, int itemQuantity, List<ItemAttribute> attributes, LoginCredentials credentials)
@@ -89,7 +90,7 @@ namespace TheFreckExchange.Server.Services
                 }
                 return items;
             }
-            return null;
+            return new List<Item>();
         }
 
         public async Task<Product> CreateProductAsync(string name, string description, List<string> attributes, double price, LoginCredentials credentials, List<IFormFile> images)
@@ -133,7 +134,13 @@ namespace TheFreckExchange.Server.Services
                 await productRepo.CreateAsync(product);
                 return product;
             }
-            return null;
+            return new Product 
+            {
+                Name = "Unable to create Product",
+                Price = price,
+                ProductDescription = "Unable to create Product",
+                ProductId = Guid.Empty.ToString()
+            };
         }
 
         public async Task UpdateProductWithImageAsync(string productId, List<IFormFile> images)
@@ -167,7 +174,7 @@ namespace TheFreckExchange.Server.Services
 
         public async Task<IEnumerable<Product>> GetAllAsync()
         {
-            var products = await productRepo.GetAllProductsAsync();
+            var products = productRepo.GetAllProducts();
             return products;
         }
 
@@ -218,7 +225,13 @@ namespace TheFreckExchange.Server.Services
                 await productRepo.UpdateAsync(product);
                 return product;
             }
-            return null;
+            return new Product
+            {
+                Name = "Unable to modify Product",
+                Price = 0,
+                ProductDescription = "Unable to modify Product",
+                ProductId = Guid.Empty.ToString()
+            };
         }
 
         public async Task<Product> ModifyNameAsync(string oldName, string newName, LoginCredentials credentials)
@@ -231,7 +244,13 @@ namespace TheFreckExchange.Server.Services
                 await productRepo.UpdateAsync(product);
                 return product;
             }
-            return null;
+            return new Product
+            {
+                Name = "Unable to modify Product",
+                Price = 0,
+                ProductDescription = "Unable to modify Product",
+                ProductId = Guid.Empty.ToString()
+            };
         }
 
         public async Task<Product> ModifyPriceAsync(string productName, double price, LoginCredentials credentials)
@@ -244,7 +263,13 @@ namespace TheFreckExchange.Server.Services
                 await productRepo.UpdateAsync(product);
                 return product;
             }
-            return null;
+            return new Product
+            {
+                Name = "Unable to modify Product",
+                Price = price,
+                ProductDescription = "Unable to modify Product",
+                ProductId = Guid.Empty.ToString()
+            };
         }
 
         public async Task<List<Item>> PurchaseItem(ItemDTO item, int qty)
@@ -268,7 +293,7 @@ namespace TheFreckExchange.Server.Services
                     purchased.Add(itemsReturned[i]);
                 }
                 account.Balance += product.Price * qty;
-                await accountRepo.UpdateAsync(account);
+                accountRepo.Update(account);
                 return purchased;
             }
             else return new List<Item>();

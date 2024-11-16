@@ -37,8 +37,8 @@ namespace TheFreckExchange.Specs
             {
                 permissions1,permissions2
             };
-            account1 = new Account(name1, email1, password1, email1, permissions1);
-            account2 = new Account(name2, email2, password2, email2, permissions2);
+            account1 = new Account(name1, email1, email1, permissions1);
+            account2 = new Account(name2, email2, email2, permissions2);
         };
 
         protected static Mock<IAccountRepo> accountRepoMock;
@@ -151,7 +151,7 @@ namespace TheFreckExchange.Specs
         Establish context = static () =>
         {
             service = new AccountService(accountRepoMock.Object, loginServiceMock.Object);
-            accountRepoMock.Setup(a => a.GetAllAccountsAsync()).ReturnsAsync(new List<Account> { account1,account2});
+            accountRepoMock.Setup(a => a.GetAllAccounts()).Returns(new List<Account> { account1,account2});
             inputs = new List<string>
             {
                 account1Id,account2Id
@@ -449,7 +449,7 @@ namespace TheFreckExchange.Specs
         {
             for (var i = 0; i < expectations.Count; i++)
             {
-                accountRepoMock.Verify(a => a.UpdateAsync(Moq.It.IsAny<Account>()), Times.Exactly(expectations.Count));
+                accountRepoMock.Verify(a => a.Update(Moq.It.IsAny<Account>()), Times.Exactly(expectations.Count));
             }
         };
 
@@ -534,7 +534,7 @@ namespace TheFreckExchange.Specs
         {
             for (var i = 0; i < expectations.Count; i++)
             {
-                accountRepoMock.Verify(a => a.UpdateAsync(Moq.It.IsAny<Account>()), Times.Exactly(expectations.Count));
+                accountRepoMock.Verify(a => a.Update(Moq.It.IsAny<Account>()), Times.Exactly(expectations.Count));
             }
         };
 

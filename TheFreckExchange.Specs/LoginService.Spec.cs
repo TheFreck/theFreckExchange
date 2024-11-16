@@ -30,7 +30,7 @@ namespace TheFreckExchange.Specs
                 new AccountPermissions(PermissionType.Admin),
                 new AccountPermissions(PermissionType.User)
             };
-            account = new Account(name, username, password, username, permissions);
+            account = new Account(name, username, username, permissions);
         };
 
         protected static Mock<ILoginService> loginServiceMock;
@@ -40,7 +40,7 @@ namespace TheFreckExchange.Specs
         protected static string name;
         protected static string username;
         protected static string password;
-        private static List<AccountPermissions> permissions;
+        protected static List<AccountPermissions> permissions;
         protected static Account account;
     }
     public class When_Creating_New_Login : With_Login_Setup
@@ -111,7 +111,7 @@ namespace TheFreckExchange.Specs
 
         It Should_Add_A_Token_To_The_Account = () => loggedInAccount.LoginToken.ShouldNotEqual(Guid.Empty.ToString());
 
-        It Should_Persist_The_Account_With_Token = () => accountRepoMock.Verify(a => a.UpdateAsync(Moq.It.IsAny<Account>()), Times.Once());
+        It Should_Persist_The_Account_With_Token = () => accountRepoMock.Verify(a => a.Update(Moq.It.IsAny<Account>()), Times.Once());
 
         private static ILoginService loginService;
         private static Account loggedInAccount;
@@ -151,7 +151,7 @@ namespace TheFreckExchange.Specs
         Establish context = () =>
         {
             accountRepoMock.Setup(a => a.GetByUsernameAsync(username)).ReturnsAsync(account);
-            accountRepoMock.Setup(a => a.UpdateAsync(account));
+            accountRepoMock.Setup(a => a.Update(account));
             loginService = new LoginService(accountRepoMock.Object);
         };
 
@@ -165,7 +165,7 @@ namespace TheFreckExchange.Specs
 
         It Should_Remove_TokenSalt_From_Account = () => account.TokenSalt.ShouldEqual(new byte[64]);
 
-        It Should_Update_AccountRepo_With_LoggedOut_Account = () => accountRepoMock.Verify(a => a.UpdateAsync(Moq.It.IsAny<Account>()), Times.Once());
+        It Should_Update_AccountRepo_With_LoggedOut_Account = () => accountRepoMock.Verify(a => a.Update(Moq.It.IsAny<Account>()), Times.Once());
 
         private static ILoginService loginService;
         private static bool loggedOut;

@@ -50,8 +50,8 @@ namespace TheFreckExchange.Specs
             {
                 permission2a
             };
-            account1 = new Account(name1, email1, password1, email1, permission1);
-            account2 = new Account(name2, email2, password2, email2, permission2);
+            account1 = new Account(name1, email1, email1, permission1);
+            account2 = new Account(name2, email2, email2, permission2);
             account1.LoginToken = "token1";
             account2.LoginToken = "token2";
             product1Id = Guid.NewGuid().ToString();
@@ -308,7 +308,7 @@ namespace TheFreckExchange.Specs
                     ProductId = product2Id,
                 }
             };
-            productRepoMock.Setup(p => p.GetAllProductsAsync()).ReturnsAsync(products);
+            productRepoMock.Setup(p => p.GetAllProducts()).Returns(products);
             productService = new ProductService(productRepoMock.Object, itemRepoMock.Object, accountRepoMock.Object, loginServiceMock.Object, imageRepoMock.Object);
             expectations = products;
             outcomes = new List<Product>();
@@ -331,7 +331,7 @@ namespace TheFreckExchange.Specs
         {
             for (var i = 0; i < expectations.Count; i++)
             {
-                productRepoMock.Verify(p => p.GetAllProductsAsync(), Times.Once);
+                productRepoMock.Verify(p => p.GetAllProducts(), Times.Once);
             }
         };
 
@@ -1392,7 +1392,7 @@ namespace TheFreckExchange.Specs
 
         It Should_Get_The_Account_From_Repo = () => accountRepoMock.Verify(a => a.GetByUsernameAsync(account1.Username), Times.Once);
 
-        It Should_Add_The_Price_To_Account_Balance = () => accountRepoMock.Verify(r => r.UpdateAsync(Moq.It.IsAny<Account>()), Times.Once);
+        It Should_Add_The_Price_To_Account_Balance = () => accountRepoMock.Verify(r => r.Update(Moq.It.IsAny<Account>()), Times.Once);
 
         private static int qty;
         private static List<string> colors;

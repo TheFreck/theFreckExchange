@@ -87,7 +87,7 @@ namespace TheFreckExchange.Server.Repos
                 var val = attributes[i].Value;
                 for(var j=0; j < items.Count; j++)
                 {
-                    if (items[j].Attributes.Where(a => a.Type == att).FirstOrDefault().Value != val)
+                    if (items[j].Attributes?.Where(a => a.Type == att)?.FirstOrDefault()?.Value != val)
                     {
                         items.Remove(items[j--]);
                     }
