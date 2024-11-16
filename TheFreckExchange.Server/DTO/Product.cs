@@ -38,17 +38,17 @@ namespace TheFreckExchange.Server.DTO
     {
         [BsonElement("SKU")]
         public required string SKU { get; set; } = Guid.NewGuid().ToString();
-        public List<ItemAttribute>? Attributes { get; set; }
+        public List<ItemAttribute> Attributes { get; set; } = new List<ItemAttribute>();
         public LoginCredentials? Credentials { get; set; }
-        public string? SellerId { get; set; }
+        public string SellerId { get; set; } = String.Empty;
     }
 
     public class ItemDTO
     {
-        public required string Name { get; set; }
+        public required string Name { get; set; } = String.Empty;
         public LoginCredentials? Credentials { get; set; }
         public List<ItemAttribute> Attributes { get; set; } = new List<ItemAttribute>();
-        public string? SellerId { get; set; }
+        public string SellerId { get; set; } = String.Empty;
     }
 
     public class ItemAttribute

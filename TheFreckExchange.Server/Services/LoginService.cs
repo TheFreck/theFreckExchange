@@ -81,7 +81,7 @@ namespace TheFreckExchange.Server.Services
         public async Task<bool> ValidatePermissionsAsync(Account account, PermissionType permission, string token)
         {
             var gotten = await accountRepo.GetByUsernameAsync(account.Username);
-            if (account.LoginToken == string.Empty) return false;
+            if (token == String.Empty || account.LoginToken == string.Empty) return false;
 
             if (account.Permissions?.Where(p => p.Type == permission)?.FirstOrDefault()?.Token == token) return true;
             return false;
@@ -90,8 +90,8 @@ namespace TheFreckExchange.Server.Services
         public async Task<bool> ValidateTokenAsync(string username, string token)
         {
             var account = await accountRepo.GetByUsernameAsync(username);
-            var isIt = account != null && account.LoginToken == token;
-            return isIt;
+            var isValid = account != null && account.LoginToken == token;
+            return isValid;
         }
 
         public bool VerifyHash(string password, string hashword, byte[] salt)

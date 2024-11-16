@@ -14,7 +14,7 @@ namespace TheFreckExchange.Server.Services
         Task<Item> CreateItemAsync(string productId, Item item);
         Task<IEnumerable<Item>> CreateManyItemsAsync(string productName, int itemQuantity, List<ItemAttribute> attributes, LoginCredentials credentials);
         Task<Product> CreateProductAsync(string name, string description, List<string> attributes, double price, LoginCredentials credentials, List<IFormFile> images);
-        Task<IEnumerable<Product>> GetAllAsync();
+        IEnumerable<Product> GetAll();
         Task<IEnumerable<GroupedAttributes>> GetAttributesAsync(string productName);
         Task<IEnumerable<Item>> GetByAttributeAsync(string productName, string type, string value);
         Task<Product> GetByNameAsync(string name);
@@ -47,6 +47,12 @@ namespace TheFreckExchange.Server.Services
 
         public async Task<Item> CreateItemAsync(string productId, Item item)
         {
+            if (item.Credentials == null)
+            {
+                item.Name = "Must include credentials";
+                item.ProductDescription = "Must include credentials";
+                return item;
+            }
             var account = await accountRepo.GetByUsernameAsync(item.Credentials.Username);
             if (await loginService.ValidatePermissionsAsync(account, PermissionType.Admin, item.Credentials.AdminToken))
             {
@@ -169,13 +175,14 @@ namespace TheFreckExchange.Server.Services
                     }
                 }
             }
-            return;
         }
 
-        public async Task<IEnumerable<Product>> GetAllAsync()
+        public IEnumerable<Product> GetAll()
         {
             var products = productRepo.GetAllProducts();
-            return products;
+            if(products.ToList().Count > 0)
+                return products;
+            else return Enumerable.Empty<Product>();
         }
 
         public async Task<IEnumerable<GroupedAttributes>> GetAttributesAsync(string productName)
@@ -212,7 +219,9 @@ namespace TheFreckExchange.Server.Services
         public async Task<IEnumerable<Item>> GetItemsAsync(string name)
         {
             var items = await itemRepo.GetAllItemsAsync(name);
-            return items;
+            if(items.Any())
+                return items;
+            else return Enumerable.Empty<Item>();
         }
 
         public async Task<Product> ModifyDescriptionAsync(string productName, string newDescription, LoginCredentials credentials)
@@ -274,6 +283,7 @@ namespace TheFreckExchange.Server.Services
 
         public async Task<List<Item>> PurchaseItem(ItemDTO item, int qty)
         {
+            if (item.Credentials == null) return new List<Item>();
             var account = await accountRepo.GetByUsernameAsync(item.Credentials.Username);
             var loggedIn = await loginService.ValidateTokenAsync(item.Credentials.Username, item.Credentials.LoginToken);
             var hasPermission = await loginService.ValidatePermissionsAsync(account, PermissionType.User, item.Credentials.UserToken);

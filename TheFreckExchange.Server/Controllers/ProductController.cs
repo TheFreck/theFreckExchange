@@ -33,7 +33,7 @@ namespace TheFreckExchange.Server.Controllers
         [HttpGet]
         public async Task<IEnumerable<Product>> GetAllAsync()
         {
-            var products = await productService.GetAllAsync();
+            var products = await productService.GetAll();
             return products;
         }
 
@@ -57,6 +57,16 @@ namespace TheFreckExchange.Server.Controllers
         [HttpPost("create")]
         public async Task<Product> CreateProduct(ProductDTO input)
         {
+            if(input.Credentials != null)
+            {
+                return new Product
+                {
+                    Name = "Must include credentials",
+                    ProductDescription = "Must include credentials",
+                    Price = input.Price,
+                    ProductId = String.Empty,
+                };
+            }
             if (await loginService.ValidateTokenAsync(input.Credentials.Username, input.Credentials.LoginToken))
             {
                 var imageFiles = new List<IFormFile>();

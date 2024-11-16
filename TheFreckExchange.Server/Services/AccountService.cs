@@ -89,7 +89,7 @@ namespace TheFreckExchange.Server.Services
             return account;
         }
 
-        public async Task<IEnumerable<Account>> GetAllAccountsAsync()
+        public IEnumerable<Account> GetAllAccountsAsync()
         {
             var accounts = accountRepo.GetAllAccounts().ToList();
             accounts.ForEach(a =>
