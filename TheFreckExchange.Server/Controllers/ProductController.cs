@@ -210,6 +210,19 @@ namespace TheFreckExchange.Server.Controllers
         [HttpDelete("item/buy/{qty}")]
         public async Task<List<Item>> PurchaseItem(ItemDTO item, int qty)
         {
+            if(item.Credentials == null)
+            {
+                return new List<Item>{
+                    new Item
+                    {
+                        Name = "Must include credentials",
+                        ProductDescription = "Must include credentials",
+                        Price = 0,
+                        ProductId = Guid.Empty.ToString(),
+                        SKU = "Must include credentials"
+                    }
+                };
+            }
             var account = await accountService.GetByUsernameAsync(item.Credentials.Username);
 
             if(await loginService.ValidateTokenAsync(item.Credentials.Username, item.Credentials.LoginToken))
