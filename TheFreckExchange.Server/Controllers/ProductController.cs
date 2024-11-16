@@ -57,7 +57,7 @@ namespace TheFreckExchange.Server.Controllers
         [HttpPost("create")]
         public async Task<Product> CreateProduct(ProductDTO input)
         {
-            if(input.Credentials != null)
+            if(input.Credentials == null)
             {
                 return new Product
                 {
@@ -94,7 +94,17 @@ namespace TheFreckExchange.Server.Controllers
         [HttpPut("modify/product")]
         public async Task<Product> ModifyProduct([FromBody] ProductDTO input)
         {
-            if (await loginService.ValidateTokenAsync(input.Credentials.Username, input.Credentials.LoginToken))
+            if(input.Credentials == null)
+            {
+                return new Product
+                {
+                    Name = "Must include credentials",
+                    Price = 0,
+                    ProductDescription = "Must include credentials",
+                    ProductId = Guid.Empty.ToString(),
+                };
+            }
+            else if (await loginService.ValidateTokenAsync(input.Credentials.Username, input.Credentials.LoginToken))
             {
 
                 var product = await productService.GetByNameAsync(input.Name);
@@ -177,6 +187,15 @@ namespace TheFreckExchange.Server.Controllers
         [HttpPost("items/create/{qty}")]
         public async Task<IEnumerable<Item>> CreateItems(int qty, Item item)
         {
+            if(item.Credentials == null)
+            {
+                item.Name = "Must include credentials";
+                item.ProductDescription = "Must include credentials";
+                return new List<Item>
+                {
+                    item
+                };
+            }
             var items = await productService.CreateManyItemsAsync(item.Name,qty, item.Attributes, item.Credentials);
             return items; ;
         }

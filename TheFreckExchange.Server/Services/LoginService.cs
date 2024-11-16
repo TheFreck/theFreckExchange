@@ -37,12 +37,16 @@ namespace TheFreckExchange.Server.Services
         public async Task<Account> LoginAsync(string username, string password)
         {
             var account = await accountRepo.GetByUsernameAsync(username);
-            if(account != null && VerifyHash(password, account.Password, account.PasswordSalt))
+            if(account.PasswordSalt != null)
             {
-                account.LoginToken = MakeHash(Guid.NewGuid().ToString(),out var tokenSalt);
-                account.TokenSalt = tokenSalt;
-                accountRepo.Update(account);
-                return account;
+                if(account != null && VerifyHash(password, account.Password, account.PasswordSalt))
+                {
+                    account.LoginToken = MakeHash(Guid.NewGuid().ToString(),out var tokenSalt);
+                    account.TokenSalt = tokenSalt;
+                    accountRepo.Update(account);
+                    return account;
+                }
+                return new Account();
             }
             return new Account();
         }
