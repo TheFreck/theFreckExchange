@@ -14,7 +14,7 @@ namespace TheFreckExchange.Server.Services
         Task<Account> GetByUsernameAsync(string username);
         Task<Account> AddToBalanceAsync(string acctId, string token, double balanceIncrease);
         Task<Account> MakePaymentAsync(string accountId, double payment);
-        Task<IEnumerable<Account>> GetAllAccountsAsync();
+        IEnumerable<Account> GetAllAccounts();
     }
 
     public class AccountService : IAccountService
@@ -89,7 +89,7 @@ namespace TheFreckExchange.Server.Services
             return account;
         }
 
-        public IEnumerable<Account> GetAllAccountsAsync()
+        public IEnumerable<Account> GetAllAccounts()
         {
             var accounts = accountRepo.GetAllAccounts().ToList();
             accounts.ForEach(a =>
