@@ -31,9 +31,9 @@ namespace TheFreckExchange.Server.Controllers
         /// </summary>
         /// <returns></returns>
         [HttpGet]
-        public async Task<IEnumerable<Product>> GetAllAsync()
+        public IEnumerable<Product> GetAll()
         {
-            var products = await productService.GetAll();
+            var products = productService.GetAll();
             return products;
         }
 
@@ -67,7 +67,7 @@ namespace TheFreckExchange.Server.Controllers
                     ProductId = String.Empty,
                 };
             }
-            if (await loginService.ValidateTokenAsync(input.Credentials.Username, input.Credentials.LoginToken))
+            else if (await loginService.ValidateTokenAsync(input.Credentials.Username, input.Credentials.LoginToken))
             {
                 var imageFiles = new List<IFormFile>();
                 for (var i = 0; i < input.ImageBytes.Count; i++)

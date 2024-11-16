@@ -163,7 +163,7 @@ namespace TheFreckExchange.Specs
             outcomes = new List<Account>();
         };
 
-        Because of = () => outcomes = service.GetAllAccountsAsync().GetAwaiter().GetResult().ToList();
+        Because of = () => outcomes = service.GetAllAccounts().ToList();
 
         It Should_Return_All_Accounts = () => outcomes.Count.ShouldEqual(expectations.Count);
 

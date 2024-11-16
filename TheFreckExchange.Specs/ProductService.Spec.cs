@@ -314,7 +314,7 @@ namespace TheFreckExchange.Specs
             outcomes = new List<Product>();
         };
 
-        Because of = () => outcomes = productService.GetAllAsync().GetAwaiter().GetResult().ToList();
+        Because of = () => outcomes = productService.GetAll().ToList();
 
         It Should_Return_All_Products_From_Repo = () =>
         {

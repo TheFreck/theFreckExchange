@@ -21,9 +21,9 @@ namespace TheFreckExchange.Server.Controllers
         }
 
         [HttpGet]
-        public async Task<IEnumerable<Account>> GetAllAsync()
+        public IEnumerable<Account> GetAllAsync()
         {
-            var accounts = (await accountService.GetAllAccountsAsync()).ToList();
+            var accounts = accountService.GetAllAccounts().ToList();
             return accounts;
         }
 
