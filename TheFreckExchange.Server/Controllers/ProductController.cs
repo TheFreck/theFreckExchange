@@ -116,7 +116,7 @@ namespace TheFreckExchange.Server.Controllers
             }
             return new Product
             { 
-                Name = "Couldn't Create the product",
+                Name = "Couldn't modify the product",
                 Price = input.Price,
                 ProductDescription = input.Description,
                 ProductId = Guid.Empty.ToString(),

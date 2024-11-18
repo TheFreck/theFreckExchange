@@ -140,7 +140,7 @@ namespace TheFreckExchange.Server.Services
                 await productRepo.CreateAsync(product);
                 return product;
             }
-            return new Product 
+            return new Product
             {
                 Name = "Unable to create Product",
                 Price = price,
@@ -180,7 +180,7 @@ namespace TheFreckExchange.Server.Services
         public IEnumerable<Product> GetAll()
         {
             var products = productRepo.GetAllProducts();
-            if(products.ToList().Count > 0)
+            if (products.ToList().Count > 0)
                 return products;
             else return Enumerable.Empty<Product>();
         }
@@ -219,7 +219,7 @@ namespace TheFreckExchange.Server.Services
         public async Task<IEnumerable<Item>> GetItemsAsync(string name)
         {
             var items = await itemRepo.GetAllItemsAsync(name);
-            if(items.Any())
+            if (items.Any())
                 return items;
             else return Enumerable.Empty<Item>();
         }
@@ -290,21 +290,21 @@ namespace TheFreckExchange.Server.Services
             if (loggedIn && hasPermission)
             {
                 var product = await productRepo.GetByNameAsync(item.Name);
-                var productItems = await itemRepo.GetByNameAsync(item.Name);
-
-                var selectedItems = productItems.Where(p => p.Attributes.Select(a => a.Value).ToList().ContainsAll(item.Attributes.Select(b => b.Value).ToList()));
-
                 var itemsReturned = (await itemRepo.GetByAttributesAsync(item.Name, item.Attributes)).ToList();
 
-                var purchased = new List<Item>();
-                for(var i=0; i<qty; i++)
+                if (itemsReturned.Count > qty)
                 {
-                    await itemRepo.DeleteItemAsync(itemsReturned[i]);
-                    purchased.Add(itemsReturned[i]);
+                    var purchased = new List<Item>();
+                    for (var i = 0; i < qty; i++)
+                    {
+                        await itemRepo.DeleteItemAsync(itemsReturned[i]);
+                        purchased.Add(itemsReturned[i]);
+                    }
+                    account.Balance += product.Price * qty;
+                    accountRepo.Update(account);
+                    return purchased;
                 }
-                account.Balance += product.Price * qty;
-                accountRepo.Update(account);
-                return purchased;
+                else return new List<Item>();
             }
             else return new List<Item>();
         }
