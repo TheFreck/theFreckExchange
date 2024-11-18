@@ -1,5 +1,4 @@
-﻿using HtmlAgilityPack;
-using Microsoft.AspNetCore.Mvc;
+﻿using Microsoft.AspNetCore.Mvc;
 using TheFreckExchange.Server.Services;
 
 namespace TheFreckExchange.Server.Controllers
