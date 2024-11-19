@@ -18,9 +18,6 @@ fs.mkdirSync(baseFolder, {recursive: true});
 const certificateName = "theFreckExchange.client";
 const certFilePath = path.join(baseFolder, `${certificateName}.pem`);
 const keyFilePath = path.join(baseFolder, `${certificateName}.key`);
-console.log("certificateName: ", certificateName);
-console.log("certFilePath: ", certFilePath);
-console.log("keyFilePath: ", keyFilePath);
 
 if (!fs.existsSync(certFilePath) || !fs.existsSync(keyFilePath)) {
     if (0 !== child_process.spawnSync('dotnet', [
@@ -39,7 +36,6 @@ if (!fs.existsSync(certFilePath) || !fs.existsSync(keyFilePath)) {
 const target = env.ASPNETCORE_HTTPS_PORT ? `https://localhost:${env.ASPNETCORE_HTTPS_PORT}` :
     env.ASPNETCORE_URLS ? env.ASPNETCORE_URLS.split(';')[0] : 'https://localhost:7299';
 
-console.log("target: ", target);
 // https://vitejs.dev/config/
 export default defineConfig({
     plugins: [plugin()],
