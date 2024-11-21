@@ -1,11 +1,11 @@
 import axios from "axios";
 
 const productApi = axios.create({
-    baseURL: `https://localhost:7299/Product`
+    baseURL: `*/Product`
 });
 
 const accountApi = axios.create({
-    baseURL: `https://localhost:7299/Account`
+    baseURL: `/Account`
 });
 
 export const Helpers = {

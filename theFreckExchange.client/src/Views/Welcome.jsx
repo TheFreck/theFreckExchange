@@ -152,7 +152,7 @@ export const Welcome = () => {
     }
 
     const productApi = axios.create({
-        baseURL: `https://localhost:7299/Product`
+        baseURL: `/Product`
     });
 
     const created = () => {

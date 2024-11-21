@@ -4,7 +4,7 @@ import axios from "axios";
 
 export const ImageUpload = () => {
     const imageApi = axios.create({
-        baseURL: `https://localhost:7299/Product`
+        baseURL: `/Product`
     })
     const [images, setImages] = useState([]);
     const [imageBytes,setImageBytes] = useState([]);

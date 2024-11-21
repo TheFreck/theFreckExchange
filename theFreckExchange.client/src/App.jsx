@@ -30,7 +30,7 @@ function App() {
     const [userAcct, setUserAcct] = useState({});
     
     const accountApi = axios.create({
-        baseURL: `https://localhost:7299/Account`
+        baseURL: `/Account`
     });
 
     const login = (userName,password) => {

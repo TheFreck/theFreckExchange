@@ -6,10 +6,10 @@ import ProductDescription from "./productDescription";
 
 export const StoreFront = () => {
     const productApi = axios.create({
-        baseURL: `https://localhost:7299/Product`
+        baseURL: `/Product`
     });
     const descriptionApi = axios.create({
-        baseURL: `https://localhost:7299/Site`
+        baseURL: `/Site`
     });
     const [images, setImages] = useState([]);
     const [open,setOpen] = useState(false);

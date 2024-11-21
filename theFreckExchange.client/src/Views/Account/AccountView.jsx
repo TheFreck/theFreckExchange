@@ -10,7 +10,7 @@ export const AccountView = ({userAcct, setUserAcct}) => {
     const [isNewAccount, setIsNewAccount] = useState(false);
 
     const api = axios.create({
-        baseURL: `https://localhost:7299/Account`
+        baseURL: `/Account`
     });
 
     useEffect(() => {
