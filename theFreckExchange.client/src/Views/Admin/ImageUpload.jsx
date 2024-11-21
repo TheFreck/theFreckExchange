@@ -7,18 +7,23 @@ export const ImageUpload = () => {
         baseURL: `https://localhost:7299/Product`
     })
     const [images, setImages] = useState([]);
+    const [imageBytes,setImageBytes] = useState([]);
 
     const getImages = async (e) => {
         let targetImages = [];
+        let targetBytes = [];
         for (var i = 0; i < e.target.files.length; i++) {
             targetImages.push(URL.createObjectURL(e.target.files[i]));
+            targetBytes.push(e.target.files[i]);
         }
         setImages(targetImages);
+        setImageBytes(targetBytes);
     }
     
-    const readImagesAsync = async (images, cb) => {
+    const readImagesAsync = async (imagesInput, cb) => {
         let base64Images = [];
-        for (var image of images) {
+        for (var image of imagesInput) {
+            console.log("image to read: ", image);
             base64Images.push(await fetch(image)
                 .then(res => res.blob())
                 .then(blob => {
@@ -30,7 +35,8 @@ export const ImageUpload = () => {
                         };
                     })
                 }));
-            if (base64Images.length === images.length) {
+            if (base64Images.length === imagesInput.length) {
+                console.log("base64Images: ", base64Images);
                 cb(base64Images);
             }
         }
@@ -38,11 +44,12 @@ export const ImageUpload = () => {
 
     const uploadImages = () => {
         readImagesAsync(images, ready => {
-            let data = [];
+            let formData = new FormData();
             for (var i = 0; i < ready.length; i++) {
-                data.push(window.btoa([ready[i]]));
+                formData.append("images",new Blob([ready[i]]));
             }
-            imageApi.post("images/upload",{imageBytes: data})
+
+            imageApi.post("images/upload",formData)
             .then(yup => {
                 console.log("uploaded: ", yup.data);
             })

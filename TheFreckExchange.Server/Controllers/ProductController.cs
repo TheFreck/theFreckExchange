@@ -266,5 +266,12 @@ namespace TheFreckExchange.Server.Controllers
             await productService.UploadImagesAsync(images);
             return Ok();
         }
+
+        [HttpPost("justWorkPlease")]
+        public IActionResult UploadAnything([FromForm] List<FormFile> images)
+        {
+            Console.WriteLine("files");
+            return Ok();
+        }
     }
 }
