@@ -36,9 +36,7 @@ if (!fs.existsSync(certFilePath) || !fs.existsSync(keyFilePath)) {
 const target = env.ASPNETCORE_HTTPS_PORT ? `https://localhost:${env.ASPNETCORE_HTTPS_PORT}` :
     env.ASPNETCORE_URLS ? env.ASPNETCORE_URLS.split(';')[0] : 'thefreckexchange-cvgkagadbkcedyfm.westus2-01.azurewebsites.net';
 
-console.log("target: ", target);
 
-// https://vitejs.dev/config/
 export default defineConfig({
     plugins: [plugin()],
     resolve: {
@@ -48,7 +46,7 @@ export default defineConfig({
     },
     server: {
         proxy: {
-            '/api': {
+            '/': {
                 target,
                 secure: false
             }
