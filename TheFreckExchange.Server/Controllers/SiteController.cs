@@ -8,9 +8,11 @@ namespace TheFreckExchange.Server.Controllers
     public class SiteController : ControllerBase
     {
         private readonly IDataGatheringService data;
-        public SiteController(IDataGatheringService data)
+        private readonly ILogger<SiteController> logger;
+        public SiteController(IDataGatheringService data, ILogger<SiteController> logger)
         {
             this.data = data;
+            this.logger = logger;
         }
 
         [HttpGet("{resource}")]

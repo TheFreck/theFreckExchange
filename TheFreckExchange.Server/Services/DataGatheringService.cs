@@ -12,13 +12,11 @@ namespace TheFreckExchange.Server.Services
 
     public class DataGatheringService : IDataGatheringService
     {
-        //private readonly HtmlWeb web;
         private readonly AngleSharp.IConfiguration config;
 
         public DataGatheringService()
         {
             config = Configuration.Default;
-            //web = new HtmlWeb();
         }
 
         public async Task<string> GetDataAsync(string hatname)

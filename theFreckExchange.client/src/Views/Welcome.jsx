@@ -164,13 +164,8 @@ export const Welcome = () => {
     const WelcomeCallback = useCallback(() => {
         if (ready) return (
             <>
-                {/* <Typography variant="h1" onClick={() => setView(viewEnum.none)}>Welcome</Typography> */}
                 {userView !== userEnum.uploadImages && <StoreFront />}
                 {/* {check local storage against server} */}
-                {/* {view === viewEnum.none && localStorage.getItem("permissions.admin") !== null && <Button variant="outlined" onClick={() => setView(viewEnum.admin)}>Admin View</Button>}
-                {view === viewEnum.none && localStorage.getItem("permissions.user") !== null && <Button variant="outlined" onClick={() => setView(viewEnum.user)}>User View</Button>} */}
-                {/* {adminView !== adminEnum.home && <AdminView />}
-                {userView !== userEnum.home && <UserView />} */}
 
                 {userView === userEnum.createProduct && localStorage.getItem("permissions.admin") !== null && <CreateProduct created={created} />}
                 {userView === userEnum.createItems && localStorage.getItem("permissions.admin") !== null && <CreateItemsCallback />}
