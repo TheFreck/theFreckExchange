@@ -19,7 +19,7 @@ const userEnum = {
     createProduct: 1,
     createItems: 2,
     updateProduct: 3,
-    uploadImages: 4,
+    siteConfig: 4,
     shop: 5,
     viewAccount: 6
 };
@@ -30,7 +30,7 @@ function App() {
     const [userAcct, setUserAcct] = useState({});
     
     const accountApi = axios.create({
-        baseURL: `/Account`
+        baseURL: `https://localhost:7299/Account`
     });
 
     const login = (userName,password) => {

@@ -3,7 +3,7 @@ import react, { useEffect, useState } from "react";
 
 export const ProductDescription = async ({product}) => {
     const descriptinoApi = axios.create({
-        baseURL: `/Site`
+        baseURL: `https://localhost:7299/Site`
     });
     const [description,setDescription] = useState("");
 

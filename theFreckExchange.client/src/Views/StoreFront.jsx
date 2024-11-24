@@ -6,16 +6,23 @@ import ProductDescription from "./productDescription";
 
 export const StoreFront = () => {
     const productApi = axios.create({
-        baseURL: `/Product`
+        baseURL: `https://localhost:7299/Product`
     });
     const descriptionApi = axios.create({
-        baseURL: `/Site`
+        baseURL: `https://localhost:7299/Site`
     });
     const [images, setImages] = useState([]);
     const [open,setOpen] = useState(false);
     const [productName,setProductname] = useState("");
     const [description,setDescription] = useState("");
     const [background,setBackground] = useState("");
+    const [title,setTitle] = useState("");
+    const [leftTop,setLeftTop] = useState("");
+    const [leftMiddle,setLeftMiddle] = useState("");
+    const [leftBottom,setLeftBottom] = useState("");
+    const [rightTop,setRightTop] = useState("");
+    const [rightMiddle,setRightMiddle] = useState("");
+    const [rightBottom,setRightBottom] = useState("");
 
     useEffect(() => {
         productApi.get("images")
@@ -55,9 +62,9 @@ export const StoreFront = () => {
 
     const ImageGroups = () => {
         return <>
-            <img src={images[Math.floor(Math.random() * images.length)].img} style={{ height: "60vh" }} />
-            <img src={images[Math.floor(Math.random() * images.length)].img} style={{ height: "60vh" }} />
-            <img src={images[Math.floor(Math.random() * images.length)].img} style={{ height: "60vh" }} />
+            <img src={images[Math.floor(Math.random() * images.length)].img} style={{ height: "33vw" }} />
+            <img src={images[Math.floor(Math.random() * images.length)].img} style={{ height: "34vw" }} />
+            <img src={images[Math.floor(Math.random() * images.length)].img} style={{ height: "33vw" }} />
         </>
     }
 
@@ -140,7 +147,7 @@ export const StoreFront = () => {
         <Typography
             variant="h3"
         >
-            Hat Types
+            {title !== "" ? title : "Hat Types"}
         </Typography>
         <Grid2 container size={12}
             sx={{ display: "flex", margin: "2em" }}
@@ -159,7 +166,7 @@ export const StoreFront = () => {
                             getDescription("Bowler");
                         }}
                     >
-                        Bowler
+                        {leftTop !== "" ? leftTop : "Bowler"}
                     </Typography>
                 </Grid2>
                 <Grid2 size={3}>
@@ -171,7 +178,7 @@ export const StoreFront = () => {
                             getDescription("Trilby");
                         }}
                     >
-                        Trilby
+                        {leftMiddle !== "" ? leftMiddle : "Trilby"}
                     </Typography>
                 </Grid2>
                 <Grid2 size={3}>
@@ -183,7 +190,7 @@ export const StoreFront = () => {
                             getDescription("Porkpie");
                         }}
                     >
-                        Porkpie
+                        {leftBottom !== "" ? leftBottom : "Porkpie"}
                     </Typography>
                 </Grid2>
             </Grid2>
@@ -202,7 +209,7 @@ export const StoreFront = () => {
                             getDescription("Ballcap");
                         }}
                     >
-                        Ballcap
+                        {rightTop !== "" ? rightTop : "Ballcap"}
                     </Typography>
                 </Grid2>
                 <Grid2 size={3}>
@@ -214,7 +221,7 @@ export const StoreFront = () => {
                             getDescription("Fedora");
                         }}
                     >
-                        Fedora
+                        {rightMiddle !== "" ? rightMiddle : "Fedora"}
                     </Typography>
                 </Grid2>
                 <Grid2 size={3}
@@ -227,7 +234,7 @@ export const StoreFront = () => {
                             getDescription("Writing Cap");
                         }}
                     >
-                        Writing Cap
+                        {rightBottom !== "" ? rightBottom : "Writing Cap"}
                     </Typography>
                 </Grid2>
             </Grid2>

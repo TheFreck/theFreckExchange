@@ -5,7 +5,7 @@ import SearchIcon from '@mui/icons-material/Search';
 import ProductView from "../Product/ProductView";
 
 export const Store = ({ }) => {
-    const productApi = axios.create({ baseURL: `/Product` });
+    const productApi = axios.create({ baseURL: `https://localhost:7299/Product` });
     const [products, setProducts] = useState([]);
     const [productNames, setProductNames] = useState([""]);
     const [items,setItems] = useState([]);

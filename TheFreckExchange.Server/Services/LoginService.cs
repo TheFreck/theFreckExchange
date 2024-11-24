@@ -37,7 +37,7 @@ namespace TheFreckExchange.Server.Services
         public async Task<Account> LoginAsync(string username, string password)
         {
             var account = await accountRepo.GetByUsernameAsync(username);
-            if(account.PasswordSalt != null)
+            if(account != null && account.PasswordSalt != null)
             {
                 if(account != null && VerifyHash(password, account.Password, account.PasswordSalt))
                 {

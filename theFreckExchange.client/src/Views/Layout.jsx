@@ -61,9 +61,9 @@ export const Layout = (props) => {
                             setUserView(userEnum.updateProduct);
                         }}>Update Product</MenuItem>
                         <MenuItem onClick={() => {
-                            setUserView(userEnum.uploadImages)
+                            setUserView(userEnum.siteConfig)
                         }}>
-                            Upload Images
+                            Configure Site
                         </MenuItem>
                     </MenuList>}
                     <Divider />

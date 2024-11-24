@@ -1,0 +1,8 @@
+{
+  "dependencies": {
+    "apis2": {
+      "ignored": "True",
+      "type": "apis"
+    }
+  }
+}

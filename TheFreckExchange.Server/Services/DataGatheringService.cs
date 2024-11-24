@@ -1,5 +1,4 @@
-﻿//using HtmlAgilityPack;
-using TheFreckExchange.Server.DTO;
+﻿using TheFreckExchange.Server.DTO;
 using System.Text;
 using AngleSharp;
 
@@ -42,10 +41,6 @@ namespace TheFreckExchange.Server.Services
                 var text = stringified.ToString();
                 return text;
             }
-
-            //var site = await web.LoadFromWebAsync(url);
-            //var ps = site.DocumentNode.QuerySelectorAll("p");
-
         }
     }
 }

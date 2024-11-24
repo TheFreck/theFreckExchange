@@ -61,8 +61,8 @@ namespace TheFreckExchange.Server.Controllers
             {
                 return new Product
                 {
-                    Name = "Must include credentials",
-                    ProductDescription = "Must include credentials",
+                    Name = "Missing or incorrect credentials",
+                    ProductDescription = "Missing or incorrect credentials",
                     Price = input.Price,
                     ProductId = String.Empty,
                 };
@@ -79,7 +79,7 @@ namespace TheFreckExchange.Server.Controllers
             }
             else return new Product
             {
-                Name = "Couldn't Create the product",
+                Name = "Missing or incorrect credentials",
                 Price = input.Price,
                 ProductDescription = input.Description,
                 ProductId = Guid.Empty.ToString(),
@@ -98,9 +98,9 @@ namespace TheFreckExchange.Server.Controllers
             {
                 return new Product
                 {
-                    Name = "Must include credentials",
+                    Name = "Missing or incorrect credentials",
                     Price = 0,
-                    ProductDescription = "Must include credentials",
+                    ProductDescription = "Missing or incorrect credentials",
                     ProductId = Guid.Empty.ToString(),
                 };
             }
@@ -132,7 +132,6 @@ namespace TheFreckExchange.Server.Controllers
         [HttpGet("items/{name}")]
         public async Task<IEnumerable<Item>> GetItemsForProduct(string name)
         {
-            var product = await productService.GetByNameAsync(name);
             var items = await productService.GetItemsAsync(name);
             return items;
         }
@@ -147,7 +146,6 @@ namespace TheFreckExchange.Server.Controllers
         [HttpGet("items/product/{productName}/attribute/{attribute}/{value}")]
         public async Task<IEnumerable<Item>> GetItemsByAttribute(string productName, string attribute, string value)
         {
-            var product = await productService.GetByNameAsync(productName);
             var items = await productService.GetByAttributeAsync(productName, attribute, value);
             return items;
         }
@@ -189,8 +187,8 @@ namespace TheFreckExchange.Server.Controllers
         {
             if(item.Credentials == null)
             {
-                item.Name = "Must include credentials";
-                item.ProductDescription = "Must include credentials";
+                item.Name = "Missing or incorrect credentials";
+                item.ProductDescription = "Missing or incorrect credentials";
                 return new List<Item>
                 {
                     item
@@ -215,11 +213,11 @@ namespace TheFreckExchange.Server.Controllers
                 return new List<Item>{
                     new Item
                     {
-                        Name = "Must include credentials",
-                        ProductDescription = "Must include credentials",
+                        Name = "Missing or incorrect credentials",
+                        ProductDescription = "Missing or incorrect credentials",
                         Price = 0,
                         ProductId = Guid.Empty.ToString(),
-                        SKU = "Must include credentials"
+                        SKU = "Missing or incorrect credentials"
                     }
                 };
             }

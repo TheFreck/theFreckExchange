@@ -1,35 +1,20 @@
 import { Box, Button, Chip, Stack, TextField } from "@mui/material";
 import react, { useContext, useEffect, useState } from "react";
 import { ProductContext } from "../../Context";
+import ImageUpload from "../Admin/ImageUpload";
 import BathtubIcon from '@mui/icons-material/Bathtub';
 
 export const CreateProduct = ({created}) => {
-    const { createProductAsync } = useContext(ProductContext);
+    const { createProductAsync, getImages } = useContext(ProductContext);
     const [name, setName] = useState("");
     const [price, setPrice] = useState(0.0);
     const [description, setDescription] = useState("");
     const [attributeInput, setAttributeInput] = useState("");
     const [attributes, setAttributes] = useState([]);
     const [images, setImages] = useState({});
-    const [hasImages, setHasImages] = useState(false);
 
-    
-
-    const uploadImage = async (e) => {
-        let targetImages = [];
-        for(var i = 0; i<e.target.files.length; i++){
-            targetImages.push(URL.createObjectURL(e.target.files[i]));
-            // let url = URL.createObjectURL(e.target.files[i]);
-            // await fetch(url)
-            // .then(yup => yup.blob())
-            // .then(blob => {
-            //     console.log("blob: ", blob);
-            // })
-            // .catch(nope => console.error(nope));
-        }
-        console.log("targetImages: ", targetImages);
-        setImages(targetImages);
-        setHasImages(true);
+    const uploadImages = (im) => {
+        setImages(im);
     }
 
     return <div>
@@ -83,25 +68,12 @@ export const CreateProduct = ({created}) => {
                     setAttributeInput("");
                 }}
             />
-            <>
-                <input type="file" multiple onChange={uploadImage} />
-                {hasImages && images.length > 0 &&
-                <>
-                    {images.map((i,j) => (
-                        <img src={i} key={j} style={{minWidth: "5vw", maxWidth: "20vw", borderRadius: "5px"}}/>
-                    ))}
-                </>
-                }
-                {!hasImages &&
-                    <BathtubIcon sx={{ width: "100%", height: "auto" }} />
-                }
-            </>
+            <ImageUpload getImages={getImages} uploadImages={uploadImages} />
             <br/>
             <Button
                 id="createProductButton"
                 variant="contained"
                 onClick={() => {
-                    console.log("images: ", images);
                     createProductAsync({ name, description, attributes, price, images },() => {
                         created();
                     });

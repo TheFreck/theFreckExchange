@@ -49,8 +49,8 @@ namespace TheFreckExchange.Server.Services
         {
             if (item.Credentials == null)
             {
-                item.Name = "Must include credentials";
-                item.ProductDescription = "Must include credentials";
+                item.Name = "Missing or incorrect credentials";
+                item.ProductDescription = "Missing or incorrect credentials";
                 return item;
             }
             var account = await accountRepo.GetByUsernameAsync(item.Credentials.Username);
@@ -69,7 +69,7 @@ namespace TheFreckExchange.Server.Services
                 var outcome = await itemRepo.CreateAsync(newItem);
                 return outcome;
             }
-            item.Name = "Unable to create Item";
+            item.Name = "Missing or incorrect credentials";
             return item;
         }
 
@@ -125,14 +125,14 @@ namespace TheFreckExchange.Server.Services
                             var fileBytes = stream.ToArray();
 
                             product.ImageBytes.Add(fileBytes);
-                            await productRepo.UpdateAsync(product);
+                            //await productRepo.UpdateAsync(product);
 
-                            await imageRepo.UploadImageAsync(new ImageFile
-                            {
-                                Image = fileBytes,
-                                ImageId = Guid.NewGuid().ToString(),
-                                Name = product.Name + count++
-                            });
+                            //await imageRepo.UploadImageAsync(new ImageFile
+                            //{
+                            //    Image = fileBytes,
+                            //    ImageId = Guid.NewGuid().ToString(),
+                            //    Name = product.Name + count++
+                            //});
                         }
                     }
                 }
@@ -142,9 +142,9 @@ namespace TheFreckExchange.Server.Services
             }
             return new Product
             {
-                Name = "Unable to create Product",
+                Name = "Missing or incorrect credentials",
                 Price = price,
-                ProductDescription = "Unable to create Product",
+                ProductDescription = "Missing or incorrect credentials",
                 ProductId = Guid.Empty.ToString()
             };
         }
@@ -236,9 +236,9 @@ namespace TheFreckExchange.Server.Services
             }
             return new Product
             {
-                Name = "Unable to modify Product",
+                Name = "Missing or incorrect credentials",
                 Price = 0,
-                ProductDescription = "Unable to modify Product",
+                ProductDescription = "Missing or incorrect credentials",
                 ProductId = Guid.Empty.ToString()
             };
         }
@@ -255,9 +255,9 @@ namespace TheFreckExchange.Server.Services
             }
             return new Product
             {
-                Name = "Unable to modify Product",
+                Name = "Missing or incorrect credentials",
                 Price = 0,
-                ProductDescription = "Unable to modify Product",
+                ProductDescription = "Missing or incorrect credentials",
                 ProductId = Guid.Empty.ToString()
             };
         }
@@ -274,9 +274,9 @@ namespace TheFreckExchange.Server.Services
             }
             return new Product
             {
-                Name = "Unable to modify Product",
+                Name = "Missing or incorrect credentials",
                 Price = price,
-                ProductDescription = "Unable to modify Product",
+                ProductDescription = "Missing or incorrect credentials",
                 ProductId = Guid.Empty.ToString()
             };
         }

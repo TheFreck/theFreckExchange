@@ -10,7 +10,7 @@ export const AccountView = ({userAcct, setUserAcct}) => {
     const [isNewAccount, setIsNewAccount] = useState(false);
 
     const api = axios.create({
-        baseURL: `/Account`
+        baseURL: `https://localhost:7299/Account`
     });
 
     useEffect(() => {
@@ -50,7 +50,13 @@ export const AccountView = ({userAcct, setUserAcct}) => {
     }
 
     return <div>
-        {isNewAccount ? <NewAccount setIsNewAccount={setIsNewAccount} setAccount={setAccount} createAccount={createAccount} /> : account.name === undefined ? <Login login={login} email={email} setEmail={setEmail} setNewAccount={setIsNewAccount} /> : <AccountView account={account} payment={payment} setPayment={setPayment} submit={submitPayment} />}
+        {
+        isNewAccount ? 
+            <NewAccount setIsNewAccount={setIsNewAccount} setAccount={setAccount} createAccount={createAccount} /> : 
+            account.name === undefined ? 
+                <Login login={login} email={email} setEmail={setEmail} setNewAccount={setIsNewAccount} /> : 
+                <AccountView account={account} payment={payment} setPayment={setPayment} submit={submitPayment} />
+        }
     </div>
 }
 

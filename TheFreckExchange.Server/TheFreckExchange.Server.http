@@ -1,4 +1,4 @@
-@Payment_Processing.Server_HostAddress = http://localhost:5126
+@Payment_Processing.Server_HostAddress = http://localhost:7299
 
 GET {{Payment_Processing.Server_HostAddress}}/account/
 Accept: application/json

@@ -50,8 +50,7 @@ namespace TheFreckExchange.Server.Controllers
             }
             catch (Exception)
             {
-
-                throw;
+                return BadRequest();
             }
         }
 
@@ -79,16 +78,23 @@ namespace TheFreckExchange.Server.Controllers
         [HttpPost("login")]
         public async Task<IActionResult> Login([FromBody] LoginRequest loginRequest)
         {
-            var account = await loginService.LoginAsync(loginRequest.Email, loginRequest.Password);
-            if(account.Name != "NullName" 
-                && account.Username != "NullAccount" 
-                && account.Email != "null@null.null" 
-                && account.AccountId != Guid.Empty.ToString()
-                && account.LoginToken != Guid.Empty.ToString())
+            try
             {
-                return Ok(account);
+                var account = await loginService.LoginAsync(loginRequest.Email, loginRequest.Password);
+                if(account.Name != "NullName" 
+                    && account.Username != "NullAccount" 
+                    && account.Email != "null@null.null" 
+                    && account.AccountId != Guid.Empty.ToString()
+                    && account.LoginToken != Guid.Empty.ToString())
+                {
+                    return Ok(account);
+                }
+                else return BadRequest(account);
             }
-            else return BadRequest(account);
+            catch (Exception)
+            {
+                return BadRequest();
+            }
         }
 
         [HttpPost("logout/{username}")]
