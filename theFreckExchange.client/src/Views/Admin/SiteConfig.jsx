@@ -3,9 +3,10 @@ import react, { useContext } from "react";
 import ImageUpload from "./ImageUpload";
 import axios from "axios";
 import { ProductContext } from "../../Context";
+import Descriptions from "../../components/Descriptions";
 
 export const SiteConfiguration = () => {
-    const { uploadImages, getImages } = useContext(ProductContext);
+    const { uploadImages, getImages, config, createConfigurationAsync, updateConfigurationAsync } = useContext(ProductContext);
     const productApi = axios.create({
         baseURL: `https://localhost:7299/Product`
     });
@@ -32,6 +33,16 @@ export const SiteConfiguration = () => {
                     Site Configurations
                 </Typography>
             </Grid2>
+            <Grid2>
+                <Typography>
+                    Upload Background Images
+                </Typography>
+                <ImageUpload
+                    getImages={getImages}
+                    uploadImages={uploadImages}
+                    type="background"
+                />
+            </Grid2>
             <Grid2
                 sx={{border: "solid"}}
             >
@@ -40,7 +51,8 @@ export const SiteConfiguration = () => {
                 </Typography>
                     <ImageUpload 
                         getImages={getImages} 
-                        uploadImages={uploadImages} 
+                        uploadImages={uploadImages}
+                        type="site"
                     />
             </Grid2>
             <Grid2
@@ -52,6 +64,7 @@ export const SiteConfiguration = () => {
                 <Typography>
                     Add descriptions for categories
                 </Typography>
+                <Descriptions isConfig={true} config={config} />
             </Grid2>
         </Grid2>
     </Box>

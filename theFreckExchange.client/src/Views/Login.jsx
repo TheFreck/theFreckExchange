@@ -12,12 +12,11 @@ export const Login = () => {
     const modalRef = useRef();
 
     return <div>
-        <h1>Welcome To theFreck Store</h1>
         <Box
             component="form"
             noValidate
             autoComplete="off"
-            sx={{ border: "solid", paddingTop: "5vh", paddingBottom: "5vh" }}
+            sx={{ border: "solid", paddingTop: "10vh", paddingBottom: "5vh" }}
         >
             <TextField
                 label="User Name"

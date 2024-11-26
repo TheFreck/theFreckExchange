@@ -341,7 +341,7 @@ namespace TheFreckExchange.Server.Services
                         {
                             Image = fileBytes,
                             ImageId = Guid.NewGuid().ToString(),
-                            Name = Guid.NewGuid().ToString()
+                            Name = formFile.FileName
                         });
                     }
                 }

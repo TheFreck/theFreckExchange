@@ -10,10 +10,12 @@ builder.Services.AddSingleton<IAccountRepo, AccountRepo>();
 builder.Services.AddSingleton<IProductRepo, ProductRepo>();
 builder.Services.AddSingleton<IItemRepo, ItemRepo>();
 builder.Services.AddSingleton<IImageRepo, ImageRepo>();
+builder.Services.AddSingleton<IConfigRepo, ConfigRepo>();
 builder.Services.AddSingleton<IAccountService, AccountService>();
 builder.Services.AddSingleton<IProductService, ProductService>();
 builder.Services.AddSingleton<ILoginService, LoginService>();
 builder.Services.AddSingleton<IDataGatheringService, DataGatheringService>();
+builder.Services.AddSingleton<IConfigService, ConfigService>();
 
 builder.Services.AddCors(options =>
 {

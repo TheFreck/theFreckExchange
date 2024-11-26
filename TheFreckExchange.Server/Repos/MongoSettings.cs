@@ -28,7 +28,11 @@ namespace TheFreckExchange.Server.Repos
 
         [Required]
         public string ItemCollectionName { get; init; } = String.Empty;
+
         [Required]
         public string ImageCollectionName { get; init; } = String.Empty;
+
+        [Required]
+        public string ConfigCollectionName {  get; init; } = String.Empty;
     }
 }

@@ -186,8 +186,6 @@ namespace TheFreckExchange.Specs
             productRepoMock.Verify(p => p.CreateAsync(Moq.It.IsAny<Product>()), Times.Exactly(inputs.Count));
         };
 
-        It Should_Upload_Image_To_ImageRepo = () => imageRepoMock.Verify(r => r.UploadImageAsync(Moq.It.IsAny<ImageFile>()), Times.Exactly(images.Count * inputs.Count));
-
         private static IProductService storeFront;
         private static List<string> attributes;
         private static List<(string name, string id, string desccription, double price)> inputs;

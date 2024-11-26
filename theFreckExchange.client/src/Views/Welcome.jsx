@@ -13,17 +13,50 @@ export const Welcome = () => {
     const {userView,setUserView,userEnum} = useContext(AccountContext);
     const [products, setProducts] = useState([]);
     const [ready, setReady] = useState(false);
+    const [config,setConfig] = useState({});
+
+    const siteApi = axios.create({
+        baseURL: `https://localhost:7299/Site`
+    });
 
     const productApi = axios.create({
         baseURL: `https://localhost:7299/Product`
     });
 
     useEffect(() => {
-        getProductsAsync(prods => {
-            setProducts(prods);
-            setReady(true);
+        getConfigurationAsync(configs => {
+            setConfig(configs);
+            getProductsAsync(prods => {
+                setProducts(prods);
+                setReady(true);
+            })
         })
     }, []);
+
+    // **********SITE*CONFIG************
+    const getConfigurationAsync = async (cb) => {
+        await siteApi.get("config")
+            .then(yup => {
+                cb(yup.data);
+            })
+            .catch(nope => console.error(nope));
+    }
+
+    const createConfigurationAsync = async (cb) => {
+        await siteApi.post("config/set")
+            .then(yup => {
+                cb(yup.data);
+            })
+            .catch(nope => console.error(nope));
+    }
+
+    const updateConfigurationAsync = async (cb) => {
+        await siteApi.put("config/update")
+            .then(yup => {
+                cb(yup.data);
+            })
+            .catch(nope => console.error(nope));
+    }
 
     // **********PRODUCT**************
     const getProductsAsync = async (cb) => {
@@ -124,10 +157,12 @@ export const Welcome = () => {
 
     // ***************IMAGES****************
     const uploadImages = (images) => {
-        readImagesAsync(images, ready => {
+        const blobs = images.map(im => im.blob);
+        readImagesAsync(blobs, isReady => {
             let formData = new FormData();
-            for (var i = 0; i < ready.length; i++) {
-                formData.append("images",new Blob([ready[i]]));
+            for (var i = 0; i < isReady.length; i++) {
+                let blobby = new Blob([isReady[i]]);
+                formData.append("images",blobby,images[i].filename);
             }
 
             productApi.post("images/upload",formData)
@@ -140,10 +175,9 @@ export const Welcome = () => {
     
     const getImages = async (e,cb) => {
         let targetImages = [];
-        let targetBytes = [];
         for (var i = 0; i < e.target.files.length; i++) {
+            e.target.files[i].filename = e.target.files[i].name;
             targetImages.push(URL.createObjectURL(e.target.files[i]));
-            targetBytes.push(e.target.files[i]);
         }
         cb(targetImages);
     }
@@ -177,7 +211,7 @@ export const Welcome = () => {
     const WelcomeCallback = useCallback(() => {
         if (ready) return (
             <>
-                {userView !== userEnum.siteConfig && <StoreFront />}
+                {userView !== userEnum.siteConfig && <StoreFront config={config} />}
                 {/* {check local storage against server} */}
 
                 {userView === userEnum.createProduct && localStorage.getItem("permissions.admin") !== null && <CreateProduct created={created} />}
@@ -192,7 +226,25 @@ export const Welcome = () => {
         else return;
     }, [products, ready]);
 
-    return <ProductContext.Provider value={{ products, ready, setReady, getProductsAsync, getItemsAsync, createProductAsync, createItemsAsync, getAvailableAttributesAsync, updateItemsAsync, purchaseItemAsync,getImages,uploadImages }}>
+    return <ProductContext.Provider 
+        value={{ config, 
+                products, 
+                ready, 
+                setReady, 
+                getProductsAsync, 
+                getItemsAsync, 
+                createProductAsync, 
+                createItemsAsync, 
+                getAvailableAttributesAsync, 
+                updateItemsAsync, 
+                purchaseItemAsync,
+                getImages,
+                uploadImages,
+                createConfigurationAsync,
+                updateConfigurationAsync
+            }}
+        >
+
         <WelcomeCallback />
     </ProductContext.Provider>
 
