@@ -27,7 +27,7 @@ export const SiteConfiguration = () => {
     const [siteImages,setSiteImages] = useState([]);
     const [config,setConfig] = useState(configTemplate);
     const productApi = axios.create({
-        baseURL: `https://localhost:7299/Product`
+        baseURL: `/Product`
     });
 
     useEffect(() => {

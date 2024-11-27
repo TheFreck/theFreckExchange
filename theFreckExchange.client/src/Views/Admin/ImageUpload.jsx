@@ -6,7 +6,7 @@ import { ProductContext } from "../../Context";
 export const ImageUpload = ({getImages,uploadImagesAsync,type,multiple}) => {
     const {updateConfigurationAsync} = useContext(ProductContext);
     const imageApi = axios.create({
-        baseURL: `https://localhost:7299/Product`
+        baseURL: `/Product`
     })
     const [images, setImages] = useState([]);
 

@@ -33,11 +33,11 @@ export const Welcome = () => {
     const [config,setConfig] = useState(configTemplate);
 
     const siteApi = axios.create({
-        baseURL: `https://localhost:7299/Site`
+        baseURL: `/Site`
     });
 
     const productApi = axios.create({
-        baseURL: `https://localhost:7299/Product`
+        baseURL: `/Product`
     });
 
     useEffect(() => {

@@ -9,7 +9,7 @@ import { ProductContext } from "../Context";
 export const StoreFront = () => {
     const {getConfigurationAsync} = useContext(ProductContext);
     const productApi = axios.create({
-        baseURL: `https://localhost:7299/Product`
+        baseURL: `/Product`
     });
     const [images, setImages] = useState([]);
     const [open,setOpen] = useState(false);

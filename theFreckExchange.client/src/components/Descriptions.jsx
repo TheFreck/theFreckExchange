@@ -46,7 +46,7 @@ export const Descriptions = ({bckImage,isConfig}) => {
     const [activeCategory,setActiveCategory] = useState(activeCategoryEnum.none);
 
     const descriptionApi = axios.create({
-        baseURL: `https://localhost:7299/Site`
+        baseURL: `/Site`
     });
 
     useEffect(() => {
