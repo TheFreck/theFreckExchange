@@ -31,6 +31,8 @@ export const ImageUpload = ({getImages,uploadImages,type}) => {
         }
         <br/>
         <Button
+            sx={{width: "100%"}}
+            variant="contained"
             onClick={() => uploadImages(images)}
         >
             Upload

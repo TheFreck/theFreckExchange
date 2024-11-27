@@ -35,20 +35,15 @@ namespace TheFreckExchange.Server.Services
         {
             var config = await configRepo.GetConfigAsync();
             if(configDTO.ImageFiles != null && configDTO.ImageFiles.Count > 0) config.ImageFiles.AddRange(configDTO.ImageFiles);
-            var updatedConfig = new ConfigDTO
-            {
-                AdminAccountId = configDTO.AdminAccountId != null && configDTO.AdminAccountId != string.Empty ? configDTO.AdminAccountId : config.AdminAccountId,
-                Background = configDTO.Background != null && configDTO.Background.Name != string.Empty
-                                && configDTO.Background.ImageId != string.Empty
-                                && configDTO.Background.Image != null ? configDTO.Background : config.Background,
-                CategoryTitle = configDTO.CategoryTitle != null && configDTO.CategoryTitle != string.Empty ? configDTO.CategoryTitle : config.CategoryTitle,
-                Categories = configDTO.Categories != null && configDTO.Categories.Count > 0 ? configDTO.Categories : config.Categories,
-                SiteTitle = configDTO.SiteTitle != null && configDTO.SiteTitle != string.Empty ? configDTO.SiteTitle : config.SiteTitle,
-                ImageFiles = config.ImageFiles,
-                ConfigId = config.ConfigId
-            };
-            await configRepo.UploadNewAsync(updatedConfig);
-            return updatedConfig;
+            config.SiteTitle = String.IsNullOrWhiteSpace(configDTO.SiteTitle) ? config.SiteTitle : configDTO.SiteTitle;
+            config.CategoryTitle = String.IsNullOrWhiteSpace(configDTO.CategoryTitle) ? config.CategoryTitle : configDTO.CategoryTitle;
+            config.Background = String.IsNullOrWhiteSpace(configDTO.Background.ImageId) ? config.Background : configDTO.Background;
+            config.AdminAccountId = String.IsNullOrWhiteSpace(configDTO.AdminAccountId) ? config.AdminAccountId : configDTO.AdminAccountId;
+            config.Categories = configDTO.Categories.Where(c => !String.IsNullOrWhiteSpace(c.Name)).Count() != 6 ? config.Categories : configDTO.Categories;
+            config.ImageFiles = configDTO?.ImageFiles?.Count > 0 ? config.ImageFiles.Concat(configDTO.ImageFiles).ToList() : config.ImageFiles;
+
+            await configRepo.UploadNewAsync(config);
+            return config;
         }
     }
 }

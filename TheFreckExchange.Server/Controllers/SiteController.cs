@@ -19,8 +19,8 @@ namespace TheFreckExchange.Server.Controllers
             this.logger = logger;
         }
 
-        [HttpGet("{resource}")]
-        public async Task<string> GetResourceAsync(string resource)
+        [HttpGet("resource")]
+        public async Task<string> GetResourceAsync([FromBody] Categories resource)
         {
             var desc = await data.GetDataAsync(resource);
             return desc;
@@ -33,7 +33,7 @@ namespace TheFreckExchange.Server.Controllers
         }
 
         [HttpPost("config/set")]
-        public ConfigDTO SetConfigAsync(ConfigDTO config)
+        public ConfigDTO SetConfigAsync([FromBody]ConfigDTO config)
         {
             return configService.CreateNew(config);
         }

@@ -29,7 +29,10 @@ namespace TheFreckExchange.Server.Repos
 
         public async Task UploadNewAsync(ConfigDTO configDTO)
         {
-            await configCollection.DeleteManyAsync(c => c != null);
+            if((await configCollection.FindAsync(c => c!= null)).Any())
+            {
+                await configCollection.DeleteManyAsync(c => c != null);
+            }
             configCollection.InsertOne(configDTO);
         }
     }

@@ -75,8 +75,7 @@ export const StoreFront = ({config}) => {
             }
         </Carousel>
         <Descriptions 
-            background={background}
-            config={config}
+            bckImage={background}
         />
     </Box>
 }

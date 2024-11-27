@@ -5,7 +5,6 @@ var builder = WebApplication.CreateBuilder(args);
 
 builder.Services.Configure<MongoSettings>(builder.Configuration.GetSection("MongoConnection"));
 
-// Add services to the container.
 builder.Services.AddSingleton<IAccountRepo, AccountRepo>();
 builder.Services.AddSingleton<IProductRepo, ProductRepo>();
 builder.Services.AddSingleton<IItemRepo, ItemRepo>();

@@ -9,11 +9,26 @@ import ModifyProduct from "./Product/ModifyProduct";
 import CreateItems from "./Item/CreateItems";
 import SiteConfiguration from "./Admin/SiteConfig";
 
+const configTemplate = {
+    background: {image:"",name: ""},
+    categories: [
+        {name:"",description:"",url:""},
+        {name:"",description:"",url:""},
+        {name:"",description:"",url:""},
+        {name:"",description:"",url:""},
+        {name:"",description:"",url:""},
+        {name:"",description:"",url:""}
+    ],
+    categoryTitle: "",
+    iamgeFiles: [],
+    siteTitle: ""
+};
+
 export const Welcome = () => {
     const {userView,setUserView,userEnum} = useContext(AccountContext);
     const [products, setProducts] = useState([]);
     const [ready, setReady] = useState(false);
-    const [config,setConfig] = useState({});
+    const [config,setConfig] = useState(configTemplate);
 
     const siteApi = axios.create({
         baseURL: `https://localhost:7299/Site`
@@ -24,13 +39,14 @@ export const Welcome = () => {
     });
 
     useEffect(() => {
-        getConfigurationAsync(configs => {
-            setConfig(configs);
+        console.log("welcome config: ", config);
+        getConfigurationAsync(figs => {
+            setConfig(figs);
             getProductsAsync(prods => {
                 setProducts(prods);
                 setReady(true);
-            })
-        })
+            });
+        });
     }, []);
 
     // **********SITE*CONFIG************
@@ -41,19 +57,23 @@ export const Welcome = () => {
             })
             .catch(nope => console.error(nope));
     }
-
     const createConfigurationAsync = async (cb) => {
-        await siteApi.post("config/set")
+        console.log("set config: ", configTemplate);
+        await siteApi.post("config/set",configTemplate)
             .then(yup => {
                 cb(yup.data);
             })
             .catch(nope => console.error(nope));
     }
 
-    const updateConfigurationAsync = async (cb) => {
-        await siteApi.put("config/update")
+    const updateConfigurationAsync = async (fig,cb) => {
+        console.log("updating config: ", fig);
+        await siteApi.put("config/update",fig)
             .then(yup => {
-                cb(yup.data);
+                getConfigurationAsync(conf => {
+                    setConfig(conf)
+                    cb(conf);
+                });
             })
             .catch(nope => console.error(nope));
     }
@@ -227,7 +247,8 @@ export const Welcome = () => {
     }, [products, ready]);
 
     return <ProductContext.Provider 
-        value={{ config, 
+            value={{ 
+                config, 
                 products, 
                 ready, 
                 setReady, 
@@ -240,8 +261,9 @@ export const Welcome = () => {
                 purchaseItemAsync,
                 getImages,
                 uploadImages,
-                createConfigurationAsync,
-                updateConfigurationAsync
+                updateConfigurationAsync,
+                getConfigurationAsync,
+                createConfigurationAsync
             }}
         >
 

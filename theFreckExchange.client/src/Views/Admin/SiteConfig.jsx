@@ -1,23 +1,51 @@
-import { Box, Grid2, Modal, Typography } from "@mui/material";
-import react, { useContext } from "react";
+import { Box, Button, Grid2, Modal, TextField, Typography } from "@mui/material";
+import react, { useContext, useEffect, useState } from "react";
 import ImageUpload from "./ImageUpload";
 import axios from "axios";
 import { ProductContext } from "../../Context";
 import Descriptions from "../../components/Descriptions";
 
+const configTemplate = {
+    background: {image:"",name: ""},
+    categories: [
+        {name:"",description:"",url:""},
+        {name:"",description:"",url:""},
+        {name:"",description:"",url:""},
+        {name:"",description:"",url:""},
+        {name:"",description:"",url:""},
+        {name:"",description:"",url:""}
+    ],
+    categoryTitle: "",
+    iamgeFiles: [],
+    siteTitle: ""
+};
+
 export const SiteConfiguration = () => {
-    const { uploadImages, getImages, config, createConfigurationAsync, updateConfigurationAsync } = useContext(ProductContext);
+    const { uploadImages, getImages, updateConfigurationAsync,getConfigurationAsync,createConfigurationAsync} = useContext(ProductContext);
+    const [siteTitle,setSiteTitle] = useState("");
+    const [config,setConfig] = useState(configTemplate);
     const productApi = axios.create({
         baseURL: `https://localhost:7299/Product`
     });
 
-    const CategoryModal = () => <Modal
-    >
-        {
-            // either load the categories and allow admin to modify from the gui
-            // or build a form
-        }
-    </Modal>
+    useEffect(() => {
+        getConfigurationAsync(cfg => {
+            setConfig(cfg);
+            console.log("got config: ", cfg);
+        });
+    },[]);
+
+    useEffect(() => {
+        console.log("setting siteTitle: ", siteTitle);
+    },[siteTitle]);
+
+    const setTitleConfig = () => {
+        console.log("siteTitle: ", siteTitle);
+        setConfig({...config,siteTitle});
+        updateConfigurationAsync({...config,siteTitle},cfg => {
+            console.log("updated site title: ", cfg);
+        });
+    }
 
     return <Box>
         <Grid2 container
@@ -34,7 +62,36 @@ export const SiteConfiguration = () => {
                 </Typography>
             </Grid2>
             <Grid2>
-                <Typography>
+                <Button
+                    onClick={() => createConfigurationAsync(yup => console.log("yup: ", yup))}
+                    variant="outlined"
+                >
+                    Setup New Configuration
+                </Button>
+            </Grid2>
+            <Grid2
+                sx={{border: "solid",padding: "1em", height: "10vh"}}
+            >
+                <TextField
+                    sx={{height: "100%"}}
+                    label="Site Title"
+                    onChange={t => setSiteTitle(t.target.value)}
+                    value={siteTitle}
+                />
+                <Button
+                    sx={{height: "100%"}}
+                    variant="contained"
+                    onClick={setTitleConfig}
+                >
+                    Set Title
+                </Button>
+            </Grid2>
+            <Grid2
+                sx={{border: "solid"}}
+            >
+                <Typography
+                    variant="h5"
+                >
                     Upload Background Images
                 </Typography>
                 <ImageUpload
@@ -46,7 +103,9 @@ export const SiteConfiguration = () => {
             <Grid2
                 sx={{border: "solid"}}
             >
-                <Typography>
+                <Typography
+                    variant="h5"
+                >
                     Upload Site Images
                 </Typography>
                     <ImageUpload 
@@ -58,13 +117,12 @@ export const SiteConfiguration = () => {
             <Grid2
                 sx={{border: "solid"}}
             >
-                <Typography>
-                    Add categories
+                <Typography
+                    variant="h5"
+                >
+                    Add categories and descriptions
                 </Typography>
-                <Typography>
-                    Add descriptions for categories
-                </Typography>
-                <Descriptions isConfig={true} config={config} />
+                <Descriptions isConfig={true} />
             </Grid2>
         </Grid2>
     </Box>

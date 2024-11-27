@@ -1,7 +1,8 @@
 import { Label } from "@mui/icons-material";
 import { Box, Button, FormControlLabel, FormGroup, Grid2, Modal, Switch, TextField, Typography } from "@mui/material";
 import axios from "axios";
-import react, { useEffect, useState } from "react";
+import react, { useContext, useEffect, useState } from "react";
+import { ProductContext } from "../Context";
 
 
 const activeCategoryEnum = {
@@ -14,68 +15,72 @@ const activeCategoryEnum = {
     rb: 6
 }
 
-export const Descriptions = ({background,isConfig,config}) => {
+const configTemplate = {
+    background: {image:"",name: ""},
+    categories: [
+        {name:"",description:"",url:""},
+        {name:"",description:"",url:""},
+        {name:"",description:"",url:""},
+        {name:"",description:"",url:""},
+        {name:"",description:"",url:""},
+        {name:"",description:"",url:""}
+    ],
+    categoryTitle: "",
+    iamgeFiles: [],
+    siteTitle: ""
+};
+
+export const Descriptions = ({bckImage,isConfig}) => {
+    const {updateConfigurationAsync,getConfigurationAsync} = useContext(ProductContext);
     const [open,setOpen] = useState(false);
     const [description,setDescription] = useState("");
     const [title,setTitle] = useState("");
-    const [titleEdit,setTitleEdit] = useState(false);
-    const [leftTop,setLeftTop] = useState("");
-    const [leftTopUrl,setLeftTopUrl] = useState("");
-    const [leftTopDescription,setLeftTopDescription] = useState("");
-    const [leftTopEdit,setLeftTopEdit] = useState(false);
-    const [leftMiddle,setLeftMiddle] = useState("");
-    const [leftMiddleUrl,setLeftMiddleUrl] = useState("");
-    const [leftMiddleDescription,setLeftMiddleDescription] = useState("");
-    const [leftMiddleEdit,setLeftMiddleEdit] = useState(false);
-    const [leftBottom,setLeftBottom] = useState("");
-    const [leftBottomUrl,setLeftBottomUrl] = useState("");
-    const [leftBottomDescription,setLeftBottomDescription] = useState("");
-    const [leftBottomEdit,setLeftBottomEdit] = useState(false);
-    const [rightTop,setRightTop] = useState("");
-    const [rightTopUrl,setRightTopUrl] = useState("");
-    const [rightTopDescription,setRightTopDescription] = useState("");
-    const [rightTopEdit,setRightTopEdit] = useState(false);
-    const [rightMiddle,setRightMiddle] = useState("");
-    const [rightMiddleUrl,setRightMiddleUrl] = useState("");
-    const [rightMiddleDescription,setRightMiddleDescription] = useState("");
-    const [rightMiddleEdit,setRightMiddleEdit] = useState(false);
-    const [rightBottom,setRightBottom] = useState("");
-    const [rightBottomUrl,setRightBottomUrl] = useState("");
-    const [rightBottomDescription,setRightBottomDescription] = useState("");
-    const [rightBottomEdit,setRightBottomEdit] = useState(false);
+    const [config,setConfig] = useState({});
+    const [leftTop,setLeftTop] = useState(configTemplate.categories[0]);
+    const [leftMiddle,setLeftMiddle] = useState(configTemplate.categories[1]);
+    const [leftBottom,setLeftBottom] = useState(configTemplate.categories[2]);
+    const [rightTop,setRightTop] = useState(configTemplate.categories[3]);
+    const [rightMiddle,setRightMiddle] = useState(configTemplate.categories[4]);
+    const [rightBottom,setRightBottom] = useState(configTemplate.categories[5]);
     const [productName,setProductname] = useState("");
-    const [productNameEdit,setProductnameEdit] = useState(false);
     const [activeCategory,setActiveCategory] = useState(activeCategoryEnum.none);
 
     const descriptionApi = axios.create({
         baseURL: `https://localhost:7299/Site`
     });
-    
-    useEffect(() => {
-        setTitle(config.categoryTitle);
-        setLeftTop(config.categories[0].name);
-        setLeftTopDescription(config.categories[0].description);
-        setLeftMiddle(config.categories[1].name);
-        setLeftMiddleDescription(config.categories[1].description);
-        setLeftBottom(config.categories[2].name);
-        setLeftBottomDescription(config.categories[2].description);
-        setRightTop(config.categories[3].name);
-        setRightTopDescription(config.categories[3].description);
-        setRightMiddle(config.categories[4].name);
-        setRightMiddleDescription(config.categories[4].description);
-        setRightBottom(config.categories[5].name);
-        setRightBottomDescription(config.categories[5].description);
-    },[]);
 
     useEffect(() => {
-        setOpen(true);
-    },[description])
+        getConfigurationAsync(figs => {
+            console.log("description config: ", figs);
+            setConfig(figs);
+            setTitle(isGood(figs.categoryTitle,configTemplate.categoryTitle));
+            setLeftTop(isGood(figs.categories[0],configTemplate.categories[0]));
+            setLeftMiddle(isGood(figs.categories[1],configTemplate.categories[1]));
+            setLeftBottom(isGood(figs.categories[2],configTemplate.categories[2]));
+            setRightTop(isGood(figs.categories[3],configTemplate.categories[3]));
+            setRightMiddle(isGood(figs.categories[4],configTemplate.categories[4]));
+            setRightBottom(isGood(figs.categories[5],configTemplate.categories[5]));
+        })
+    },[]);
+
+    const isGood = (test,against) => {
+        console.log("test: ", test);
+        console.log("against: ", against);
+        switch(test){
+            case undefined:
+            case null:
+            case "":
+                return against;
+            default:
+                return test;
+        }
+    }
     
     const handleClose = () => {
         setOpen(false);
     }
 
-    const getDescription = (product) => {
+    const getDescriptionAsync = (product) => {
         descriptionApi.get(product)
         .then(yup => {
             let reggy1 = new RegExp("(?=<sup)(.*?)(?<=>)|(<a)(.*?)(?<=>)|(</a>)|(&#91)(.*?)(?<=&#93)","g");
@@ -83,151 +88,248 @@ export const Descriptions = ({background,isConfig,config}) => {
             let reggied = yup.data.replace(reggy1,"");
             let final = reggied.replace(reggy2,',');
             setDescription(`<div>${final}</div>`);
-    })
+        })
         .catch(nope => console.error(nope));
     }
 
-    const saveChanges = () => {
-
+    const saveChanges = async () => {
+        config.categories[0] = leftTop;
+        config.categories[1] = leftMiddle;
+        config.categories[2] = leftBottom;
+        config.categories[3] = rightTop;
+        config.categories[4] = rightMiddle;
+        config.categories[5] = rightBottom;
+        await updateConfigurationAsync(config,cb => {
+            console.log("after updating config: ", cb);
+        })
     }
 
     const DescriptionModal = ({isConfig}) => {
         if(activeCategory === activeCategoryEnum.none) return;
         const [isUrl,setIsUrl] = useState(false);
-        let desc, setDesc, url, setUrl;
-        
-        switch (activeCategory) {
-            case activeCategoryEnum.lt:
-                desc = leftTopDescription;
-                setDesc = setLeftTopDescription;
-                url = leftTopUrl;
-                setUrl = setLeftTopUrl;
-                break;
-            case activeCategoryEnum.lm:
-                desc = leftMiddleDescription;
-                setDesc = setLeftMiddleDescription;
-                url = leftMiddleUrl;
-                setUrl = setLeftMiddleUrl;
-                break;
-            case activeCategoryEnum.lb:
-                desc = leftBottomDescription;
-                setDesc = setLeftBottomDescription;
-                url = leftBottomUrl;
-                setUrl = setLeftBottomUrl;
-                break;
-            case activeCategoryEnum.rt:
-                desc = rightTopDescription;
-                setDesc = setRightTopDescription;
-                url = rightTopUrl;
-                setUrl = setRightTopUrl;
-                break;
-            case activeCategoryEnum.rm:
-                desc = rightMiddleDescription;
-                setDesc = setRightMiddleDescription;
-                url = rightMiddleUrl;
-                setUrl = setRightMiddleUrl;
-                break;
-            case activeCategoryEnum.rb:
-                desc = rightBottomDescription;
-                setDesc = setRightBottomDescription;
-                url = rightBottomUrl;
-                setUrl = setRightBottomUrl;
-                break;
+        const [ltd,setLtd] = useState(config.categories[0].description);
+        const [lmd,setLmd] = useState(config.categories[1].description);
+        const [lbd,setLbd] = useState(config.categories[2].description);
+        const [rtd,setRtd] = useState(config.categories[3].description);
+        const [rmd,setRmd] = useState(config.categories[4].description);
+        const [rbd,setRbd] = useState(config.categories[5].description);
+        const [ltu,setLtu] = useState(config.categories[0].url);
+        const [lmu,setLmu] = useState(config.categories[1].url);
+        const [lbu,setLbu] = useState(config.categories[2].url);
+        const [rtu,setRtu] = useState(config.categories[3].url);
+        const [rmu,setRmu] = useState(config.categories[4].url);
+        const [rbu,setRbu] = useState(config.categories[5].url);
+
+        const saveDescription = (cb) => {
+            config.categories[0].description = ltd;
+            config.categories[1].description = lmd;
+            config.categories[2].description = lbd;
+            config.categories[3].description = rtd;
+            config.categories[4].description = rmd;
+            config.categories[5].description = rbd;
+            config.categories[0].url = ltu;
+            config.categories[1].url = lmu;
+            config.categories[2].url = lbu;
+            config.categories[3].url = rtu;
+            config.categories[4].url = rmu;
+            config.categories[5].url = rbu;
+            cb();
         }
 
         return <>
-            {description !== "" &&
                 <Modal
                     open={open}
                     onClose={handleClose}
                 >
                     <>
-                    {!isConfig &&
-                        <Box
-                            sx={{
-                                width: "70vw",
-                                height: "70vh",
-                                justifyContent: "center", textAlign: "center",
-                                margin: "10vw auto",
-                                background: "tan",
-                                color: "black",
-                                border: "solid",
-                                padding: "1em",
-                                overflowY: "scroll",
-                            }}
-                        >
-                            <Typography
-                                variant="h4"
-                            >
-                                {productName}
-                            </Typography>
-                            {description !== "" && <div dangerouslySetInnerHTML={{__html:description}} />}
-                            <br/>
-                            <Typography>
-                                This description brought to you by Wikipedia.
-                            </Typography>
-                        </Box>
-                    }
-                    {isConfig &&
-                        <Box
-                            sx={{width: "80vw", height: "80vh", border: "solid", padding: isConfig ? "2vw" : "auto", margin: "auto", marginTop: "10vh", background: "tan", display: "flex",flexDirection: "column"}}
-                        >
-                            <Grid2
-                            size={4}
-                                sx={{display: "flex",flexDirection: "row", width: "25vw", marginLeft: "10vw", marginRight: "auto"}}
+                        {!isConfig &&
+                            <Box
+                                sx={{
+                                    width: "70vw",
+                                    height: "70vh",
+                                    justifyContent: "center", textAlign: "center",
+                                    margin: "10vw auto",
+                                    background: "tan",
+                                    color: "black",
+                                    border: "solid",
+                                    padding: "1em",
+                                    overflowY: "scroll",
+                                }}
                             >
                                 <Typography
-                                    sx={{margin: "auto", padding: "auto"}}
+                                    variant="h4"
                                 >
-                                    Typed Description
+                                    {productName}
                                 </Typography>
-                                <Switch
-                                    onClick={() => setIsUrl(!isUrl)}
-                                />
-                                <Typography
-                                    sx={{margin: "auto", padding: "auto"}}
-                                >
-                                    URL
+                                {description !== "" && <div dangerouslySetInnerHTML={{ __html: description }} />}
+                                <br />
+                                <Typography>
+                                    This description brought to you by Wikipedia.
                                 </Typography>
-                            </Grid2>
-                            {isUrl && 
-                                <TextField
-                                    label="URL"
-                                    onChange={e => setUrl(e.target.value)}
-                                    value={url}
-                                />
-                            }
-                            {!isUrl &&
-                                <TextField
-                                    label="Description"
-                                    multiline
-                                    onChange={e => setDesc(e.target.value)}
-                                    value={desc}
-                                />
-                            }
-                            <Button
-                                onClick={setOpen(false)}
+                            </Box>
+                        }
+                        {isConfig &&
+                            <Box
+                                sx={{ width: "40vw", height: "80vh", border: "solid", padding: "2vw", margin: "auto", marginTop: "10vh", background: "tan", display: "flex", flexDirection: "column" }}
                             >
-                                Save Description
-                            </Button>
-                        </Box>
-                    }
+                                <Grid2
+                                    size={4}
+                                    sx={{ display: "flex", flexDirection: "row", width: "25vw", marginLeft: "10vw", marginRight: "auto" }}
+                                >
+                                    <Typography
+                                        sx={{ margin: "auto", padding: "auto" }}
+                                    >
+                                        Typed Description
+                                    </Typography>
+                                    <Switch
+                                        onClick={() => setIsUrl(!isUrl)}
+                                    />
+                                    <Typography
+                                        sx={{ margin: "auto", padding: "auto" }}
+                                    >
+                                        URL
+                                    </Typography>
+                                </Grid2>
+                                {isUrl &&
+                                    <>
+                                    {
+                                        activeCategory === activeCategoryEnum.lt &&
+                                        <TextField
+                                            label="URL"
+                                            onChange={e => setLtu(e.target.value)}
+                                            value={ltu}
+                                        />
+                                    }
+                                    {
+                                        activeCategory === activeCategoryEnum.lm &&
+                                        <TextField
+                                            label="URL"
+                                            onChange={e => setLmu(e.target.value)}
+                                            value={lmu}
+                                        />
+                                    }
+                                    {
+                                        activeCategory === activeCategoryEnum.lb &&
+                                        <TextField
+                                            label="URL"
+                                            onChange={e => setLbu(e.target.value)}
+                                            value={lbu}
+                                        />
+                                    }{
+                                        activeCategory === activeCategoryEnum.rt &&
+                                        <TextField
+                                            label="URL"
+                                            onChange={e => setRtu(e.target.value)}
+                                            value={rtu}
+                                        />
+                                    }{
+                                        activeCategory === activeCategoryEnum.rm &&
+                                        <TextField
+                                            label="URL"
+                                            onChange={e => setRmu(e.target.value)}
+                                            value={rmu}
+                                        />
+                                    }{
+                                        activeCategory === activeCategoryEnum.rb &&
+                                        <TextField
+                                            label="URL"
+                                            onChange={e => setRbu(e.target.value)}
+                                            value={rbu}
+                                        />
+                                    }
+                                    </>
+                                }
+                                {
+                                    !isUrl &&
+                                    <>
+                                        {
+                                            activeCategory === activeCategoryEnum.lt &&
+                                            <TextField
+                                                label="Description"
+                                                onChange={d => {
+                                                    setLtd(d.target.value);
+                                                }}
+                                                value={ltd}
+                                            />
+                                        }
+                                        {
+                                            activeCategory === activeCategoryEnum.lm &&
+                                            <TextField
+                                                label="Description"
+                                                onChange={d => {
+                                                    setLmd(d.target.value);
+                                                }}
+                                                value={lmd}
+                                            />
+                                        }
+                                        {
+                                            activeCategory === activeCategoryEnum.lb &&
+                                            <TextField
+                                                label="Description"
+                                                onChange={d => {
+                                                    setLbd(d.target.value);
+                                                }}
+                                                value={lbd}
+                                            />
+                                        }
+                                        {
+                                            activeCategory === activeCategoryEnum.rt &&
+                                            <TextField
+                                                label="Description"
+                                                onChange={d => {
+                                                    setRtd(d.target.value);
+                                                }}
+                                                value={rtd}
+                                            />
+                                        }
+                                        {
+                                            activeCategory === activeCategoryEnum.rm &&
+                                            <TextField
+                                                label="Description"
+                                                onChange={d => {
+                                                    setRmd(d.target.value);
+                                                }}
+                                                value={rmd}
+                                            />
+                                        }
+                                        {
+                                            activeCategory === activeCategoryEnum.rb &&
+                                            <TextField
+                                                label="Description"
+                                                onChange={d => {
+                                                    setRbd(d.target.value);
+                                                }}
+                                                value={rbd}
+                                            />
+                                        }
+                                    </>
+                                }
+                                <Button
+                                    onClick={() => {
+                                        saveDescription(() => {
+                                            setOpen(false);
+                                        });
+                                    }}
+                                >
+                                    Save Description
+                                </Button>
+                            </Box>
+                        }
                     </>
                 </Modal>
-            }
         </>
     }
 
     return <>
     <Box
             sx={{
-                backgroundImage: `url(${background})`, 
+                backgroundImage: `url(${bckImage})`, 
                 backgroundRepeat: "no-repeat", 
                 backgroundSize: "cover", 
                 backgroundColor: "rgba(255,255,255,.2)", 
                 backgroundBlendMode: "lighten",
                 height: "66%", 
-                color: "blackS"
+                color: "black"
             }}
         >
         {!isConfig &&
@@ -248,7 +350,7 @@ export const Descriptions = ({background,isConfig,config}) => {
             />
         }
         <Grid2 container size={12}
-            sx={{ display: "flex", margin: "2em" }}
+            sx={{ display: "flex" }}
         >
             <Grid2 size={2}>
             </Grid2>
@@ -261,11 +363,11 @@ export const Descriptions = ({background,isConfig,config}) => {
                             sx={{ width: "100%", ":hover": {cursor: "pointer"} }}
                             variant="h4"
                             onClick={() => {
-                                setProductname(leftTop);
-                                getDescription(leftTop);
+                                setProductname(leftTop.name);
+                                getDescriptionAsync(leftTop);
                             }}
                         >
-                            {leftTop}
+                            {leftTop.name}
                         </Typography>
                     }
                     {
@@ -274,16 +376,17 @@ export const Descriptions = ({background,isConfig,config}) => {
                             sx={{display: "flex",flexDirection: "row", justifyContent: "center", input: {textAlign: "center"}}}
                             variant="standard"
                             onChange={e => {
-                                setLeftTop(e.target.value);
+                                setLeftTop({...leftTop,name: e.target.value});
                             }}
-                            value={leftTop}
+                            value={leftTop.name}
                         />
                     }
                     {isConfig &&
                         <Button
                             onClick={() => {
                                 setActiveCategory(activeCategoryEnum.lt);
-                                setDescription(leftTopDescription);
+                                setDescription(leftTop.description);
+                                setOpen(true);
                             }}
                         >
                             Add Description
@@ -297,11 +400,11 @@ export const Descriptions = ({background,isConfig,config}) => {
                             sx={{ width: "100%", ":hover": {cursor: "pointer"} }}
                             variant="h4"
                             onClick={() => {
-                                getDescription(leftMiddle);
-                                setProductname(leftMiddle);
+                                setProductname(leftMiddle.name);
+                                getDescriptionAsync(leftMiddle);
                             }}
                         >
-                            {leftMiddle}
+                            {leftMiddle.name}
                         </Typography>
                     }
                     {isConfig &&
@@ -309,16 +412,17 @@ export const Descriptions = ({background,isConfig,config}) => {
                             sx={{display: "flex",flexDirection: "row", justifyContent: "center", input: {textAlign: "center"}}}
                             variant="standard"
                             onChange={e => {
-                                setLeftMiddle(e.target.value);
+                                setLeftMiddle({...leftMiddle,name: e.target.value});
                             }}
-                            value={leftMiddle}
+                            value={leftMiddle.name}
                         />
                     }
                     {isConfig &&
                         <Button
                             onClick={() => {
                                 setActiveCategory(activeCategoryEnum.lm);
-                                setDescription(leftMiddleDescription);
+                                setDescription(leftMiddle.description);
+                                setOpen(true);
                             }}
                         >
                             Add Description
@@ -332,11 +436,11 @@ export const Descriptions = ({background,isConfig,config}) => {
                             sx={{ width: "100%", ":hover": {cursor: "pointer"} }}
                             variant="h4"
                             onClick={() => {
-                                setProductname(leftBottom);
-                                getDescription(leftBottom);
+                                setProductname(leftBottom.name);
+                                getDescriptionAsync(leftBottom);
                             }}
                         >
-                            {leftBottom}
+                            {leftBottom.name}
                         </Typography>
                     }
                     {isConfig &&
@@ -344,16 +448,17 @@ export const Descriptions = ({background,isConfig,config}) => {
                             sx={{display: "flex",flexDirection: "row", justifyContent: "center", input: {textAlign: "center"}}}
                             variant="standard"
                             onChange={e => {
-                                setLeftBottom(e.target.value);
+                                setLeftBottom({...leftBottom,name: e.target.value});
                             }}
-                            value={leftBottom}
+                            value={leftBottom.name}
                         />
                     }
                     {isConfig &&
                         <Button
                             onClick={() => {
                                 setActiveCategory(activeCategoryEnum.lb);
-                                setDescription(leftBottomDescription);
+                                setDescription(leftBottom.description);
+                                setOpen(true);
                             }}
                         >
                             Add Description
@@ -374,11 +479,11 @@ export const Descriptions = ({background,isConfig,config}) => {
                             sx={{ width: "100%", ":hover": {cursor: "pointer"} }}
                             variant="h4"
                             onClick={() => {
-                                setProductname(rightTop);
-                                getDescription(rightTop);
+                                setProductname(rightTop.name);
+                                getDescriptionAsync(rightTop);
                             }}
                         >
-                            {rightTop}
+                            {rightTop.name}
                         </Typography>
                     }
                     {isConfig &&
@@ -386,16 +491,17 @@ export const Descriptions = ({background,isConfig,config}) => {
                             sx={{display: "flex",flexDirection: "row", justifyContent: "center", input: {textAlign: "center"}}}
                             variant="standard"
                             onChange={e => {
-                                setRightTop(e.target.value);
+                                setRightTop({...rightTop,name:e.target.value});
                             }}
-                            value={rightTop}
+                            value={rightTop.name}
                         />
                     }
                     {isConfig &&
                         <Button
                             onClick={() => {
                                 setActiveCategory(activeCategoryEnum.rt);
-                                setDescription(rightTopDescription);
+                                setDescription(rightTop.description);
+                                setOpen(true);
                             }}
                         >
                             Add Description
@@ -409,11 +515,11 @@ export const Descriptions = ({background,isConfig,config}) => {
                             sx={{ width: "100%", ":hover": {cursor: "pointer"} }}
                             variant="h4"
                             onClick={() => {
-                                setProductname(rightMiddle);
-                                getDescription(rightMiddle);
+                                setProductname(rightMiddle.name);
+                                getDescriptionAsync(rightMiddle);
                             }}
                         >
-                            {rightMiddle}
+                            {rightMiddle.name}
                         </Typography>
                     }
                     {isConfig &&
@@ -421,16 +527,17 @@ export const Descriptions = ({background,isConfig,config}) => {
                             sx={{display: "flex",flexDirection: "row", justifyContent: "center", input: {textAlign: "center"}}}
                             variant="standard"
                             onChange={e => {
-                                setRightMiddle(e.target.value);
+                                setRightMiddle({...rightMiddle,name:e.target.value});
                             }}
-                            value={rightMiddle}
+                            value={rightMiddle.name}
                         />
                     }
                     {isConfig &&
                         <Button
                             onClick={() => {
                                 setActiveCategory(activeCategoryEnum.rm);
-                                setDescription(rightMiddleDescription);
+                                setDescription(rightMiddle.description);
+                                setOpen(true);
                             }}
                         >
                             Add Description
@@ -445,11 +552,11 @@ export const Descriptions = ({background,isConfig,config}) => {
                             sx={{ width: "100%", ":hover": {cursor: "pointer"} }}
                             variant="h4"
                             onClick={() => {
-                                setProductname(rightBottom);
-                                getDescription(rightBottom);
+                                setProductname(rightBottom.name);
+                                getDescriptionAsync(rightBottom);
                             }}
                         >
-                            {rightBottom}
+                            {rightBottom.name}
                         </Typography>
                     }
                     {isConfig &&
@@ -457,16 +564,17 @@ export const Descriptions = ({background,isConfig,config}) => {
                             sx={{display: "flex",flexDirection: "row", justifyContent: "center", input: {textAlign: "center"}}}
                             variant="standard"
                             onChange={e => {
-                                setRightBottom(e.target.value);
+                                setRightBottom({...rightBottom,name:e.target.value});
                             }}
-                            value={rightBottom}
+                            value={rightBottom.name}
                         />
                     }
                     {isConfig &&
                         <Button
                             onClick={() => {
                                 setActiveCategory(activeCategoryEnum.rb);
-                                setDescription(rightBottomDescription);
+                                setDescription(rightBottom.description);
+                                setOpen(true);
                             }}
                         >
                             Add Description
@@ -479,9 +587,9 @@ export const Descriptions = ({background,isConfig,config}) => {
             </Grid2>
             {isConfig &&
                 <Grid2 size={12}
-                    sx={{paddingTop: "2vh"}}
                 >
                     <Button
+                        sx={{width: "100%"}}
                         variant="contained"
                         onClick={saveChanges}
                     >
@@ -491,7 +599,9 @@ export const Descriptions = ({background,isConfig,config}) => {
             }
         </Grid2>
         </Box>
-            <DescriptionModal isConfig={isConfig} />
+        <DescriptionModal 
+            isConfig={isConfig}
+        />
 
     </>
 }

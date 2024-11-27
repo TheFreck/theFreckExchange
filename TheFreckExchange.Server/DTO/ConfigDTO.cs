@@ -12,13 +12,13 @@ namespace TheFreckExchange.Server.DTO
 
         public string ConfigId {  get; set; } = Guid.NewGuid().ToString();
 
-        public string AdminAccountId {get;set;}
+        public string AdminAccountId {get;set; } = Guid.NewGuid().ToString();
 
-        public string SiteTitle { get; set; }
+        public string SiteTitle { get; set; } = String.Empty;
         
-        public string CategoryTitle {  get; set; }
-        public List<Categories> Categories { get; set; }
-        public List<ImageFile> ImageFiles { get; set; }
-        public ImageFile Background {  get; set; }
+        public string CategoryTitle {  get; set; } = String.Empty;
+        public List<Categories> Categories { get; set; } = new List<Categories>();
+        public List<ImageFile> ImageFiles { get; set; } = new List<ImageFile>();
+        public ImageFile? Background {  get; set; }
     }
 }

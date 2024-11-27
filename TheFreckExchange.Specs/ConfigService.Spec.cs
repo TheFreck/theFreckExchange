@@ -118,7 +118,7 @@ namespace TheFreckExchange.Specs
             configService = new ConfigService(configRepoMock.Object);
         };
 
-        Because of = () => configOutcome = configService.CreateNew(account.AccountId,siteTitle, categoryTitle, categories, imageFiles, background);
+        Because of = () => configOutcome = configService.CreateNew(configDTO);
 
         It Should_Form_A_ConfigDTO_And_Return_It = () =>
         {

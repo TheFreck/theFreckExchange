@@ -6,7 +6,7 @@ namespace TheFreckExchange.Server.Services
 {
     public interface IDataGatheringService
     {
-        Task<string> GetDataAsync(string hatname);
+        Task<string> GetDataAsync(Categories category);
     }
 
     public class DataGatheringService : IDataGatheringService
@@ -18,28 +18,32 @@ namespace TheFreckExchange.Server.Services
             config = Configuration.Default;
         }
 
-        public async Task<string> GetDataAsync(string hatname)
+        public async Task<string> GetDataAsync(Categories category)
         {
-            var url = DescriptionUrls.GetUrl(hatname);
-
-            using (HttpClient client = new HttpClient()) 
+            if(category.URL != null && category.URL != string.Empty)
             {
-                HttpResponseMessage response = await client.GetAsync(url);
-                string htmlContent = await response.Content.ReadAsStringAsync();
-
-                var config = Configuration.Default.WithDefaultLoader();
-                var context = BrowsingContext.New(config);
-                var document = await context.OpenAsync(req => req.Content(htmlContent));
-                var ps = document.QuerySelectorAll("p");
-
-                var stringified = new StringBuilder();
-                foreach (var p in ps)
+                using (HttpClient client = new HttpClient()) 
                 {
+                    HttpResponseMessage response = await client.GetAsync(category.URL);
+                    string htmlContent = await response.Content.ReadAsStringAsync();
 
-                    stringified.AppendLine(p.OuterHtml);
+                    var config = Configuration.Default.WithDefaultLoader();
+                    var context = BrowsingContext.New(config);
+                    var document = await context.OpenAsync(req => req.Content(htmlContent));
+                    var ps = document.QuerySelectorAll("p");
+
+                    var stringified = new StringBuilder();
+                    foreach (var p in ps)
+                    {
+                        stringified.AppendLine(p.OuterHtml);
+                    }
+                    var text = stringified.ToString();
+                    return text;
                 }
-                var text = stringified.ToString();
-                return text;
+            }
+            else
+            {
+                return category.Description;
             }
         }
     }
