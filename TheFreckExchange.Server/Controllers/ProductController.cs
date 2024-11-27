@@ -69,12 +69,7 @@ namespace TheFreckExchange.Server.Controllers
             }
             else if (await loginService.ValidateTokenAsync(input.Credentials.Username, input.Credentials.LoginToken))
             {
-                var imageFiles = new List<IFormFile>();
-                for (var i = 0; i < input.ImageBytes.Count; i++)
-                {
-                    imageFiles.Add(new FormFile(new MemoryStream(input.ImageBytes[i]), 0, input.ImageBytes[i].LongLength, $"{input.Name}-{i}", $"{input.Name}-{i}"));
-                }
-                var product = await productService.CreateProductAsync(input.Name, input.Description, input.Attributes, input.Price, input.Credentials, imageFiles);
+                var product = await productService.CreateProductAsync(input.Name, input.Description, input.Attributes, input.Price, input.Credentials, input.ImageReferences);
                 return product;
             }
             else return new Product
@@ -108,10 +103,10 @@ namespace TheFreckExchange.Server.Controllers
             {
 
                 var product = await productService.GetByNameAsync(input.Name);
-                product.Price = input.Price;
-                product.ProductDescription = input.Description;
-                product.AvailableAttributes = input.Attributes;
-                product.ImageBytes = input.ImageBytes;
+                product.Price = input.Price != 0 ? input.Price : product.Price;
+                product.ProductDescription = input.Description != "" ? input.Description : product.ProductDescription;
+                product.AvailableAttributes = input.Attributes.Count > 0 ? product.AvailableAttributes.Concat(input.Attributes).ToHashSet().ToList() : product.AvailableAttributes;
+                product.ImageReferences = input.ImageReferences.Count > 0 ? product.ImageReferences.Concat(input.ImageReferences).ToHashSet().ToList() : product.ImageReferences;
                 return await productService.ModifyProductAsync(product);
             }
             return new Product
@@ -245,7 +240,7 @@ namespace TheFreckExchange.Server.Controllers
         }
 
         [HttpPost("image/uploadImage/{productId}")]
-        public async Task<IActionResult> UploadImagesForItemsAsync([FromForm]List<IFormFile> images, string productId)
+        public async Task<IActionResult> UploadImagesForProductsAsync([FromForm]List<IFormFile> images, string productId)
         {
             await productService.UpdateProductWithImageAsync(productId, images);
             return Ok();
@@ -258,11 +253,19 @@ namespace TheFreckExchange.Server.Controllers
             return images;
         }
 
+        [HttpGet("images/site/{configId}")]
+        public async Task<IEnumerable<ImageFile>> GetSiteImages(string configId)
+        {
+            if (String.IsNullOrWhiteSpace(configId)) return new List<ImageFile>();
+            var images = await productService.GetAllSiteImagesAsync(configId);
+            return images;
+        }
+
         [HttpPost("images/upload")]
         public async Task<IActionResult> UploadImages([FromForm]List<IFormFile> images)
         {
-            await productService.UploadImagesAsync(images);
-            return Ok();
+            var imagesUploaded = await productService.UploadImagesAsync(images);
+            return Ok(imagesUploaded);
         }
     }
 }

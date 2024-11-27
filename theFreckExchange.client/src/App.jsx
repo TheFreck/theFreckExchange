@@ -40,8 +40,10 @@ function App() {
         })
         .then(yup => {
             setUserAcct(yup.data);
+            console.log("logged in user: ", yup.data);
             localStorage.setItem("username", yup.data.username)
             localStorage.setItem("loginToken",yup.data.loginToken);
+            localStorage.setItem("configId", yup.data.siteConfigId);
             let admin = yup.data.permissions.find(p => p.type === 0);
             if(admin !== undefined){
                 localStorage.setItem("permissions.admin",admin.token);

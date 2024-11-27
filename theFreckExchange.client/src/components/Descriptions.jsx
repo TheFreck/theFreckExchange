@@ -16,7 +16,7 @@ const activeCategoryEnum = {
 }
 
 const configTemplate = {
-    background: {image:"",name: ""},
+    background: "",
     categories: [
         {name:"",description:"",url:""},
         {name:"",description:"",url:""},
@@ -51,7 +51,6 @@ export const Descriptions = ({bckImage,isConfig}) => {
 
     useEffect(() => {
         getConfigurationAsync(figs => {
-            console.log("description config: ", figs);
             setConfig(figs);
             setTitle(isGood(figs.categoryTitle,configTemplate.categoryTitle));
             setLeftTop(isGood(figs.categories[0],configTemplate.categories[0]));
@@ -64,8 +63,6 @@ export const Descriptions = ({bckImage,isConfig}) => {
     },[]);
 
     const isGood = (test,against) => {
-        console.log("test: ", test);
-        console.log("against: ", against);
         switch(test){
             case undefined:
             case null:
@@ -99,6 +96,7 @@ export const Descriptions = ({bckImage,isConfig}) => {
         config.categories[3] = rightTop;
         config.categories[4] = rightMiddle;
         config.categories[5] = rightBottom;
+        config.categoryTitle = title;
         await updateConfigurationAsync(config,cb => {
             console.log("after updating config: ", cb);
         })

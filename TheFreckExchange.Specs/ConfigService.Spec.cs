@@ -64,34 +64,19 @@ namespace TheFreckExchange.Specs
                     Description = "Type 6 is a category of nothing in particular"
                 }
             };
-            imageFiles = new List<ImageFile>
+            imageRefs = new List<string>
             {
-                new ImageFile
-                {
-                    Image = Encoding.ASCII.GetBytes("these are the first image bytes"),
-                    Name = "Image 1",
-                    ImageId = Guid.NewGuid().ToString(),
-                },
-                new ImageFile
-                {
-                    Image = Encoding.ASCII.GetBytes("these are the second image bytes"),
-                    Name = "Image 2",
-                    ImageId = Guid.NewGuid().ToString(),
-                }
+                Guid.NewGuid().ToString(),
+                Guid.NewGuid().ToString()
             };
-            background = new ImageFile
-            {
-                Image = Encoding.ASCII.GetBytes("background image"),
-                Name = "Background",
-                ImageId = Guid.NewGuid().ToString()
-            };
+            background = Guid.NewGuid().ToString();
             configDTO = new ConfigDTO
             {
                 AdminAccountId = account.AccountId,
                 SiteTitle = siteTitle,
                 CategoryTitle = categoryTitle,
                 Categories = categories,
-                ImageFiles = imageFiles,
+                Images = imageRefs,
                 Background = background,
             };
         };
@@ -105,8 +90,8 @@ namespace TheFreckExchange.Specs
         protected static string siteTitle;
         protected static string categoryTitle;
         protected static List<Categories> categories;
-        protected static List<ImageFile> imageFiles;
-        protected static ImageFile background;
+        protected static List<string> imageRefs;
+        protected static string background;
         protected static ConfigDTO configDTO;
     }
 
@@ -115,31 +100,29 @@ namespace TheFreckExchange.Specs
         Establish context = () =>
         {
             configRepoMock.Setup(c => c.UploadNewAsync(Moq.It.IsAny<ConfigDTO>()));
-            configService = new ConfigService(configRepoMock.Object);
+            configService = new ConfigService(configRepoMock.Object,accountRepoMock.Object);
         };
 
-        Because of = () => configOutcome = configService.CreateNew(configDTO);
+        Because of = () => configOutcome = configService.CreateNewAsync(configDTO).GetAwaiter().GetResult();
 
         It Should_Form_A_ConfigDTO_And_Return_It = () =>
         {
             configOutcome.AdminAccountId.ShouldEqual(configDTO.AdminAccountId);
             configOutcome.SiteTitle.ShouldEqual(configDTO.SiteTitle);
             configOutcome.CategoryTitle.ShouldEqual(configDTO.CategoryTitle);
-            configOutcome.Background.Name.ShouldEqual(configDTO.Background.Name);
-            configOutcome.Background.ImageId.ShouldEqual(configDTO.Background.ImageId);
-            configOutcome.Background.Image.ShouldEqual(configDTO.Background.Image);
+            configOutcome.Background.ShouldEqual(configDTO.Background);
             for (var i = 0; i < configDTO.Categories.Count; i++) 
             {
                 configOutcome.Categories[i].Name.ShouldEqual(configDTO.Categories[i].Name);
                 configOutcome.Categories[i].Description.ShouldEqual(configDTO.Categories[i].Description);
             }
-            for(var i=0; i<configDTO.ImageFiles.Count; i++)
+            for(var i=0; i<configDTO.Images.Count; i++)
             {
-                configOutcome.ImageFiles[i].Name.ShouldEqual(configDTO.ImageFiles[i].Name);
-                configOutcome.ImageFiles[i].ImageId.ShouldEqual(configDTO.ImageFiles[i].ImageId);
-                configOutcome.ImageFiles[i].Image.ShouldEqual(configDTO.ImageFiles[i].Image);
+                configOutcome.Images[i].ShouldEqual(configDTO.Images[i]);
             }
         };
+
+        It Should_Get_Admin_Account_From_Repo = () => accountRepoMock.Verify(a => a.GetByAccountIdAsync(Moq.It.IsAny<string>()), Times.Once);
 
         It Should_Store_Config_In_The_Repo = () => configRepoMock.Verify(c => c.UploadNewAsync(Moq.It.IsAny<ConfigDTO>()), Times.Once);
 
@@ -157,8 +140,8 @@ namespace TheFreckExchange.Specs
                 SiteTitle = updatedTitle
             };
             configRepoMock.Setup(c => c.UploadNewAsync(Moq.It.IsAny<ConfigDTO>()));
-            configRepoMock.Setup(c => c.GetConfigAsync()).ReturnsAsync(configDTO);
-            configService = new ConfigService(configRepoMock.Object);
+            configRepoMock.Setup(c => c.GetConfigAsync(Moq.It.IsAny<string>())).ReturnsAsync(configDTO);
+            configService = new ConfigService(configRepoMock.Object, accountRepoMock.Object);
         };
 
         Because of = () => configOutcome = configService.UpdateConfigAsync(configTest).GetAwaiter().GetResult();
@@ -174,11 +157,9 @@ namespace TheFreckExchange.Specs
                 configOutcome.Categories[i].Name.ShouldEqual(configDTO.Categories[i].Name);
                 configOutcome.Categories[i].Description.ShouldEqual(configDTO.Categories[i].Description);
             }
-            for (var i = 0; i < configOutcome.ImageFiles.Count; i++)
+            for (var i = 0; i < configOutcome.Images.Count; i++)
             {
-                configOutcome.ImageFiles[i].Name.ShouldEqual(configDTO.ImageFiles[i].Name);
-                configOutcome.ImageFiles[i].ImageId.ShouldEqual(configDTO.ImageFiles[i].ImageId);
-                configOutcome.ImageFiles[i].Image.ShouldEqual(configDTO.ImageFiles[i].Image);
+                configOutcome.Images[i].ShouldEqual(configDTO.Images[i]);
             }
         };
 
@@ -200,8 +181,8 @@ namespace TheFreckExchange.Specs
                 AdminAccountId = updatedAdminId
             };
             configRepoMock.Setup(c => c.UploadNewAsync(Moq.It.IsAny<ConfigDTO>()));
-            configRepoMock.Setup(c => c.GetConfigAsync()).ReturnsAsync(configDTO);
-            configService = new ConfigService(configRepoMock.Object);
+            configRepoMock.Setup(c => c.GetConfigAsync(Moq.It.IsAny<string>())).ReturnsAsync(configDTO);
+            configService = new ConfigService(configRepoMock.Object, accountRepoMock.Object);
         };
 
         Because of = () => configOutcome = configService.UpdateConfigAsync(configTest).GetAwaiter().GetResult();
@@ -211,19 +192,15 @@ namespace TheFreckExchange.Specs
             configOutcome.AdminAccountId.ShouldEqual(updatedAdminId);
             configOutcome.SiteTitle.ShouldEqual(configDTO.SiteTitle);
             configOutcome.CategoryTitle.ShouldEqual(configDTO.CategoryTitle);
-            configOutcome.Background.Name.ShouldEqual(configDTO.Background.Name);
-            configOutcome.Background.ImageId.ShouldEqual(configDTO.Background.ImageId);
-            configOutcome.Background.Image.ShouldEqual(configDTO.Background.Image);
+            configOutcome.Background.ShouldEqual(configDTO.Background);
             for (var i = 0; i < configOutcome.Categories.Count; i++)
             {
                 configOutcome.Categories[i].Name.ShouldEqual(configDTO.Categories[i].Name);
                 configOutcome.Categories[i].Description.ShouldEqual(configDTO.Categories[i].Description);
             }
-            for (var i = 0; i < configOutcome.ImageFiles.Count; i++)
+            for (var i = 0; i < configOutcome.Images.Count; i++)
             {
-                configOutcome.ImageFiles[i].Name.ShouldEqual(configDTO.ImageFiles[i].Name);
-                configOutcome.ImageFiles[i].ImageId.ShouldEqual(configDTO.ImageFiles[i].ImageId);
-                configOutcome.ImageFiles[i].Image.ShouldEqual(configDTO.ImageFiles[i].Image);
+                configOutcome.Images[i].ShouldEqual(configDTO.Images[i]);
             }
         };
 
@@ -245,8 +222,8 @@ namespace TheFreckExchange.Specs
                 CategoryTitle = updatedCategoryTitle,
             };
             configRepoMock.Setup(c => c.UploadNewAsync(Moq.It.IsAny<ConfigDTO>()));
-            configRepoMock.Setup(c => c.GetConfigAsync()).ReturnsAsync(configDTO);
-            configService = new ConfigService(configRepoMock.Object);
+            configRepoMock.Setup(c => c.GetConfigAsync(Moq.It.IsAny<string>())).ReturnsAsync(configDTO);
+            configService = new ConfigService(configRepoMock.Object, accountRepoMock.Object);
         };
 
         Because of = () => configOutcome = configService.UpdateConfigAsync(configTest).GetAwaiter().GetResult();
@@ -256,19 +233,15 @@ namespace TheFreckExchange.Specs
             configOutcome.AdminAccountId.ShouldEqual(configDTO.AdminAccountId);
             configOutcome.SiteTitle.ShouldEqual(configDTO.SiteTitle);
             configOutcome.CategoryTitle.ShouldEqual(updatedCategoryTitle);
-            configOutcome.Background.Name.ShouldEqual(configDTO.Background.Name);
-            configOutcome.Background.ImageId.ShouldEqual(configDTO.Background.ImageId);
-            configOutcome.Background.Image.ShouldEqual(configDTO.Background.Image);
+            configOutcome.Background.ShouldEqual(configDTO.Background);
             for (var i = 0; i < configOutcome.Categories.Count; i++)
             {
                 configOutcome.Categories[i].Name.ShouldEqual(configDTO.Categories[i].Name);
                 configOutcome.Categories[i].Description.ShouldEqual(configDTO.Categories[i].Description);
             }
-            for (var i = 0; i < configOutcome.ImageFiles.Count; i++)
+            for (var i = 0; i < configOutcome.Images.Count; i++)
             {
-                configOutcome.ImageFiles[i].Name.ShouldEqual(configDTO.ImageFiles[i].Name);
-                configOutcome.ImageFiles[i].ImageId.ShouldEqual(configDTO.ImageFiles[i].ImageId);
-                configOutcome.ImageFiles[i].Image.ShouldEqual(configDTO.ImageFiles[i].Image);
+                configOutcome.Images[i].ShouldEqual(configDTO.Images[i]);
             }
         };
 
@@ -322,8 +295,8 @@ namespace TheFreckExchange.Specs
                 Categories = updatedCategories
             };
             configRepoMock.Setup(c => c.UploadNewAsync(Moq.It.IsAny<ConfigDTO>()));
-            configRepoMock.Setup(c => c.GetConfigAsync()).ReturnsAsync(configDTO);
-            configService = new ConfigService(configRepoMock.Object);
+            configRepoMock.Setup(c => c.GetConfigAsync(Moq.It.IsAny<string>())).ReturnsAsync(configDTO);
+            configService = new ConfigService(configRepoMock.Object, accountRepoMock.Object);
         };
 
         Because of = () => configOutcome = configService.UpdateConfigAsync(configTest).GetAwaiter().GetResult();
@@ -333,19 +306,15 @@ namespace TheFreckExchange.Specs
             configOutcome.AdminAccountId.ShouldEqual(configDTO.AdminAccountId);
             configOutcome.SiteTitle.ShouldEqual(configDTO.SiteTitle);
             configOutcome.CategoryTitle.ShouldEqual(configDTO.CategoryTitle);
-            configOutcome.Background.Name.ShouldEqual(configDTO.Background.Name);
-            configOutcome.Background.ImageId.ShouldEqual(configDTO.Background.ImageId);
-            configOutcome.Background.Image.ShouldEqual(configDTO.Background.Image);
+            configOutcome.Background.ShouldEqual(configDTO.Background);
             for (var i = 0; i < configOutcome.Categories.Count; i++)
             {
                 configOutcome.Categories[i].Name.ShouldEqual(updatedCategories[i].Name);
                 configOutcome.Categories[i].Description.ShouldEqual(updatedCategories[i].Description);
             }
-            for (var i = 0; i < configOutcome.ImageFiles.Count; i++)
+            for (var i = 0; i < configOutcome.Images.Count; i++)
             {
-                configOutcome.ImageFiles[i].Name.ShouldEqual(configDTO.ImageFiles[i].Name);
-                configOutcome.ImageFiles[i].ImageId.ShouldEqual(configDTO.ImageFiles[i].ImageId);
-                configOutcome.ImageFiles[i].Image.ShouldEqual(configDTO.ImageFiles[i].Image);
+                configOutcome.Images[i].ShouldEqual(configDTO.Images[i]);
             }
         };
 
@@ -361,28 +330,18 @@ namespace TheFreckExchange.Specs
     {
         Establish context = () =>
         {
-            updatedImageFiles = new List<ImageFile>
+            updatedImageFiles = new List<string>
             {
-                new ImageFile
-                {
-                    Image = Encoding.ASCII.GetBytes("these are the first image bytes to be updated"),
-                    Name = "Updated Image 1",
-                    ImageId = Guid.NewGuid().ToString(),
-                },
-                new ImageFile
-                {
-                    Image = Encoding.ASCII.GetBytes("these are the second image bytes to be updated"),
-                    Name = "Updated Image 2",
-                    ImageId = Guid.NewGuid().ToString(),
-                }
+                Guid.NewGuid().ToString(),
+                Guid.NewGuid().ToString()
             };
             configTest = new ConfigDTO
             {
-                ImageFiles = updatedImageFiles
+                Images = updatedImageFiles
             };
             configRepoMock.Setup(c => c.UploadNewAsync(Moq.It.IsAny<ConfigDTO>()));
-            configRepoMock.Setup(c => c.GetConfigAsync()).ReturnsAsync(configDTO);
-            configService = new ConfigService(configRepoMock.Object);
+            configRepoMock.Setup(c => c.GetConfigAsync(Moq.It.IsAny<string>())).ReturnsAsync(configDTO);
+            configService = new ConfigService(configRepoMock.Object, accountRepoMock.Object);
         };
 
         Because of = () => configOutcome = configService.UpdateConfigAsync(configTest).GetAwaiter().GetResult();
@@ -392,22 +351,20 @@ namespace TheFreckExchange.Specs
             configOutcome.AdminAccountId.ShouldEqual(configDTO.AdminAccountId);
             configOutcome.SiteTitle.ShouldEqual(configDTO.SiteTitle);
             configOutcome.CategoryTitle.ShouldEqual(configDTO.CategoryTitle);
-            configOutcome.Background.Name.ShouldEqual(configDTO.Background.Name);
-            configOutcome.Background.ImageId.ShouldEqual(configDTO.Background.ImageId);
-            configOutcome.Background.Image.ShouldEqual(configDTO.Background.Image);
+            configOutcome.Background.ShouldEqual(configDTO.Background);
             for (var i = 0; i < configOutcome.Categories.Count; i++)
             {
                 configOutcome.Categories[i].Name.ShouldEqual(configDTO.Categories[i].Name);
                 configOutcome.Categories[i].Description.ShouldEqual(configDTO.Categories[i].Description);
             }
-            configOutcome.ImageFiles.Count.ShouldEqual(configDTO.ImageFiles.Count);
+            configOutcome.Images.Count.ShouldEqual(configDTO.Images.Count);
         };
 
         It Should_Store_Config_In_The_Repo = () => configRepoMock.Verify(c => c.UploadNewAsync(Moq.It.IsAny<ConfigDTO>()), Times.Once);
 
         private static ConfigDTO configOutcome;
         private static IConfigService configService;
-        private static List<ImageFile> updatedImageFiles;
+        private static List<string> updatedImageFiles;
         private static ConfigDTO configTest;
     }
 
@@ -415,19 +372,14 @@ namespace TheFreckExchange.Specs
     {
         Establish context = () =>
         {
-            updatedBackground = new ImageFile
-            {
-                Image = Encoding.ASCII.GetBytes("Updated background image"),
-                Name = "Updated Background",
-                ImageId = Guid.NewGuid().ToString()
-            };
+            updatedBackground = Guid.NewGuid().ToString();
             configTest = new ConfigDTO
             {
                 Background = updatedBackground,
             };
             configRepoMock.Setup(c => c.UploadNewAsync(Moq.It.IsAny<ConfigDTO>()));
-            configRepoMock.Setup(c => c.GetConfigAsync()).ReturnsAsync(configDTO);
-            configService = new ConfigService(configRepoMock.Object);
+            configRepoMock.Setup(c => c.GetConfigAsync(Moq.It.IsAny<string>())).ReturnsAsync(configDTO);
+            configService = new ConfigService(configRepoMock.Object, accountRepoMock.Object);
         };
 
         Because of = () => configOutcome = configService.UpdateConfigAsync(configTest).GetAwaiter().GetResult();
@@ -437,26 +389,22 @@ namespace TheFreckExchange.Specs
             configOutcome.AdminAccountId.ShouldEqual(configDTO.AdminAccountId);
             configOutcome.SiteTitle.ShouldEqual(configDTO.SiteTitle);
             configOutcome.CategoryTitle.ShouldEqual(configDTO.CategoryTitle);
-            configOutcome.Background.Name.ShouldEqual(updatedBackground.Name);
-            configOutcome.Background.ImageId.ShouldEqual(updatedBackground.ImageId);
-            configOutcome.Background.Image.ShouldEqual(updatedBackground.Image);
+            configOutcome.Background.ShouldEqual(updatedBackground);
             for (var i = 0; i < configOutcome.Categories.Count; i++)
             {
                 configOutcome.Categories[i].Name.ShouldEqual(configDTO.Categories[i].Name);
                 configOutcome.Categories[i].Description.ShouldEqual(configDTO.Categories[i].Description);
             }
-            for (var i = 0; i < configOutcome.ImageFiles.Count; i++)
+            for (var i = 0; i < configOutcome.Images.Count; i++)
             {
-                configOutcome.ImageFiles[i].Name.ShouldEqual(configDTO.ImageFiles[i].Name);
-                configOutcome.ImageFiles[i].ImageId.ShouldEqual(configDTO.ImageFiles[i].ImageId);
-                configOutcome.ImageFiles[i].Image.ShouldEqual(configDTO.ImageFiles[i].Image);
+                configOutcome.Images[i].ShouldEqual(configDTO.Images[i]);
             }
         };
 
         It Should_Store_Config_In_The_Repo = () => configRepoMock.Verify(c => c.UploadNewAsync(Moq.It.IsAny<ConfigDTO>()), Times.Once);
 
         private static ConfigDTO configOutcome;
-        private static ImageFile updatedBackground;
+        private static string updatedBackground;
         private static ConfigDTO configTest;
         private static IConfigService configService;
     }
@@ -465,13 +413,13 @@ namespace TheFreckExchange.Specs
     {
         Establish context = () =>
         {
-            configRepoMock.Setup(c => c.GetConfigAsync()).ReturnsAsync(configDTO);
-            configService = new ConfigService(configRepoMock.Object);
+            configRepoMock.Setup(c => c.GetConfigAsync(Moq.It.IsAny<string>())).ReturnsAsync(configDTO);
+            configService = new ConfigService(configRepoMock.Object, accountRepoMock.Object);
         };
 
-        Because of = () => configOutcome = configService.GetConfigAsync().GetAwaiter().GetResult();
+        Because of = () => configOutcome = configService.GetConfigAsync(configDTO.ConfigId).GetAwaiter().GetResult();
 
-        It Should_Get_Config_From_Repo = () => configRepoMock.Verify(c => c.GetConfigAsync(), Times.Once);
+        It Should_Get_Config_From_Repo = () => configRepoMock.Verify(c => c.GetConfigAsync(Moq.It.IsAny<string>()), Times.Once);
 
         It Should_Return_Config = () =>
         {
@@ -480,10 +428,8 @@ namespace TheFreckExchange.Specs
             configOutcome.CategoryTitle.ShouldEqual(configDTO.CategoryTitle);
             configOutcome.SiteTitle.ShouldEqual(configDTO.SiteTitle);
             configOutcome.Categories.Count.ShouldEqual(configDTO.Categories.Count);
-            configOutcome.ImageFiles.Count.ShouldEqual(configDTO.ImageFiles.Count);
-            configOutcome.Background.Name.ShouldEqual(configDTO.Background.Name);
-            configOutcome.Background.ImageId.ShouldEqual(configDTO.Background.ImageId);
-            configOutcome.Background.Image.ShouldEqual(configDTO.Background.Image);
+            configOutcome.Images.Count.ShouldEqual(configDTO.Images.Count);
+            configOutcome.Background.ShouldEqual(configDTO.Background);
         };
 
         private static IConfigService configService;

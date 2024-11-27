@@ -2,11 +2,11 @@ import { Box, Button, Grid2, Modal, TextField, Typography } from "@mui/material"
 import react, { useContext, useEffect, useState } from "react";
 import ImageUpload from "./ImageUpload";
 import axios from "axios";
-import { ProductContext } from "../../Context";
+import { AccountContext, ProductContext } from "../../Context";
 import Descriptions from "../../components/Descriptions";
 
 const configTemplate = {
-    background: {image:"",name: ""},
+    background: "",
     categories: [
         {name:"",description:"",url:""},
         {name:"",description:"",url:""},
@@ -21,8 +21,10 @@ const configTemplate = {
 };
 
 export const SiteConfiguration = () => {
-    const { uploadImages, getImages, updateConfigurationAsync,getConfigurationAsync,createConfigurationAsync} = useContext(ProductContext);
+    const { uploadImagesAsync, getImages, updateConfigurationAsync,getConfigurationAsync,createConfigurationAsync} = useContext(ProductContext);
     const [siteTitle,setSiteTitle] = useState("");
+    const [backgroundImage, setBackgroundImage] = useState({});
+    const [siteImages,setSiteImages] = useState([]);
     const [config,setConfig] = useState(configTemplate);
     const productApi = axios.create({
         baseURL: `https://localhost:7299/Product`
@@ -31,19 +33,13 @@ export const SiteConfiguration = () => {
     useEffect(() => {
         getConfigurationAsync(cfg => {
             setConfig(cfg);
-            console.log("got config: ", cfg);
         });
     },[]);
-
-    useEffect(() => {
-        console.log("setting siteTitle: ", siteTitle);
-    },[siteTitle]);
 
     const setTitleConfig = () => {
         console.log("siteTitle: ", siteTitle);
         setConfig({...config,siteTitle});
         updateConfigurationAsync({...config,siteTitle},cfg => {
-            console.log("updated site title: ", cfg);
         });
     }
 
@@ -63,7 +59,10 @@ export const SiteConfiguration = () => {
             </Grid2>
             <Grid2>
                 <Button
-                    onClick={() => createConfigurationAsync(yup => console.log("yup: ", yup))}
+                    onClick={() => createConfigurationAsync(yup => {
+                        console.log("yup: ", yup);
+                        setConfig(yup);
+                    })}
                     variant="outlined"
                 >
                     Setup New Configuration
@@ -92,12 +91,13 @@ export const SiteConfiguration = () => {
                 <Typography
                     variant="h5"
                 >
-                    Upload Background Images
+                    Upload A Background Image
                 </Typography>
                 <ImageUpload
-                    getImages={getImages}
-                    uploadImages={uploadImages}
+                    getImages={getImages} 
+                    uploadImagesAsync={uploadImagesAsync}
                     type="background"
+                    multiple={false}
                 />
             </Grid2>
             <Grid2
@@ -110,8 +110,9 @@ export const SiteConfiguration = () => {
                 </Typography>
                     <ImageUpload 
                         getImages={getImages} 
-                        uploadImages={uploadImages}
+                        uploadImagesAsync={uploadImagesAsync}
                         type="site"
+                        multiple={true}
                     />
             </Grid2>
             <Grid2

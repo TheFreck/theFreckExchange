@@ -1,17 +1,22 @@
 import { Box, Button, Typography } from "@mui/material";
-import react, { useState } from "react";
+import react, { useContext, useEffect, useState } from "react";
 import axios from "axios";
+import { ProductContext } from "../../Context";
 
-export const ImageUpload = ({getImages,uploadImages,type}) => {
+export const ImageUpload = ({getImages,uploadImagesAsync,type,multiple}) => {
+    const {updateConfigurationAsync} = useContext(ProductContext);
     const imageApi = axios.create({
         baseURL: `https://localhost:7299/Product`
     })
     const [images, setImages] = useState([]);
 
+    useEffect(() => {
+        console.log("set images: ", images);
+    },[images]);
     return <Box
         sx={{marginTop: "10em"}}
     >
-        <input type="file" multiple onChange={e => getImages(e,im => {
+        <input type="file" multiple={multiple} onChange={e => getImages(e,im => {
             const toSet = [];
             for(let i=0; i<e.target.files.length; i++){
                 let filename = e.target.files[i].filename;
@@ -23,6 +28,7 @@ export const ImageUpload = ({getImages,uploadImages,type}) => {
             setImages(toSet);
         })} />
         <br/>
+        {console.log("images to view: ", images)}
         {
             images.length > 0 &&
             images.map((i, j) => (
@@ -33,7 +39,19 @@ export const ImageUpload = ({getImages,uploadImages,type}) => {
         <Button
             sx={{width: "100%"}}
             variant="contained"
-            onClick={() => uploadImages(images)}
+            onClick={() => uploadImagesAsync(images,async uploaded => {
+                console.log("before updating config: ", uploaded[0].imageId);
+                if(type==="background"){
+                    await updateConfigurationAsync({background: uploaded[0].imageId, configId: localStorage.getItem("configId")},cbck => {
+                        console.log("updated site background: ", cbck);
+                    })
+                }
+                else{
+                    await updateConfigurationAsync({images: uploaded.map(u => u.imageId), configId: localStorage.getItem("configId")}, cbck => {
+                        console.log("updated site images: ", cbck);
+                    })
+                }
+            })}
         >
             Upload
         </Button>

@@ -10,7 +10,8 @@ import CreateItems from "./Item/CreateItems";
 import SiteConfiguration from "./Admin/SiteConfig";
 
 const configTemplate = {
-    background: {image:"",name: ""},
+    background: "",
+    adminAccountId: "",
     categories: [
         {name:"",description:"",url:""},
         {name:"",description:"",url:""},
@@ -26,6 +27,7 @@ const configTemplate = {
 
 export const Welcome = () => {
     const {userView,setUserView,userEnum} = useContext(AccountContext);
+    const {userAcct} = useContext(AccountContext);
     const [products, setProducts] = useState([]);
     const [ready, setReady] = useState(false);
     const [config,setConfig] = useState(configTemplate);
@@ -39,7 +41,6 @@ export const Welcome = () => {
     });
 
     useEffect(() => {
-        console.log("welcome config: ", config);
         getConfigurationAsync(figs => {
             setConfig(figs);
             getProductsAsync(prods => {
@@ -51,31 +52,41 @@ export const Welcome = () => {
 
     // **********SITE*CONFIG************
     const getConfigurationAsync = async (cb) => {
-        await siteApi.get("config")
-            .then(yup => {
-                cb(yup.data);
-            })
-            .catch(nope => console.error(nope));
+        if(localStorage.getItem("loginToken") !== null && localStorage.getItem("loginToken") !== "" && localStorage.getItem("configId") !== null && localStorage.getItem("configId") !== ""){
+            await siteApi.get(`config/${localStorage.getItem("configId")}`)
+                .then(yup => {
+                    cb(yup.data);
+                })
+                .catch(nope => {
+                    console.error(nope);
+                    cb(nope);
+                });
+        }
+        else{
+            cb(configTemplate);
+        }
     }
+    
     const createConfigurationAsync = async (cb) => {
-        console.log("set config: ", configTemplate);
+        configTemplate.adminAccountId = userAcct.accountId;
+        configTemplate.configId = localStorage.getItem("configId");
         await siteApi.post("config/set",configTemplate)
             .then(yup => {
+                setConfig(yup.data);
                 cb(yup.data);
             })
             .catch(nope => console.error(nope));
     }
 
     const updateConfigurationAsync = async (fig,cb) => {
-        console.log("updating config: ", fig);
-        await siteApi.put("config/update",fig)
-            .then(yup => {
-                getConfigurationAsync(conf => {
+        await getConfigurationAsync(async conf => {
+            await siteApi.put(`config/update`,fig)
+                .then(yup => {
                     setConfig(conf)
                     cb(conf);
-                });
-            })
-            .catch(nope => console.error(nope));
+                })
+                .catch(nope => console.error(nope));
+            });
     }
 
     // **********PRODUCT**************
@@ -176,7 +187,7 @@ export const Welcome = () => {
     });
 
     // ***************IMAGES****************
-    const uploadImages = (images) => {
+    const uploadImagesAsync = (images,cb) => {
         const blobs = images.map(im => im.blob);
         readImagesAsync(blobs, isReady => {
             let formData = new FormData();
@@ -188,6 +199,7 @@ export const Welcome = () => {
             productApi.post("images/upload",formData)
             .then(yup => {
                 console.log("uploaded: ", yup.data);
+                cb(yup.data);
             })
             .catch(nope => console.error(nope));
         });
@@ -231,7 +243,7 @@ export const Welcome = () => {
     const WelcomeCallback = useCallback(() => {
         if (ready) return (
             <>
-                {userView !== userEnum.siteConfig && <StoreFront config={config} />}
+                {userView !== userEnum.siteConfig && <StoreFront />}
                 {/* {check local storage against server} */}
 
                 {userView === userEnum.createProduct && localStorage.getItem("permissions.admin") !== null && <CreateProduct created={created} />}
@@ -260,7 +272,7 @@ export const Welcome = () => {
                 updateItemsAsync, 
                 purchaseItemAsync,
                 getImages,
-                uploadImages,
+                uploadImagesAsync,
                 updateConfigurationAsync,
                 getConfigurationAsync,
                 createConfigurationAsync

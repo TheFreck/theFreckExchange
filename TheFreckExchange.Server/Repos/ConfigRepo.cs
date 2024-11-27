@@ -6,7 +6,7 @@ namespace TheFreckExchange.Server.Repos
 {
     public interface IConfigRepo
     {
-        Task<ConfigDTO> GetConfigAsync();
+        Task<ConfigDTO> GetConfigAsync(string configId);
         Task UploadNewAsync(ConfigDTO configDTO);
     }
 
@@ -21,9 +21,9 @@ namespace TheFreckExchange.Server.Repos
             configCollection = mongoDatabase.GetCollection<ConfigDTO>(settings.Value.ConfigCollectionName);
         }
 
-        public async Task<ConfigDTO> GetConfigAsync()
+        public async Task<ConfigDTO> GetConfigAsync(string configId)
         {
-            var config = await configCollection.FindAsync(c => c != null);
+            var config = await configCollection.FindAsync(c => c.ConfigId == configId);
             return config.FirstOrDefault();
         }
 

@@ -16,7 +16,8 @@ namespace TheFreckExchange.Server.DTO
         public string Name { get; set; } = String.Empty;
         [BsonElement("AccountId")]
         public string AccountId { get; init; } = String.Empty;
-        [BsonElement("UserName")]
+        public string SiteConfigId { get; set; } = String.Empty;
+        [BsonElement("Username")]
         public string Username { get; set; } = String.Empty;
         [BsonElement("Password")]
         public string Password = String.Empty;

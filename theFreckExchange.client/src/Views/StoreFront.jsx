@@ -1,11 +1,13 @@
 import { Box, Grid2, ImageList, ImageListItem, Modal, Typography } from "@mui/material";
-import react, { useEffect, useState } from "react";
+import react, { useContext, useEffect, useState } from "react";
 import Carousel from "react-material-ui-carousel";
 import axios from "axios";
 import ProductDescription from "./productDescription";
 import Descriptions from "../components/Descriptions";
+import { ProductContext } from "../Context";
 
-export const StoreFront = ({config}) => {
+export const StoreFront = () => {
+    const {getConfigurationAsync} = useContext(ProductContext);
     const productApi = axios.create({
         baseURL: `https://localhost:7299/Product`
     });
@@ -14,22 +16,25 @@ export const StoreFront = ({config}) => {
     const [background,setBackground] = useState("");
 
     useEffect(() => {
-        productApi.get("images")
-            .then(async yup => {
-                let yupReturn = [];
-                for (var im of yup.data) {
-                    let img = await fetch(window.atob(im.image));
-                    let blob = await img.blob();
-                    im.img = URL.createObjectURL(blob);
-                    if(im.name.includes("background")){
-                        setBackground(im.img);
-                        continue;
+        getConfigurationAsync(figs => {
+            if(localStorage.getItem("configId") === null && figs.configId == null) return;
+            productApi.get(`images/site/${localStorage.getItem("configId")}`)
+                .then(async yup => {
+                    let yupReturn = [];
+                    for (var im of yup.data) {
+                        let img = await fetch(window.atob(im.image));
+                        let blob = await img.blob();
+                        im.img = URL.createObjectURL(blob);
+                        if(im.name.includes("background")){
+                            setBackground(im.img);
+                            continue;
+                        }
+                        yupReturn.push(im);
                     }
-                    yupReturn.push(im);
-                }
-                setImages(yupReturn);
-            })
-            .catch(nope => console.error(nope));
+                    setImages(yupReturn);
+                })
+                .catch(nope => console.error(nope));
+        })
     }, []);
 
     const ImageGroups = () => {

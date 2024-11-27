@@ -18,7 +18,7 @@ namespace TheFreckExchange.Server.DTO
         
         public string CategoryTitle {  get; set; } = String.Empty;
         public List<Categories> Categories { get; set; } = new List<Categories>();
-        public List<ImageFile> ImageFiles { get; set; } = new List<ImageFile>();
-        public ImageFile? Background {  get; set; }
+        public List<string> Images { get; set; } = new List<string>();
+        public string Background { get; set; } = String.Empty;
     }
 }

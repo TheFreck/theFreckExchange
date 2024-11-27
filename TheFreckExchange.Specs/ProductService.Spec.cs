@@ -23,6 +23,7 @@ namespace TheFreckExchange.Specs
             accountRepoMock = new Mock<IAccountRepo>();
             imageRepoMock = new Mock<IImageRepo>();
             loginServiceMock = new Mock<ILoginService>();
+            configRepoMock = new Mock<IConfigRepo>();
             loginService = new LoginService(accountRepoMock.Object);
             account1Id = Guid.NewGuid().ToString();
             account2Id = Guid.NewGuid().ToString();
@@ -77,6 +78,17 @@ namespace TheFreckExchange.Specs
                 UserToken = permission1b.Token,
                 LoginToken = "LoginToken"
             };
+            configId = Guid.NewGuid().ToString();
+            config = new ConfigDTO
+            {
+                AdminAccountId = account1.AccountId,
+                Background = String.Empty,
+                CategoryTitle = "Mock category title",
+                ConfigId = configId,
+                SiteTitle = "Mock site title",
+                Categories = new List<Categories>(),
+                Images = new List<string>()
+            };
         };
 
 
@@ -85,6 +97,7 @@ namespace TheFreckExchange.Specs
         protected static Mock<IAccountRepo> accountRepoMock;
         protected static Mock<IImageRepo> imageRepoMock;
         protected static Mock<ILoginService> loginServiceMock;
+        protected static Mock<IConfigRepo> configRepoMock;
         protected static ILoginService loginService;
         protected static string account1Id;
         protected static string account2Id;
@@ -112,6 +125,8 @@ namespace TheFreckExchange.Specs
         protected static List<string> product1AvailableAttributes;
         protected static List<string> product2AvailableAttributes;
         protected static LoginCredentials loginCreds;
+        protected static string configId;
+        protected static ConfigDTO config;
     }
 
     public class When_Creating_A_New_Product : With_ProductRepo_Setup
@@ -121,10 +136,10 @@ namespace TheFreckExchange.Specs
             stream1 = new MemoryStream(Encoding.ASCII.GetBytes("these are the first image bytes"));
             stream2 = new MemoryStream(Encoding.ASCII.GetBytes("these are the second image bytes"));
 
-            images = new List<IFormFile>
+            images = new List<string>
             {
-                new FormFile(stream1,0,stream1.Length,"hatImage1","hatImageName1"),
-                new FormFile(stream2,0,stream2.Length,"hatImage2","hatImageName2")
+                "image 1",
+                "image 2"
             };
             loginServiceMock.Setup(l => l.ValidatePermissionsAsync(Moq.It.IsAny<Account>(), PermissionType.Admin, Moq.It.IsAny<string>())).ReturnsAsync(true);
             inputs = new List<(string name, string id, string desccription, double price)>
@@ -132,7 +147,7 @@ namespace TheFreckExchange.Specs
                 new (product1Name,product1Id,product1Desc,product1Price),
                 new (product2Name,product2Id,product2Desc,product2Price)
             };
-            storeFront = new ProductService(productRepoMock.Object, itemRepoMock.Object, accountRepoMock.Object, loginServiceMock.Object, imageRepoMock.Object);
+            storeFront = new ProductService(productRepoMock.Object, itemRepoMock.Object, accountRepoMock.Object, loginServiceMock.Object, imageRepoMock.Object,configRepoMock.Object);
             attributes = new List<string>
             {
                 "Color","Size","Style"
@@ -191,7 +206,7 @@ namespace TheFreckExchange.Specs
         private static List<(string name, string id, string desccription, double price)> inputs;
         private static List<Product> expectations;
         private static List<Product> outcomes;
-        private static List<IFormFile> images;
+        private static List<string> images;
         private static MemoryStream stream1;
         private static MemoryStream stream2;
     }
@@ -204,17 +219,16 @@ namespace TheFreckExchange.Specs
             newPrice = 25.75;
             oldDescription = "old description";
             newDescription = "new description is better";
-            oldImageStream1 = new MemoryStream(Encoding.ASCII.GetBytes("these are the old image bytes"));
-            oldImageStream2 = new MemoryStream(Encoding.ASCII.GetBytes("these are the old image bytes"));
-            newImageStream = new MemoryStream(Encoding.ASCII.GetBytes("these are the new image bytes"));
-            oldImages = new List<byte[]>
+            oldImages = new List<string>
             {
-                oldImageStream1.ToArray(),
-                oldImageStream2.ToArray(),
+                "old image 1",
+                "old image 2"
             };
-            newImages = new List<byte[]>
+            newImages = new List<string>
             {
-                newImageStream.ToArray()
+                "old image 1",
+                "new image 1",
+                "old image 2"
             };
             oldAttributes = new List<string>
             {
@@ -224,7 +238,8 @@ namespace TheFreckExchange.Specs
             newAttributes = new List<string>
             {
                 "Color",
-                "Style"
+                "Style",
+                "Size"
             };
             oldProduct = new Product
             {
@@ -233,7 +248,7 @@ namespace TheFreckExchange.Specs
                 ProductDescription = oldDescription,
                 ProductId = product1Id,
                 AvailableAttributes = oldAttributes,
-                ImageBytes = oldImages
+                ImageReferences = oldImages
             };
             newProduct = new Product
             {
@@ -242,12 +257,12 @@ namespace TheFreckExchange.Specs
                 ProductDescription = newDescription,
                 ProductId = product1Id,
                 AvailableAttributes = newAttributes,
-                ImageBytes = newImages
+                ImageReferences = newImages
             };
             accountRepoMock.Setup(l => l.GetByUsernameAsync(account1.Username)).ReturnsAsync(account1);
             loginServiceMock.Setup(l => l.ValidatePermissionsAsync(Moq.It.IsAny<Account>(), PermissionType.Admin, Moq.It.IsAny<string>())).ReturnsAsync(true);
             productRepoMock.Setup(p => p.GetByNameAsync(Moq.It.IsAny<string>())).ReturnsAsync(oldProduct);
-            storeFront = new ProductService(productRepoMock.Object, itemRepoMock.Object, accountRepoMock.Object, loginServiceMock.Object, imageRepoMock.Object);
+            storeFront = new ProductService(productRepoMock.Object, itemRepoMock.Object, accountRepoMock.Object, loginServiceMock.Object, imageRepoMock.Object, configRepoMock.Object);
         };
 
         Because of = () => outcome = storeFront.ModifyProductAsync(newProduct).GetAwaiter().GetResult();
@@ -261,7 +276,7 @@ namespace TheFreckExchange.Specs
             outcome.ProductDescription.ShouldEqual(newProduct.ProductDescription);
             outcome.ProductId.ShouldEqual(newProduct.ProductId);
             outcome.AvailableAttributes.ShouldContainOnly(newProduct.AvailableAttributes);
-            outcome.ImageBytes.ShouldContainOnly(newProduct.ImageBytes);
+            outcome.ImageReferences.ShouldContainOnly(newProduct.ImageReferences);
         };
 
         It Should_Retrieve_Product_From_Repo = () => productRepoMock.Verify(p => p.GetByNameAsync(oldProduct.Name), Times.Once);
@@ -276,8 +291,8 @@ namespace TheFreckExchange.Specs
         private static MemoryStream oldImageStream1;
         private static MemoryStream oldImageStream2;
         private static MemoryStream newImageStream;
-        private static List<byte[]> oldImages;
-        private static List<byte[]> newImages;
+        private static List<string> oldImages;
+        private static List<string> newImages;
         private static List<string> oldAttributes;
         private static List<string> newAttributes;
         private static double oldPrice;
@@ -307,7 +322,7 @@ namespace TheFreckExchange.Specs
                 }
             };
             productRepoMock.Setup(p => p.GetAllProducts()).Returns(products);
-            productService = new ProductService(productRepoMock.Object, itemRepoMock.Object, accountRepoMock.Object, loginServiceMock.Object, imageRepoMock.Object);
+            productService = new ProductService(productRepoMock.Object, itemRepoMock.Object, accountRepoMock.Object, loginServiceMock.Object, imageRepoMock.Object, configRepoMock.Object);
             expectations = products;
             outcomes = new List<Product>();
         };
@@ -364,7 +379,7 @@ namespace TheFreckExchange.Specs
             };
             productRepoMock.Setup(p => p.GetByNameAsync(product1Name)).ReturnsAsync(product1);
             productRepoMock.Setup(p => p.GetByNameAsync(product2Name)).ReturnsAsync(product2);
-            productService = new ProductService(productRepoMock.Object, itemRepoMock.Object, accountRepoMock.Object, loginServiceMock.Object, imageRepoMock.Object);
+            productService = new ProductService(productRepoMock.Object, itemRepoMock.Object, accountRepoMock.Object, loginServiceMock.Object, imageRepoMock.Object, configRepoMock.Object);
             expectations = products;
             outcomes = new List<Product>();
         };
@@ -450,7 +465,7 @@ namespace TheFreckExchange.Specs
                     },
                     Credentials = loginCreds,
                     SellerId = account1.AccountId,
-                    ImageBytes = new List<byte[]> { Encoding.ASCII.GetBytes("these are the image bytes") }
+                    ImageReferences = new List<string> { "First reference","Second reference" }
                 };
                 var stream = new MemoryStream(Encoding.ASCII.GetBytes("these are the image bytes"));
                 images = new List<FormFile>
@@ -477,7 +492,7 @@ namespace TheFreckExchange.Specs
             {
                 itemRepoMock.Setup(p => p.CreateAsync(Moq.It.IsAny<Item>())).ReturnsAsync(hats[i]);
             }
-            productService = new ProductService(productRepoMock.Object, itemRepoMock.Object, accountRepoMock.Object, loginServiceMock.Object, imageRepoMock.Object);
+            productService = new ProductService(productRepoMock.Object, itemRepoMock.Object, accountRepoMock.Object, loginServiceMock.Object, imageRepoMock.Object, configRepoMock.Object);
         };
 
         Because of = () =>
@@ -571,7 +586,7 @@ namespace TheFreckExchange.Specs
                     ProductId = product1Id,
                     SKU = Guid.NewGuid().ToString(),
                     Attributes = attributes,
-                    ImageBytes = new List<byte[]> { Encoding.ASCII.GetBytes("these are the image bytes") }
+                    ImageReferences = new List<string> { "Image reference" }
                 };
                 var stream = new MemoryStream(Encoding.ASCII.GetBytes("these are the image bytes"));
                 images = new List<FormFile>
@@ -597,7 +612,7 @@ namespace TheFreckExchange.Specs
             {
                 itemRepoMock.Setup(p => p.CreateAsync(Moq.It.IsAny<Item>())).ReturnsAsync(hats[i]);
             }
-            productService = new ProductService(productRepoMock.Object, itemRepoMock.Object, accountRepoMock.Object, loginServiceMock.Object, imageRepoMock.Object);
+            productService = new ProductService(productRepoMock.Object, itemRepoMock.Object, accountRepoMock.Object, loginServiceMock.Object, imageRepoMock.Object, configRepoMock.Object);
         };
 
         Because of = () => hatOutcomes = productService.CreateManyItemsAsync(product1Name, itemQuantity, attributes, loginCreds).GetAwaiter().GetResult().ToList();
@@ -693,7 +708,7 @@ namespace TheFreckExchange.Specs
                 ProductId = product1Id,
             });
             productRepoMock.Setup(p => p.UpdateAsync(Moq.It.IsAny<Product>()));
-            productService = new ProductService(productRepoMock.Object, itemRepoMock.Object, accountRepoMock.Object, loginServiceMock.Object, imageRepoMock.Object);
+            productService = new ProductService(productRepoMock.Object, itemRepoMock.Object, accountRepoMock.Object, loginServiceMock.Object, imageRepoMock.Object, configRepoMock.Object);
         };
 
         Because of = () => productService.UpdateProductWithImageAsync(product.ProductId, images).GetAwaiter().GetResult();
@@ -764,7 +779,7 @@ namespace TheFreckExchange.Specs
             }
             hatOutcomes = new List<Item>();
             itemRepoMock.Setup(p => p.GetAllItemsAsync(product1Id)).ReturnsAsync(hats);
-            productService = new ProductService(productRepoMock.Object, itemRepoMock.Object, accountRepoMock.Object, loginServiceMock.Object, imageRepoMock.Object);
+            productService = new ProductService(productRepoMock.Object, itemRepoMock.Object, accountRepoMock.Object, loginServiceMock.Object, imageRepoMock.Object, configRepoMock.Object);
         };
 
         Because of = () =>
@@ -915,7 +930,7 @@ namespace TheFreckExchange.Specs
                     .ReturnsAsync(hats.Where(h => h.Attributes.Where(a => a.Value == attributeValues[j]).Any()));
                 }
             }
-            productService = new ProductService(productRepoMock.Object, itemRepoMock.Object, accountRepoMock.Object, loginServiceMock.Object, imageRepoMock.Object);
+            productService = new ProductService(productRepoMock.Object, itemRepoMock.Object, accountRepoMock.Object, loginServiceMock.Object, imageRepoMock.Object, configRepoMock.Object);
             attributeOutcome = new List<GroupedAttributes>();
         };
 
@@ -962,7 +977,7 @@ namespace TheFreckExchange.Specs
                 AvailableAttributes = product1AvailableAttributes
             };
             productRepoMock.Setup(p => p.GetByNameAsync(Moq.It.IsAny<string>())).ReturnsAsync(product);
-            service = new ProductService(productRepoMock.Object, itemRepoMock.Object, accountRepoMock.Object, loginServiceMock.Object, imageRepoMock.Object);
+            service = new ProductService(productRepoMock.Object, itemRepoMock.Object, accountRepoMock.Object, loginServiceMock.Object, imageRepoMock.Object, configRepoMock.Object);
         };
 
         Because of = () => attributes = service.GetAvailableAttributes(product.Name).GetAwaiter().GetResult();
@@ -1051,7 +1066,7 @@ namespace TheFreckExchange.Specs
                     .ReturnsAsync(hats.Where(h => h.Attributes.Where(a => a.Value == attributeValues[j]).Any()));
                 }
             }
-            productService = new ProductService(productRepoMock.Object, itemRepoMock.Object, accountRepoMock.Object, loginServiceMock.Object, imageRepoMock.Object);
+            productService = new ProductService(productRepoMock.Object, itemRepoMock.Object, accountRepoMock.Object, loginServiceMock.Object, imageRepoMock.Object, configRepoMock.Object);
             redItems = new List<Item>();
             greenItems = new List<Item>();
             blackItems = new List<Item>();
@@ -1234,7 +1249,7 @@ namespace TheFreckExchange.Specs
                 ProductId = product1Id,
             });
             itemRepoMock.Setup(i => i.GetAllItemsAsync(product1Name)).ReturnsAsync(hats);
-            productService = new ProductService(productRepoMock.Object, itemRepoMock.Object, accountRepoMock.Object, loginServiceMock.Object, imageRepoMock.Object);
+            productService = new ProductService(productRepoMock.Object, itemRepoMock.Object, accountRepoMock.Object, loginServiceMock.Object, imageRepoMock.Object, configRepoMock.Object);
             items = new List<Item>();
         };
 
@@ -1357,7 +1372,7 @@ namespace TheFreckExchange.Specs
             loginServiceMock.Setup(l => l.ValidatePermissionsAsync(account1, PermissionType.User, Moq.It.IsAny<string>())).ReturnsAsync(true);
             accountRepoMock.Setup(a => a.GetByUsernameAsync(Moq.It.IsAny<string>())).ReturnsAsync(account1);
             itemRepoMock.Setup(i => i.GetByAttributesAsync(product1Name, Moq.It.IsAny<List<ItemAttribute>>())).ReturnsAsync(selectedHats);
-            productService = new ProductService(productRepoMock.Object, itemRepoMock.Object, accountRepoMock.Object, loginServiceMock.Object, imageRepoMock.Object);
+            productService = new ProductService(productRepoMock.Object, itemRepoMock.Object, accountRepoMock.Object, loginServiceMock.Object, imageRepoMock.Object, configRepoMock.Object);
             items = new List<Item>();
         };
 
@@ -1405,15 +1420,10 @@ namespace TheFreckExchange.Specs
         private static List<Item> items;
     }
 
-    public class When_Getting_All_Images_For_Site : With_ProductRepo_Setup
+    public class When_Getting_All_Images : With_ProductRepo_Setup
     {
         Establish context = () =>
         {
-            //var stream = new MemoryStream(Encoding.ASCII.GetBytes("these are the image bytes"));
-            //images = new List<IFormFile>
-            //{
-            //    new FormFile(stream,0,stream.Length,"hatImage","hatImageName")
-            //};
             images = new List<ImageFile>
             {
                 new ImageFile
@@ -1430,7 +1440,7 @@ namespace TheFreckExchange.Specs
                 }
             };
             imageRepoMock.Setup(r => r.GetAll()).Returns(images);
-            productService = new ProductService(productRepoMock.Object, itemRepoMock.Object, accountRepoMock.Object, loginServiceMock.Object, imageRepoMock.Object);
+            productService = new ProductService(productRepoMock.Object, itemRepoMock.Object, accountRepoMock.Object, loginServiceMock.Object, imageRepoMock.Object, configRepoMock.Object);
         };
 
         Because of = () => outcome = productService.GetAllImages();
@@ -1451,6 +1461,66 @@ namespace TheFreckExchange.Specs
         private static IEnumerable<ImageFile> outcome;
     }
 
+    public class When_Getting_All_Site_Images : With_ProductRepo_Setup
+    {
+        Establish context = () =>
+        {
+            image1Id = Guid.NewGuid().ToString();
+            image2Id = Guid.NewGuid().ToString();
+            image3Id = Guid.NewGuid().ToString();
+            config.Images.Add(image1Id);
+            config.Images.Add(image2Id);
+            images = new List<ImageFile>
+            {
+                new ImageFile
+                {
+                    Name = "image1",
+                    ImageId = image1Id,
+                    Image = Encoding.ASCII.GetBytes("the first image bytes")
+                },
+                new ImageFile
+                {
+                    Name = "image2",
+                    ImageId = image2Id,
+                    Image = Encoding.ASCII.GetBytes("the second image bytes")
+                },
+                new ImageFile
+                {
+                    Name = "image3",
+                    ImageId = Guid.NewGuid().ToString(),
+                    Image = Encoding.ASCII.GetBytes("the third image not attached to the config")
+                }
+            };
+            configRepoMock.Setup(c => c.GetConfigAsync(Moq.It.IsAny<string>())).ReturnsAsync(config);
+            imageRepoMock.Setup(r => r.GetAll()).Returns(images);
+            productService = new ProductService(productRepoMock.Object, itemRepoMock.Object, accountRepoMock.Object, loginServiceMock.Object, imageRepoMock.Object, configRepoMock.Object);
+        };
+
+        Because of = () => outcome = productService.GetAllSiteImagesAsync(configId).GetAwaiter().GetResult();
+
+        It Should_Only_Return_Site_Images = () => outcome.Count().ShouldEqual(config.Images.Count);
+
+        It Should_Return_A_List_Of_ImageFiles = () =>
+        {
+            for (var i = 0; i < config.Images.Count; i++)
+            {
+                outcome.Where(o => o.Name == images[i].Name).FirstOrDefault().ImageId.ShouldEqual(images[i].ImageId);
+                outcome.Where(o => o.Name == images[i].Name).FirstOrDefault().Image.ShouldEqual(images[i].Image);
+            }
+        };
+
+        It Should_Get_Images_From_ImageRepo = () => imageRepoMock.Verify(r => r.GetAll(), Times.Once);
+
+        It Should_Get_Config_From_Repo = () => configRepoMock.Verify(c => c.GetConfigAsync(Moq.It.IsAny<string>()), Times.Once);
+
+        private static List<ImageFile> images;
+        private static IProductService productService;
+        private static IEnumerable<ImageFile> outcome;
+        private static string image1Id;
+        private static string image2Id;
+        private static string image3Id;
+    }
+
     public class When_Uploading_An_Image_To_The_Site : With_ProductRepo_Setup
     {
         Establish context = () =>
@@ -1464,7 +1534,7 @@ namespace TheFreckExchange.Specs
                 new FormFile(stream2,0,stream2.Length,"hatImage2","hatImageName2")
             };
             imageRepoMock.Setup(r => r.UploadImageAsync(Moq.It.IsAny<ImageFile>()));
-            productService = new ProductService(productRepoMock.Object, itemRepoMock.Object, accountRepoMock.Object, loginServiceMock.Object, imageRepoMock.Object);
+            productService = new ProductService(productRepoMock.Object, itemRepoMock.Object, accountRepoMock.Object, loginServiceMock.Object, imageRepoMock.Object, configRepoMock.Object);
         };
 
         Because of = () => productService.UploadImagesAsync(images).GetAwaiter().GetResult();

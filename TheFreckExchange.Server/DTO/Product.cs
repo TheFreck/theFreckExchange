@@ -15,7 +15,7 @@ namespace TheFreckExchange.Server.DTO
         public required string ProductDescription { get; set; }
         public List<string> AvailableAttributes { get; set; } = new List<string>();
         public required double Price { get; set; }
-        public List<byte[]> ImageBytes { get; set; } = new List<byte[]>();
+        public List<string> ImageReferences { get; set; } = new List<string>();
         public string? ProductOwnerId { get; set; }
 
         public Product()
@@ -31,7 +31,7 @@ namespace TheFreckExchange.Server.DTO
         public required string Description { get; set; }
         public LoginCredentials? Credentials { get; set; }
         public List<string> Attributes { get; set; } = new List<string>();
-        public List<byte[]> ImageBytes { get; set; } = new List<byte[]>();
+        public List<string> ImageReferences { get; set; } = new List<string>();
     }
 
     public class Item : Product

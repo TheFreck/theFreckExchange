@@ -13,7 +13,7 @@ namespace TheFreckExchange.Server.Services
     {
         Task<Item> CreateItemAsync(string productId, Item item);
         Task<IEnumerable<Item>> CreateManyItemsAsync(string productName, int itemQuantity, List<ItemAttribute> attributes, LoginCredentials credentials);
-        Task<Product> CreateProductAsync(string name, string description, List<string> attributes, double price, LoginCredentials credentials, List<IFormFile> images);
+        Task<Product> CreateProductAsync(string name, string description, List<string> attributes, double price, LoginCredentials credentials, List<string> images);
         IEnumerable<Product> GetAll();
         Task<IEnumerable<GroupedAttributes>> GetAttributesAsync(string productName);
         Task<IEnumerable<Item>> GetByAttributeAsync(string productName, string type, string value);
@@ -27,7 +27,8 @@ namespace TheFreckExchange.Server.Services
         Task UpdateProductWithImageAsync(string productId, List<IFormFile> images);
         Task<Product> ModifyProductAsync(Product newProduct);
         IEnumerable<ImageFile> GetAllImages();
-        Task UploadImagesAsync(List<IFormFile> images);
+        Task<IEnumerable<ImageFile>> UploadImagesAsync(List<IFormFile> images);
+        Task<IEnumerable<ImageFile>> GetAllSiteImagesAsync(string configId);
     }
     public class ProductService : IProductService
     {
@@ -36,13 +37,15 @@ namespace TheFreckExchange.Server.Services
         private readonly IAccountRepo accountRepo;
         private readonly ILoginService loginService;
         private readonly IImageRepo imageRepo;
-        public ProductService(IProductRepo productRepo, IItemRepo itemRepo, IAccountRepo accountRepo, ILoginService loginService, IImageRepo imageRepo)
+        private readonly IConfigRepo configRepo;
+        public ProductService(IProductRepo productRepo, IItemRepo itemRepo, IAccountRepo accountRepo, ILoginService loginService, IImageRepo imageRepo, IConfigRepo configRepo)
         {
             this.productRepo = productRepo;
             this.itemRepo = itemRepo;
             this.accountRepo = accountRepo;
             this.loginService = loginService;
             this.imageRepo = imageRepo;
+            this.configRepo = configRepo;
         }
 
         public async Task<Item> CreateItemAsync(string productId, Item item)
@@ -99,7 +102,7 @@ namespace TheFreckExchange.Server.Services
             return new List<Item>();
         }
 
-        public async Task<Product> CreateProductAsync(string name, string description, List<string> attributes, double price, LoginCredentials credentials, List<IFormFile> images)
+        public async Task<Product> CreateProductAsync(string name, string description, List<string> attributes, double price, LoginCredentials credentials, List<string> images)
         {
             var account = await accountRepo.GetByUsernameAsync(credentials.Username);
 
@@ -113,29 +116,8 @@ namespace TheFreckExchange.Server.Services
                     ProductId = Guid.NewGuid().ToString(),
                     Price = price,
                     AvailableAttributes = attributes,
-                    ImageBytes = new List<byte[]>()
+                    ImageReferences = images
                 };
-                foreach (FormFile formFile in images)
-                {
-                    if (formFile.Length > 0)
-                    {
-                        using (var stream = new MemoryStream())
-                        {
-                            formFile.CopyTo(stream);
-                            var fileBytes = stream.ToArray();
-
-                            product.ImageBytes.Add(fileBytes);
-                            //await productRepo.UpdateAsync(product);
-
-                            //await imageRepo.UploadImageAsync(new ImageFile
-                            //{
-                            //    Image = fileBytes,
-                            //    ImageId = Guid.NewGuid().ToString(),
-                            //    Name = product.Name + count++
-                            //});
-                        }
-                    }
-                }
 
                 await productRepo.CreateAsync(product);
                 return product;
@@ -162,15 +144,15 @@ namespace TheFreckExchange.Server.Services
                     {
                         formFile.CopyTo(stream);
                         var fileBytes = stream.ToArray();
-
-                        product.ImageBytes.Add(fileBytes);
+                        var imageId = Guid.NewGuid().ToString();
+                        product.ImageReferences.Add(imageId);
                         await productRepo.UpdateAsync(product);
 
                         await imageRepo.UploadImageAsync(new ImageFile
                         {
                             Image = fileBytes,
-                            ImageId = Guid.NewGuid().ToString(),
-                            Name = product.Name + count++
+                            ImageId = imageId,
+                            Name = formFile.FileName
                         });
                     }
                 }
@@ -312,10 +294,10 @@ namespace TheFreckExchange.Server.Services
         public async Task<Product> ModifyProductAsync(Product newProduct)
         {
             var product = await productRepo.GetByNameAsync(newProduct.Name);
-            product.Price = newProduct.Price;
-            product.ProductDescription = newProduct.ProductDescription;
-            product.AvailableAttributes = newProduct.AvailableAttributes;
-            product.ImageBytes = newProduct.ImageBytes;
+            product.Price = newProduct.Price > 0 ? newProduct.Price : product.Price;
+            product.ProductDescription = newProduct.ProductDescription != String.Empty ? newProduct.ProductDescription : product.ProductDescription;
+            product.AvailableAttributes = newProduct.AvailableAttributes.Count > 0 ? product.AvailableAttributes.Concat(newProduct.AvailableAttributes).ToHashSet().ToList() : product.AvailableAttributes;
+            product.ImageReferences = newProduct.ImageReferences.Count > 0 ? product.ImageReferences.Concat(newProduct.ImageReferences).ToHashSet().ToList() : product.ImageReferences;
             await productRepo.UpdateAsync(product);
             return product;
         }
@@ -325,9 +307,10 @@ namespace TheFreckExchange.Server.Services
             return imageRepo.GetAll();
         }
 
-        public async Task UploadImagesAsync(List<IFormFile> images)
+        public async Task<IEnumerable<ImageFile>> UploadImagesAsync(List<IFormFile> images)
         {
             long size = images.Sum(f => f.Length);
+            var imageList = new List<ImageFile>();
             foreach (FormFile formFile in images)
             {
                 if (formFile.Length > 0)
@@ -337,16 +320,27 @@ namespace TheFreckExchange.Server.Services
                         formFile.CopyTo(stream);
                         var fileBytes = stream.ToArray();
 
-                        await imageRepo.UploadImageAsync(new ImageFile
+                        var newImageFile = new ImageFile
                         {
                             Image = fileBytes,
                             ImageId = Guid.NewGuid().ToString(),
                             Name = formFile.FileName
-                        });
+                        };
+                        await imageRepo.UploadImageAsync(newImageFile);
+                        imageList.Add(newImageFile);
                     }
                 }
             }
-            return;
+            return imageList;
+        }
+
+        public async Task<IEnumerable<ImageFile>> GetAllSiteImagesAsync(string configId)
+        {
+            var config = await configRepo.GetConfigAsync(configId);
+            if (config == null) return new List<ImageFile>();
+            var images = imageRepo.GetAll();
+            var siteImages = images.Where(i => config.Images.Contains(i.ImageId));
+            return siteImages;
         }
     }
 }

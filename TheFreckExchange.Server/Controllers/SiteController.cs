@@ -26,16 +26,19 @@ namespace TheFreckExchange.Server.Controllers
             return desc;
         }
 
-        [HttpGet("config")]
-        public async Task<ConfigDTO> GetSiteConfig()
+        [HttpGet("config/{configId}")]
+        public async Task<ConfigDTO> GetSiteConfig(string configId)
         {
-            return await configService.GetConfigAsync();
+            if (String.IsNullOrWhiteSpace(configId)) return new ConfigDTO();
+            var config = await configService.GetConfigAsync(configId);
+            if (String.IsNullOrWhiteSpace(config?.ConfigId)) return new ConfigDTO();
+            return config;
         }
 
         [HttpPost("config/set")]
-        public ConfigDTO SetConfigAsync([FromBody]ConfigDTO config)
+        public async Task<ConfigDTO> SetConfigAsync([FromBody]ConfigDTO config)
         {
-            return configService.CreateNew(config);
+            return await configService.CreateNewAsync(config);
         }
 
         [HttpPut("config/update")]
