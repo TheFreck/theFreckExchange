@@ -41,7 +41,7 @@ function App() {
             setBaseUrl("https://localhost:7299");
         }
         else if(process.env.NODE_ENV === "production"){
-            setBaseUrl("thefreckexchange-cvgkagadbkcedyfm.westus2-01.azurewebsites.net");
+            setBaseUrl("");
         }
     }, []);
 

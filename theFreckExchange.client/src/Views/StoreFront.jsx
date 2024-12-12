@@ -16,8 +16,8 @@ export const StoreFront = () => {
             cb("https://localhost:7299");
         }
         else if(process.env.NODE_ENV === "production"){
-            setBaseUrl("thefreckexchange-cvgkagadbkcedyfm.westus2-01.azurewebsites.net");
-            cb("thefreckexchange-cvgkagadbkcedyfm.westus2-01.azurewebsites.net");
+            setBaseUrl("");
+            cb("");
         }
     }
 

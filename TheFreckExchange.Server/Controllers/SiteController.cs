@@ -21,6 +21,9 @@ namespace TheFreckExchange.Server.Controllers
             this.logger = logger;
         }
 
+        [HttpGet("anything")]
+        public IActionResult Get() { return Ok("you made it here"); }
+
         [HttpGet("resource")]
         public async Task<string> GetResourceAsync([FromBody] Categories resource)
         {

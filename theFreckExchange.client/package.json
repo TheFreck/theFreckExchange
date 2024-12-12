@@ -3,7 +3,7 @@
   "private": true,
   "version": "0.0.0",
   "type": "module",
-  "homepage": "thefreckexchange-cvgkagadbkcedyfm.westus2-01.azurewebsites.net",
+  "homepage": "https://thefreckexchange-cvgkagadbkcedyfm.westus-01.azurewebsites.net/",
   "scripts": {
     "dev": "vite dev",
     "prod": "vite prod",

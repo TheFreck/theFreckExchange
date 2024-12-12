@@ -33,11 +33,11 @@ export const Welcome = () => {
     const [config,setConfig] = useState(configTemplate);
 
     const siteApi = axios.create({
-        baseURL: `${process.env.NODE_ENV === "development" ? "https://localhost:7299" : "thefreckexchange-cvgkagadbkcedyfm.westus2-01.azurewebsites.net"}/Site`
+        baseURL: `${process.env.NODE_ENV === "development" ? "https://localhost:7299/Site" : "/Site"}`
     });
 
     const productApi = axios.create({
-        baseURL: `${process.env.NODE_ENV === "development" ? "https://localhost:7299" : "thefreckexchange-cvgkagadbkcedyfm.westus2-01.azurewebsites.net"}/Product`
+        baseURL: `${process.env.NODE_ENV === "development" ? "https://localhost:7299/Product" : "/Product"}`
     });
 
     useEffect(() => {
