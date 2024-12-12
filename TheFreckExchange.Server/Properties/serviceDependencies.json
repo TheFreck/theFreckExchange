@@ -4,6 +4,14 @@
       "group": "connections",
       "type": "compute.appService"
     },
+    "secrets1": {
+      "type": "secrets"
+    },
+    "mongodb1": {
+      "type": "mongodb",
+      "connectionId": "ConnectionStrings:DatabaseConnection",
+      "dynamicId": null
+    },
     "apis1": {
       "type": "apis"
     }

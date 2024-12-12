@@ -1,7 +1,11 @@
 using TheFreckExchange.Server.Repos;
 using TheFreckExchange.Server.Services;
+using Azure.Identity;
 
 var builder = WebApplication.CreateBuilder(args);
+
+//var keyVaultEndpoint = new Uri(Environment.GetEnvironmentVariable("VaultUri")!);
+//builder.Configuration.AddAzureKeyVault(keyVaultEndpoint, new DefaultAzureCredential());
 
 builder.Services.Configure<MongoSettings>(builder.Configuration.GetSection("MongoConnection"));
 

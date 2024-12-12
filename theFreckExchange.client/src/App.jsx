@@ -24,14 +24,26 @@ const userEnum = {
     viewAccount: 6
 };
 
+
 function App() {
     const [view, setView] = useState(homeViewEnum.home);
     const [userView, setUserView] = useState(userEnum.home);
     const [userAcct, setUserAcct] = useState({});
+    const [refreshConfig,setRefreshConfig] = useState(false);
+    const [baseUrl,setBaseUrl] = useState("");
     
     const accountApi = axios.create({
-        baseURL: `/Account`
+        baseURL: `${baseUrl}/Account`
     });
+    
+    useEffect(() => {
+        if(process.env.NODE_ENV === "development"){
+            setBaseUrl("https://localhost:7299");
+        }
+        else if(process.env.NODE_ENV === "production"){
+            setBaseUrl("thefreckexchange-cvgkagadbkcedyfm.westus2-01.azurewebsites.net");
+        }
+    }, []);
 
     const login = (userName,password) => {
         accountApi.post(`login/`,{
@@ -40,10 +52,10 @@ function App() {
         })
         .then(yup => {
             setUserAcct(yup.data);
-            console.log("logged in user: ", yup.data);
             localStorage.setItem("username", yup.data.username)
             localStorage.setItem("loginToken",yup.data.loginToken);
-            localStorage.setItem("configId", yup.data.siteConfigId);
+            localStorage.setItem("configId", yup.data.siteConfigId !== "" && yup.data.siteConfig !== "00000000-0000-0000-0000-000000000000" ? yup.data.siteConfigId : "defaultConfig");
+            localStorage.setItem("siteTitle", yup.data.siteTitle);
             let admin = yup.data.permissions.find(p => p.type === 0);
             if(admin !== undefined){
                 localStorage.setItem("permissions.admin",admin.token);
@@ -52,6 +64,7 @@ function App() {
             if(user !== undefined){
                 localStorage.setItem("permissions.user",user.token);
             }
+            setView(0);
         })
         .catch(nope => console.error(nope));
     }
@@ -80,7 +93,9 @@ function App() {
         createAccount,
         userView,
         setUserView,
-        userEnum
+        userEnum,
+        refreshConfig,
+        setRefreshConfig
         }}>
         <Layout login={() => setView(homeViewEnum.login)} logout={logout}>
             {view === homeViewEnum.login && localStorage.getItem("loginToken") === null && 
@@ -88,7 +103,7 @@ function App() {
             }
                 <Welcome />
         </Layout>
-    </AccountContext.Provider>,[userAcct,view,userView]);
+    </AccountContext.Provider>,[userAcct,view,userView,baseUrl,refreshConfig]);
     return <AppCallback />
 }
 

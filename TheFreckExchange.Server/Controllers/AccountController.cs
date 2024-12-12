@@ -87,6 +87,10 @@ namespace TheFreckExchange.Server.Controllers
                     && account.AccountId != Guid.Empty.ToString()
                     && account.LoginToken != Guid.Empty.ToString())
                 {
+                    account.TokenSalt = new byte[64];
+                    account.PasswordSalt = new byte[64];
+                    account.Password = Guid.Empty.ToString();
+                    account.Permissions.ForEach(p => p.TokenSalt = new byte[64]);
                     return Ok(account);
                 }
                 else return BadRequest(account);

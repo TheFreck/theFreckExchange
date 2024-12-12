@@ -10,12 +10,14 @@ namespace TheFreckExchange.Server.Controllers
     {
         private readonly IDataGatheringService data;
         private readonly IConfigService configService;
+        private readonly IProductService productService;
         private readonly ILogger<SiteController> logger;
 
-        public SiteController(IDataGatheringService data, IConfigService configService, ILogger<SiteController> logger)
+        public SiteController(IDataGatheringService data, IConfigService configService, IProductService productService, ILogger<SiteController> logger)
         {
             this.data = data;
             this.configService = configService;
+            this.productService = productService;
             this.logger = logger;
         }
 
@@ -35,6 +37,12 @@ namespace TheFreckExchange.Server.Controllers
             return config;
         }
 
+        [HttpGet("config/background/{configId}")]
+        public async Task<ImageFile> GetBackgroundImageAsync(string configId)
+        {
+            return await productService.GetBackgroundImageAsync(configId);
+        }
+
         [HttpPost("config/set")]
         public async Task<ConfigDTO> SetConfigAsync([FromBody]ConfigDTO config)
         {
@@ -45,6 +53,12 @@ namespace TheFreckExchange.Server.Controllers
         public async Task<ConfigDTO> UpdateConfigAsync(ConfigDTO config)
         {
             return await configService.UpdateConfigAsync(config);
+        }
+
+        [HttpDelete("config/{configId}")]
+        public async Task<ConfigDTO> DeleteCurrentConfig(string configId)
+        {
+            return await configService.DeleteConfigAsync(configId);
         }
     }
 }

@@ -1,5 +1,6 @@
 ﻿using Machine.Specifications;
 using Microsoft.AspNetCore.Http;
+using MongoDB.Driver;
 using Moq;
 using System;
 using System.Collections.Generic;
@@ -19,6 +20,7 @@ namespace TheFreckExchange.Specs
         {
             configRepoMock = new Mock<IConfigRepo>();
             accountRepoMock = new Mock<IAccountRepo>();
+            productRepoMock = new Mock<IProductRepo>();
             name = "name";
             username = "username1@username.com";
             password = "password";
@@ -78,10 +80,12 @@ namespace TheFreckExchange.Specs
                 Categories = categories,
                 Images = imageRefs,
                 Background = background,
+                ConfigId = Guid.NewGuid().ToString()
             };
         };
         protected static Mock<IConfigRepo> configRepoMock;
         protected static Mock<IAccountRepo> accountRepoMock;
+        protected static Mock<IProductRepo> productRepoMock;
         protected static string name;
         protected static string username;
         protected static string password;
@@ -100,7 +104,8 @@ namespace TheFreckExchange.Specs
         Establish context = () =>
         {
             configRepoMock.Setup(c => c.UploadNewAsync(Moq.It.IsAny<ConfigDTO>()));
-            configService = new ConfigService(configRepoMock.Object,accountRepoMock.Object);
+            accountRepoMock.Setup(a => a.GetByAccountIdAsync(Moq.It.IsAny<string>())).ReturnsAsync(account);
+            configService = new ConfigService(configRepoMock.Object,accountRepoMock.Object,productRepoMock.Object);
         };
 
         Because of = () => configOutcome = configService.CreateNewAsync(configDTO).GetAwaiter().GetResult();
@@ -141,7 +146,7 @@ namespace TheFreckExchange.Specs
             };
             configRepoMock.Setup(c => c.UploadNewAsync(Moq.It.IsAny<ConfigDTO>()));
             configRepoMock.Setup(c => c.GetConfigAsync(Moq.It.IsAny<string>())).ReturnsAsync(configDTO);
-            configService = new ConfigService(configRepoMock.Object, accountRepoMock.Object);
+            configService = new ConfigService(configRepoMock.Object, accountRepoMock.Object, productRepoMock.Object);
         };
 
         Because of = () => configOutcome = configService.UpdateConfigAsync(configTest).GetAwaiter().GetResult();
@@ -182,7 +187,7 @@ namespace TheFreckExchange.Specs
             };
             configRepoMock.Setup(c => c.UploadNewAsync(Moq.It.IsAny<ConfigDTO>()));
             configRepoMock.Setup(c => c.GetConfigAsync(Moq.It.IsAny<string>())).ReturnsAsync(configDTO);
-            configService = new ConfigService(configRepoMock.Object, accountRepoMock.Object);
+            configService = new ConfigService(configRepoMock.Object, accountRepoMock.Object, productRepoMock.Object);
         };
 
         Because of = () => configOutcome = configService.UpdateConfigAsync(configTest).GetAwaiter().GetResult();
@@ -223,7 +228,7 @@ namespace TheFreckExchange.Specs
             };
             configRepoMock.Setup(c => c.UploadNewAsync(Moq.It.IsAny<ConfigDTO>()));
             configRepoMock.Setup(c => c.GetConfigAsync(Moq.It.IsAny<string>())).ReturnsAsync(configDTO);
-            configService = new ConfigService(configRepoMock.Object, accountRepoMock.Object);
+            configService = new ConfigService(configRepoMock.Object, accountRepoMock.Object, productRepoMock.Object);
         };
 
         Because of = () => configOutcome = configService.UpdateConfigAsync(configTest).GetAwaiter().GetResult();
@@ -296,7 +301,7 @@ namespace TheFreckExchange.Specs
             };
             configRepoMock.Setup(c => c.UploadNewAsync(Moq.It.IsAny<ConfigDTO>()));
             configRepoMock.Setup(c => c.GetConfigAsync(Moq.It.IsAny<string>())).ReturnsAsync(configDTO);
-            configService = new ConfigService(configRepoMock.Object, accountRepoMock.Object);
+            configService = new ConfigService(configRepoMock.Object, accountRepoMock.Object, productRepoMock.Object);
         };
 
         Because of = () => configOutcome = configService.UpdateConfigAsync(configTest).GetAwaiter().GetResult();
@@ -341,7 +346,7 @@ namespace TheFreckExchange.Specs
             };
             configRepoMock.Setup(c => c.UploadNewAsync(Moq.It.IsAny<ConfigDTO>()));
             configRepoMock.Setup(c => c.GetConfigAsync(Moq.It.IsAny<string>())).ReturnsAsync(configDTO);
-            configService = new ConfigService(configRepoMock.Object, accountRepoMock.Object);
+            configService = new ConfigService(configRepoMock.Object, accountRepoMock.Object, productRepoMock.Object);
         };
 
         Because of = () => configOutcome = configService.UpdateConfigAsync(configTest).GetAwaiter().GetResult();
@@ -379,7 +384,7 @@ namespace TheFreckExchange.Specs
             };
             configRepoMock.Setup(c => c.UploadNewAsync(Moq.It.IsAny<ConfigDTO>()));
             configRepoMock.Setup(c => c.GetConfigAsync(Moq.It.IsAny<string>())).ReturnsAsync(configDTO);
-            configService = new ConfigService(configRepoMock.Object, accountRepoMock.Object);
+            configService = new ConfigService(configRepoMock.Object, accountRepoMock.Object, productRepoMock.Object);
         };
 
         Because of = () => configOutcome = configService.UpdateConfigAsync(configTest).GetAwaiter().GetResult();
@@ -414,7 +419,7 @@ namespace TheFreckExchange.Specs
         Establish context = () =>
         {
             configRepoMock.Setup(c => c.GetConfigAsync(Moq.It.IsAny<string>())).ReturnsAsync(configDTO);
-            configService = new ConfigService(configRepoMock.Object, accountRepoMock.Object);
+            configService = new ConfigService(configRepoMock.Object, accountRepoMock.Object, productRepoMock.Object);
         };
 
         Because of = () => configOutcome = configService.GetConfigAsync(configDTO.ConfigId).GetAwaiter().GetResult();
@@ -434,5 +439,31 @@ namespace TheFreckExchange.Specs
 
         private static IConfigService configService;
         private static ConfigDTO configOutcome;
+    }
+
+    public class When_Deleting_Current_Site_Config : With_ConfigRepo_Setup
+    {
+        Establish context = () =>
+        {
+            configRepoMock.Setup(c => c.GetConfigAsync(Moq.It.IsAny<string>())).ReturnsAsync(configDTO);
+            configRepoMock.Setup(c => c.DeleteConfigAsync(Moq.It.IsAny<string>())).ReturnsAsync(configDTO);
+            configService = new ConfigService(configRepoMock.Object, accountRepoMock.Object, productRepoMock.Object);
+        };
+
+        Because of = () => deleteOutcome = configService.DeleteConfigAsync(configDTO.ConfigId).GetAwaiter().GetResult();
+
+        It Should_Find_Config_In_Repo = () => configRepoMock.Verify(c => c.GetConfigAsync(Moq.It.IsAny<string>()), Times.Once);
+
+        It Should_Return_Deleted_Config = () =>
+        {
+            deleteOutcome.AdminAccountId.ShouldEqual(configDTO.AdminAccountId);
+            deleteOutcome.ConfigId.ShouldEqual(configDTO.ConfigId);
+            deleteOutcome.SiteTitle.ShouldEqual(configDTO.SiteTitle);
+        };
+
+        It Should_Remove_Config_From_Repo = () => configRepoMock.Verify(c => c.DeleteConfigAsync(Moq.It.IsAny<string>()),Times.Once);
+
+        private static IConfigService configService;
+        private static ConfigDTO deleteOutcome;
     }
 }

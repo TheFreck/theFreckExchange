@@ -1,11 +1,11 @@
 import axios from "axios";
 
 const productApi = axios.create({
-    baseURL: `https://localhost:7299/Product`
+    baseURL: `https://thefreckexchange-cvgkagadbkcedyfm.westus2-01.azurewebsites.net/Product`
 });
 
 const accountApi = axios.create({
-    baseURL: `https://localhost:7299/Account`
+    baseURL: `https://thefreckexchange-cvgkagadbkcedyfm.westus2-01.azurewebsites.net/Account`
 });
 
 export const Helpers = {

@@ -82,7 +82,7 @@ export const Layout = (props) => {
             </IconButton>
         </Dropdown>
         <Typography variant="h6" component="div" sx={{ flexGrow: 1, letterSpacing: "2em" }}>
-          theFreck Hat Exchange
+          {localStorage.getItem("siteTitle")}
         </Typography>
         {localStorage.getItem("loginToken") === null && <Button onClick={login} color="inherit">Login</Button>}
         {localStorage.getItem("loginToken") !== null && <Button onClick={logout} color="inherit">Logout</Button>}

@@ -1,13 +1,25 @@
 {
   "dependencies": {
-    "apis2": {
-      "ignored": "True",
-      "type": "apis"
-    },
     "compute.appService1": {
       "group": "connections",
       "resourceId": "/subscriptions/[parameters('subscriptionId')]/resourceGroups/[parameters('resourceGroupName')]/providers/Microsoft.Web/sites/theFreckExchange",
       "type": "compute.appService.windows"
+    },
+    "apis2": {
+      "ignored": "True",
+      "type": "apis"
+    },
+    "secrets1": {
+      "type": "secrets.user"
+    },
+    "mongodb1": {
+      "containerPorts": "27017:27017",
+      "secretStore": "LocalSecretsFile",
+      "containerName": "mongodb",
+      "containerImage": "mongo",
+      "type": "mongodb.container",
+      "connectionId": "ConnectionStrings:DatabaseConnection",
+      "dynamicId": null
     }
   }
 }

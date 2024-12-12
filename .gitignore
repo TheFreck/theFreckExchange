@@ -402,3 +402,6 @@ FodyWeavers.xsd
 /Payment_Processing.Server/appsettings.json
 *.crt
 *.key
+/.env
+/.env.development
+/.env.production

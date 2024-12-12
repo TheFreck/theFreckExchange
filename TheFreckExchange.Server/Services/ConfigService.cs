@@ -6,6 +6,7 @@ namespace TheFreckExchange.Server.Services
     public interface IConfigService
     {
         Task<ConfigDTO> CreateNewAsync(ConfigDTO config);
+        Task<ConfigDTO> DeleteConfigAsync(string configId);
         Task<ConfigDTO> GetConfigAsync(string configId);
         Task<ConfigDTO> UpdateConfigAsync(ConfigDTO configDTO);
     }
@@ -14,20 +15,36 @@ namespace TheFreckExchange.Server.Services
     {
         private readonly IConfigRepo configRepo;
         private readonly IAccountRepo accountRepo;
+        private readonly IProductRepo productRepo;
 
-        public ConfigService(IConfigRepo configRepo, IAccountRepo accountRepo)
+        public ConfigService(IConfigRepo configRepo, IAccountRepo accountRepo, IProductRepo productRepo)
         {
             this.configRepo = configRepo;
             this.accountRepo = accountRepo;
+            this.productRepo = productRepo;
         }
 
         public async Task<ConfigDTO> CreateNewAsync(ConfigDTO config)
         {
+            config.ConfigId = Guid.NewGuid().ToString();
             await configRepo.UploadNewAsync(config);
             var admin = await accountRepo.GetByAccountIdAsync(config.AdminAccountId);
             admin.SiteConfigId = config.ConfigId;
             accountRepo.Update(admin);
             return config;
+        }
+
+        public async Task<ConfigDTO> DeleteConfigAsync(string configId)
+        {
+            var config = await configRepo.GetConfigAsync(configId);
+            if (config != null)
+            {
+                return await configRepo.DeleteConfigAsync(configId);
+            }
+            else
+            {
+                return new ConfigDTO();
+            }
         }
 
         public async Task<ConfigDTO> GetConfigAsync(string configId)

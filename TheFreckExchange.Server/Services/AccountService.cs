@@ -73,6 +73,7 @@ namespace TheFreckExchange.Server.Services
             account.LoginToken = string.Empty;
             account.PasswordSalt = new byte[64];
             account.TokenSalt = new byte[64];
+            account.Permissions.ForEach(p => p.TokenSalt = new byte[64]);
             return account;
         }
 
@@ -85,6 +86,7 @@ namespace TheFreckExchange.Server.Services
             account.LoginToken = string.Empty;
             account.PasswordSalt = new byte[64];
             account.TokenSalt = new byte[64];
+            account.Permissions.ForEach(p => p.TokenSalt = new byte[64]);
 
             return account;
         }
@@ -99,6 +101,7 @@ namespace TheFreckExchange.Server.Services
                 a.PasswordSalt = new byte[64];
                 a.LoginToken = string.Empty;
                 a.TokenSalt = new byte[64];
+                a.Permissions.ForEach(p => p.TokenSalt = new byte[64]);
             });
             return accounts;
         }
@@ -113,6 +116,7 @@ namespace TheFreckExchange.Server.Services
             account.LoginToken = string.Empty;
             account.PasswordSalt = new byte[64];
             account.TokenSalt = new byte[64];
+            account.Permissions.ForEach(p => p.TokenSalt = new byte[64]);
             return account;
         }
 
@@ -125,6 +129,7 @@ namespace TheFreckExchange.Server.Services
             account.LoginToken = string.Empty;
             account.PasswordSalt = new byte[64];
             account.TokenSalt = new byte[64];
+            account.Permissions.ForEach(p => p.TokenSalt = new byte[64]);
 
             return account;
         }

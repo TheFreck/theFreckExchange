@@ -97,11 +97,11 @@
               "type": "Microsoft.ApiManagement/service/apis",
               "name": "TheFreckExchangeServerapi/TheFreckExchangeServer",
               "properties": {
-                "displayName": "TheFreckExchangeServer",
+                "displayName": "TheFreckExchange.Server, Version=1.0.0.0, Culture=neutral, PublicKeyToken=null",
                 "apiRevision": "1",
                 "description": null,
                 "subscriptionRequired": true,
-                "serviceUrl": null,
+                "serviceUrl": "https://thefreckexchange-cvgkagadbkcedyfm.westus2-01.azurewebsites.net",
                 "path": "",
                 "protocols": [
                   "https"

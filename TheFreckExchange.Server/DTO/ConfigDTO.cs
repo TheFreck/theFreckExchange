@@ -10,9 +10,9 @@ namespace TheFreckExchange.Server.DTO
         [BsonRepresentation(BsonType.ObjectId)]
         public string? Id { get; set; }
 
-        public string ConfigId {  get; set; } = Guid.NewGuid().ToString();
+        public string ConfigId {  get; set; } = Guid.Empty.ToString();
 
-        public string AdminAccountId {get;set; } = Guid.NewGuid().ToString();
+        public string AdminAccountId {get;set; } = Guid.Empty.ToString();
 
         public string SiteTitle { get; set; } = String.Empty;
         

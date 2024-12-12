@@ -16,19 +16,18 @@ const configTemplate = {
         {name:"",description:"",url:""}
     ],
     categoryTitle: "",
-    iamgeFiles: [],
+    imageFiles: [],
     siteTitle: ""
 };
 
 export const SiteConfiguration = () => {
-    const { uploadImagesAsync, getImages, updateConfigurationAsync,getConfigurationAsync,createConfigurationAsync} = useContext(ProductContext);
+    const { uploadImagesAsync, getImages, updateConfigurationAsync,getConfigurationAsync,createConfigurationAsync,deleteConfigurationAsync} = useContext(ProductContext);
+    const { refreshConfig,setRefreshConfig } = useContext(AccountContext);
     const [siteTitle,setSiteTitle] = useState("");
     const [backgroundImage, setBackgroundImage] = useState({});
     const [siteImages,setSiteImages] = useState([]);
     const [config,setConfig] = useState(configTemplate);
-    const productApi = axios.create({
-        baseURL: `/Product`
-    });
+    
 
     useEffect(() => {
         getConfigurationAsync(cfg => {
@@ -37,9 +36,10 @@ export const SiteConfiguration = () => {
     },[]);
 
     const setTitleConfig = () => {
-        console.log("siteTitle: ", siteTitle);
         setConfig({...config,siteTitle});
+        localStorage.setItem("siteTitle", siteTitle);
         updateConfigurationAsync({...config,siteTitle},cfg => {
+            setRefreshConfig(!refreshConfig);
         });
     }
 
@@ -58,73 +58,91 @@ export const SiteConfiguration = () => {
                 </Typography>
             </Grid2>
             <Grid2>
-                <Button
-                    onClick={() => createConfigurationAsync(yup => {
-                        console.log("yup: ", yup);
-                        setConfig(yup);
-                    })}
-                    variant="outlined"
-                >
-                    Setup New Configuration
-                </Button>
+                {(localStorage.getItem("configId") !== "" && localStorage.getItem("configId") !== "00000000-0000-0000-0000-000000000000" && localStorage.getItem("configId") !== null) && 
+                    <Button
+                        onClick={() => deleteConfigurationAsync(localStorage.getItem("configId"),yup => {
+                            setConfig(yup);
+                            setRefreshConfig(!refreshConfigs);
+                        })}
+                        variant="outlined"
+                    >
+                        Delete Current Configuration
+                    </Button>
+                }
+                {(localStorage.getItem("configId") === "00000000-0000-0000-0000-000000000000" || localStorage.getItem("configId") === "" || localStorage.getItem("configId") === null) && 
+                    <Button
+                        onClick={() => createConfigurationAsync(yup => {
+                            setConfig(yup);
+                            setRefreshConfig(!refreshConfig);
+                        })}
+                        variant="contained"
+                    >
+                        Setup New Configuration
+                    </Button>
+                }
             </Grid2>
-            <Grid2
-                sx={{border: "solid",padding: "1em", height: "10vh"}}
-            >
-                <TextField
-                    sx={{height: "100%"}}
-                    label="Site Title"
-                    onChange={t => setSiteTitle(t.target.value)}
-                    value={siteTitle}
-                />
-                <Button
-                    sx={{height: "100%"}}
-                    variant="contained"
-                    onClick={setTitleConfig}
-                >
-                    Set Title
-                </Button>
-            </Grid2>
-            <Grid2
-                sx={{border: "solid"}}
-            >
-                <Typography
-                    variant="h5"
-                >
-                    Upload A Background Image
-                </Typography>
-                <ImageUpload
-                    getImages={getImages} 
-                    uploadImagesAsync={uploadImagesAsync}
-                    type="background"
-                    multiple={false}
-                />
-            </Grid2>
-            <Grid2
-                sx={{border: "solid"}}
-            >
-                <Typography
-                    variant="h5"
-                >
-                    Upload Site Images
-                </Typography>
-                    <ImageUpload 
-                        getImages={getImages} 
-                        uploadImagesAsync={uploadImagesAsync}
-                        type="site"
-                        multiple={true}
-                    />
-            </Grid2>
-            <Grid2
-                sx={{border: "solid"}}
-            >
-                <Typography
-                    variant="h5"
-                >
-                    Add categories and descriptions
-                </Typography>
-                <Descriptions isConfig={true} />
-            </Grid2>
+            {
+                (localStorage.getItem("configId") !== "" && localStorage.getItem("configId") !== "00000000-0000-0000-0000-000000000000" && localStorage.getItem("configId") !== null) && 
+                <Grid2 container sx={{display: "flex", flexDirection: "column"}}>
+                    <Grid2
+                        sx={{border: "solid",padding: "1em", height: "10vh"}}
+                    >
+                        <TextField
+                            sx={{height: "100%"}}
+                            label="Site Title"
+                            onChange={t => setSiteTitle(t.target.value)}
+                            value={siteTitle}
+                        />
+                        <Button
+                            sx={{height: "100%"}}
+                            variant="contained"
+                            onClick={setTitleConfig}
+                        >
+                            Set Title
+                        </Button>
+                    </Grid2>
+                    <Grid2
+                        sx={{border: "solid"}}
+                    >
+                        <Typography
+                            variant="h5"
+                        >
+                            Upload A Background Image
+                        </Typography>
+                        <ImageUpload
+                            getImages={getImages} 
+                            uploadImagesAsync={uploadImagesAsync}
+                            type="background"
+                            multiple={false}
+                        />
+                    </Grid2>
+                    <Grid2
+                        sx={{border: "solid"}}
+                    >
+                        <Typography
+                            variant="h5"
+                        >
+                            Upload Site Images
+                        </Typography>
+                            <ImageUpload 
+                                getImages={getImages} 
+                                uploadImagesAsync={uploadImagesAsync}
+                                type="site"
+                                multiple={true}
+                            />
+                    </Grid2>
+                    <Grid2
+                        sx={{border: "solid"}}
+                    >
+                        <Typography
+                            variant="h5"
+                        >
+                            Add categories and descriptions
+                        </Typography>
+                        <Descriptions isConfig={true} bckImage={config.background} />
+                    </Grid2>
+                </Grid2>
+            }
         </Grid2>
     </Box>
 }

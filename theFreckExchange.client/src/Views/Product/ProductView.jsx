@@ -70,7 +70,7 @@ export const ProductView = ({ product, view }) => {
                                                     product.attributes[i].value = s.target.value;
                                                     setAttributes([...attributes.filter(a => a.key !== type.type), { type: type.type, value: s.target.value, product: product.name }]);
                                                 }}
-                                            >{console.log("product textfield: ", product)}</TextField>
+                                            />
                                         ))
                                     }
                                     {

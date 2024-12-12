@@ -16,7 +16,7 @@ export const ModifyProduct = () => {
 
     useEffect(() => {
         if(products.length === 0 || ready) return;
-        console.log("initialize products: ", products);
+        // console.log("initialize products: ", products);
         var prods = [];
         for(var prod of products.values()){
             let ibs = [];
@@ -29,7 +29,7 @@ export const ModifyProduct = () => {
     }, []);
 
     const selectProduct = (p) => {
-        console.log("products: ", products);
+        // console.log("products: ", products);
         setSelectedProduct(p.target.value);
         setImageObjects(p.target.value.imageBytes);
         setProductPrice(p.target.value.price);
@@ -40,7 +40,7 @@ export const ModifyProduct = () => {
     }
 
     useEffect(() => {
-        console.log("selectedProduct: ", selectedProduct);
+        // console.log("selectedProduct: ", selectedProduct);
     },[selectedProduct]);
 
     const removeImage = image => {
@@ -61,14 +61,14 @@ export const ModifyProduct = () => {
             userToken: localStorage.getItem("permissions.user")
         }
         updateItemsAsync(selectedProduct,prod => {
-            console.log("prod back from update: ", prod);
+            // console.log("prod back from update: ", prod);
         });
     }
 
     const ImageCardCallback = useCallback(({image,i}) => (<Card>
-        {console.log("image bytes: ", image)}
-        {console.log("image bytes atob: ", window.atob(image.bytes))}
-        {console.log("image bytes btoa: ", window.btoa(image.bytes))}
+        {/* {console.log("image bytes: ", image)} */}
+        {/* {console.log("image bytes atob: ", window.atob(image.bytes))} */}
+        {/* {console.log("image bytes btoa: ", window.btoa(image.bytes))} */}
         {image.delete && 
             <DisabledByDefaultIcon 
                 onClick={() => {

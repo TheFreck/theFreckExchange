@@ -29,6 +29,7 @@ namespace TheFreckExchange.Server.Services
         IEnumerable<ImageFile> GetAllImages();
         Task<IEnumerable<ImageFile>> UploadImagesAsync(List<IFormFile> images);
         Task<IEnumerable<ImageFile>> GetAllSiteImagesAsync(string configId);
+        Task<ImageFile> GetBackgroundImageAsync(string configId);
     }
     public class ProductService : IProductService
     {
@@ -341,6 +342,13 @@ namespace TheFreckExchange.Server.Services
             var images = imageRepo.GetAll();
             var siteImages = images.Where(i => config.Images.Contains(i.ImageId));
             return siteImages;
+        }
+
+        public async Task<ImageFile> GetBackgroundImageAsync(string configId)
+        {
+            var config = await configRepo.GetConfigAsync(configId);
+            if (config == null || config.Background == null) return new ImageFile { Image = new byte[64],Name = "no background found" };
+            return await imageRepo.GetBackgroundImageAsync(config.Background);
         }
     }
 }

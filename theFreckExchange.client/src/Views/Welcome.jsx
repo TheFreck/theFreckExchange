@@ -21,7 +21,7 @@ const configTemplate = {
         {name:"",description:"",url:""}
     ],
     categoryTitle: "",
-    iamgeFiles: [],
+    imageFiles: [],
     siteTitle: ""
 };
 
@@ -33,26 +33,35 @@ export const Welcome = () => {
     const [config,setConfig] = useState(configTemplate);
 
     const siteApi = axios.create({
-        baseURL: `/Site`
+        baseURL: `${process.env.NODE_ENV === "development" ? "https://localhost:7299" : "thefreckexchange-cvgkagadbkcedyfm.westus2-01.azurewebsites.net"}/Site`
     });
 
     const productApi = axios.create({
-        baseURL: `/Product`
+        baseURL: `${process.env.NODE_ENV === "development" ? "https://localhost:7299" : "thefreckexchange-cvgkagadbkcedyfm.westus2-01.azurewebsites.net"}/Product`
     });
 
     useEffect(() => {
         getConfigurationAsync(figs => {
-            setConfig(figs);
-            getProductsAsync(prods => {
-                setProducts(prods);
-                setReady(true);
-            });
+            if(figs.configId !== null && figs.configId !== undefined)
+                localStorage.setItem("configId", figs.configId);
+            if(figs.siteTitle !== null && figs.siteTitle !== undefined && figs.siteTitle !== "" && figs.siteTitle !== "undefined")
+                localStorage.setItem("siteTitle", figs.siteTitle);
+            else
+                localStorage.setItem("siteTitle", "Default Site Title");
+            if(figs.adminAccountId !== null && figs.adminAccountId !== undefined){
+                setConfig(figs);
+                getProductsAsync(prods => {
+                    setProducts(prods);
+                    setReady(true);
+                });
+            }
         });
     }, []);
 
     // **********SITE*CONFIG************
     const getConfigurationAsync = async (cb) => {
         if(localStorage.getItem("loginToken") !== null && localStorage.getItem("loginToken") !== "" && localStorage.getItem("configId") !== null && localStorage.getItem("configId") !== ""){
+
             await siteApi.get(`config/${localStorage.getItem("configId")}`)
                 .then(yup => {
                     cb(yup.data);
@@ -72,6 +81,7 @@ export const Welcome = () => {
         configTemplate.configId = localStorage.getItem("configId");
         await siteApi.post("config/set",configTemplate)
             .then(yup => {
+                localStorage.setItem("configId", yup.data.configId);
                 setConfig(yup.data);
                 cb(yup.data);
             })
@@ -83,9 +93,29 @@ export const Welcome = () => {
             await siteApi.put(`config/update`,fig)
                 .then(yup => {
                     setConfig(conf)
+                    if(conf.siteTitle !== null && conf.siteTitle !== undefined && conf.siteTitle !== "")
+                        localStorage.setItem("siteTitle", conf.siteTitle);
                     cb(conf);
                 })
-                .catch(nope => console.error(nope));
+                .catch(nope => {
+                    console.error(nope)
+                    cb(nope);
+                });
+            });
+    }
+
+    const deleteConfigurationAsync = async (configId,cb) => {
+        await siteApi.delete(`config/${configId}`)
+            .then(yup => {
+                console.log("deleted: ", yup.data);
+                localStorage.setItem("configId","")
+                localStorage.setItem("siteTitle","");
+                setConfig(yup.data);
+                cb(yup.data);
+            })
+            .catch(nope => {
+                console.error(nope)
+                cb(nope);
             });
     }
 
@@ -94,6 +124,7 @@ export const Welcome = () => {
         await productApi.get()
             .then(yup => {
                 let prods = [];
+                if(yup.data.length === 0) cb([]);
                 for (let prod of yup.data) {
                     let imageObjects = [];
                     for (let image of prod.imageBytes) {
@@ -107,7 +138,10 @@ export const Welcome = () => {
                 }
                 cb(prods);
             })
-            .catch(nope => console.error(nope));
+            .catch(nope => {
+                console.error(nope)
+                cb(nope);p
+            });
     }
 
     const createProductAsync = async ({ name, description, attributes, price, images }, cb) => {
@@ -123,7 +157,10 @@ export const Welcome = () => {
                         cb();
                     });
                 })
-                .catch(nope => console.error(nope));
+                .catch(nope => {
+                    console.error(nope)
+                    cb(nope);
+                });
         })
     }
 
@@ -133,7 +170,10 @@ export const Welcome = () => {
             .then(yup => {
                 cb(yup.data);
             })
-            .catch(nope => console.error(nope));
+            .catch(nope => {
+                console.error(nope);
+                cb(nope);
+            });
     }
 
     const createItemsAsync = async ({ item, quantity, attributes }) => {
@@ -149,7 +189,10 @@ export const Welcome = () => {
             .then(yup => {
                 console.info("item created: ", yup.data);
             })
-            .catch(nope => console.error(nope));
+            .catch(nope => {
+                console.error(nope);
+                cb(nope);
+            });
     }
 
     const updateItemsAsync = (item, cb) => {
@@ -175,7 +218,10 @@ export const Welcome = () => {
             .then(yup => {
                 cb(yup.data);
             })
-            .catch(nope => console.error(nope));
+            .catch(nope => {
+                console.error(nope);
+                cb(nope);
+            });
     }
 
     // *********CREDS**********************
@@ -198,10 +244,13 @@ export const Welcome = () => {
 
             productApi.post("images/upload",formData)
             .then(yup => {
-                console.log("uploaded: ", yup.data);
+                // console.log("uploaded: ", yup.data);
                 cb(yup.data);
             })
-            .catch(nope => console.error(nope));
+            .catch(nope => {
+                console.error(nope);
+                cb(nope);
+            });
         });
     }
     
@@ -212,6 +261,17 @@ export const Welcome = () => {
             targetImages.push(URL.createObjectURL(e.target.files[i]));
         }
         cb(targetImages);
+    }
+
+    const getBackground = async (cb) => {
+        await siteApi.get(`config/background/${localStorage.getItem("configId")}`)
+            .then(yup => {
+                cb(yup.data);
+            })
+            .catch(nope => {
+                console.error(nope);
+                cb(nope);
+            })
     }
 
     const readImagesAsync = async (images, cb) => {
@@ -235,7 +295,7 @@ export const Welcome = () => {
     }
 
     const created = () => {
-        console.log("created");
+        console.info("created");
     }
     
     const CreateItemsCallback = useCallback(() => <CreateItems products={products} />,[products]);
@@ -250,19 +310,20 @@ export const Welcome = () => {
                 {userView === userEnum.createItems && localStorage.getItem("permissions.admin") !== null && <CreateItemsCallback />}
                 {userView === userEnum.updateProduct && localStorage.getItem("permissions.admin") !== null && <ModifyProduct />}
                 {userView === userEnum.siteConfig && localStorage.getItem("permissions.admin") !== null && <SiteConfiguration />}
-                
                 {userView === userEnum.shop && localStorage.getItem("permissions.user") !== null && <Store />}
                 {userView === userEnum.viewAccount && localStorage.getItem("permissions.user") !== null && <div>Placeholder for account view</div>}
                 
-            </>)
+            </>
+            )
         else return;
-    }, [products, ready]);
+    }, [products, ready, userView]);
 
     return <ProductContext.Provider 
             value={{ 
                 config, 
                 products, 
-                ready, 
+                ready,
+                userView, 
                 setReady, 
                 getProductsAsync, 
                 getItemsAsync, 
@@ -271,14 +332,16 @@ export const Welcome = () => {
                 getAvailableAttributesAsync, 
                 updateItemsAsync, 
                 purchaseItemAsync,
+                getBackground,
                 getImages,
                 uploadImagesAsync,
+                readImagesAsync,
                 updateConfigurationAsync,
                 getConfigurationAsync,
-                createConfigurationAsync
+                createConfigurationAsync,
+                deleteConfigurationAsync
             }}
         >
-
         <WelcomeCallback />
     </ProductContext.Provider>
 

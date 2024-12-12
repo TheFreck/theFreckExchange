@@ -5,7 +5,8 @@
   "type": "module",
   "homepage": "thefreckexchange-cvgkagadbkcedyfm.westus2-01.azurewebsites.net",
   "scripts": {
-    "dev": "vite",
+    "dev": "vite dev",
+    "prod": "vite prod",
     "build": "vite build",
     "lint": "eslint .",
     "preview": "vite preview"

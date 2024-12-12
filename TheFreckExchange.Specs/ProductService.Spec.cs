@@ -1521,6 +1521,44 @@ namespace TheFreckExchange.Specs
         private static string image3Id;
     }
 
+    public class When_Getting_Background_Image_For_Site : With_ProductRepo_Setup
+    {
+        Establish context = () =>
+        {
+            image1Id = Guid.NewGuid().ToString();
+            image = new ImageFile
+                {
+                    Name = "backgroundImage",
+                    ImageId = image1Id,
+                    Image = Encoding.ASCII.GetBytes("the image for the background of the site")
+            };
+            configRepoMock.Setup(c => c.GetConfigAsync(Moq.It.IsAny<string>())).ReturnsAsync(config);
+            imageRepoMock.Setup(p => p.GetBackgroundImageAsync(Moq.It.IsAny<string>())).ReturnsAsync(image);
+            productService = new ProductService(productRepoMock.Object, itemRepoMock.Object, accountRepoMock.Object, loginServiceMock.Object, imageRepoMock.Object, configRepoMock.Object);
+        };
+
+        Because of = () => outcome = productService.GetBackgroundImageAsync(configId).GetAwaiter().GetResult();
+
+        It Should_Return_Background_ImageFile = () =>
+        {
+            outcome.ImageId.ShouldEqual(image.ImageId);
+            outcome.Image.ShouldEqual(image.Image);
+        };
+
+        It Should_Get_Config_From_Repo = () => configRepoMock.Verify(c => c.GetConfigAsync(Moq.It.IsAny<string>()), Times.Once);
+
+        It Should_Get_Background_Image_From_Repo = () => imageRepoMock.Verify(i => i.GetBackgroundImageAsync(Moq.It.IsAny<string>()),Times.Once);
+
+        private static List<ImageFile> images;
+        private static IProductService productService;
+        private static ImageFile outcome;
+        private static string image1Id;
+        private static ImageFile image;
+        private static string image2Id;
+        private static string image3Id;
+    }
+
+
     public class When_Uploading_An_Image_To_The_Site : With_ProductRepo_Setup
     {
         Establish context = () =>

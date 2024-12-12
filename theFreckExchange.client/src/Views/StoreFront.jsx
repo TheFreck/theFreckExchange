@@ -7,33 +7,52 @@ import Descriptions from "../components/Descriptions";
 import { ProductContext } from "../Context";
 
 export const StoreFront = () => {
-    const {getConfigurationAsync} = useContext(ProductContext);
-    const productApi = axios.create({
-        baseURL: `/Product`
-    });
+    const {getConfigurationAsync,getBackground} = useContext(ProductContext);
+    const [baseUrl,setBaseUrl] = useState("");
+
+    const getBaseURL = (cb) => {
+        if(process.env.NODE_ENV === "development"){
+            setBaseUrl("https://localhost:7299");
+            cb("https://localhost:7299");
+        }
+        else if(process.env.NODE_ENV === "production"){
+            setBaseUrl("thefreckexchange-cvgkagadbkcedyfm.westus2-01.azurewebsites.net");
+            cb("thefreckexchange-cvgkagadbkcedyfm.westus2-01.azurewebsites.net");
+        }
+    }
+
+
     const [images, setImages] = useState([]);
     const [open,setOpen] = useState(false);
     const [background,setBackground] = useState("");
+    
+    useEffect(() => {
+        console.log("images: ", images);
+    },[images]);
+
 
     useEffect(() => {
         getConfigurationAsync(figs => {
-            if(localStorage.getItem("configId") === null && figs.configId == null) return;
-            productApi.get(`images/site/${localStorage.getItem("configId")}`)
-                .then(async yup => {
-                    let yupReturn = [];
-                    for (var im of yup.data) {
-                        let img = await fetch(window.atob(im.image));
-                        let blob = await img.blob();
-                        im.img = URL.createObjectURL(blob);
-                        if(im.name.includes("background")){
-                            setBackground(im.img);
-                            continue;
-                        }
-                        yupReturn.push(im);
-                    }
-                    setImages(yupReturn);
-                })
-                .catch(nope => console.error(nope));
+            if(localStorage.getItem("configId") === null || figs.configId === null || localStorage.getItem("configId") === undefined || localStorage.getItem("configId") === "undefined") return;
+            getBaseURL(url => {
+                const productApi = axios.create({
+                    baseURL: `${url}/Product`
+                });
+                productApi.get(`images/site/${localStorage.getItem("configId")}`)
+                    .then(async yup => {
+                        console.log("site images: ", yup);
+                            let yupReturn = [];
+                            for (var im of yup.data) {
+                                let img = await fetch(window.atob(im.image));
+                                let blob = await img.blob();
+                                im.img = URL.createObjectURL(blob);
+                                yupReturn.push(im);
+                                if (yupReturn.length === yup.data.length) setImages(yupReturn);
+                            }
+                    })
+                    .catch(nope => console.error(nope));
+
+            });
         })
     }, []);
 
@@ -79,9 +98,7 @@ export const StoreFront = () => {
                 ))
             }
         </Carousel>
-        <Descriptions 
-            bckImage={background}
-        />
+        <Descriptions />
     </Box>
 }
 

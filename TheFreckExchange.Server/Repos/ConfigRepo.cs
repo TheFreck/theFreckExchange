@@ -6,6 +6,7 @@ namespace TheFreckExchange.Server.Repos
 {
     public interface IConfigRepo
     {
+        Task<ConfigDTO> DeleteConfigAsync(string configId);
         Task<ConfigDTO> GetConfigAsync(string configId);
         Task UploadNewAsync(ConfigDTO configDTO);
     }
@@ -19,6 +20,11 @@ namespace TheFreckExchange.Server.Repos
             var mongoClient = new MongoClient(settings.Value.ConnectionString);
             var mongoDatabase = mongoClient.GetDatabase(settings.Value.Database);
             configCollection = mongoDatabase.GetCollection<ConfigDTO>(settings.Value.ConfigCollectionName);
+        }
+
+        public async Task<ConfigDTO> DeleteConfigAsync(string configId)
+        {
+            return await configCollection.FindOneAndDeleteAsync(c => c.ConfigId == configId);
         }
 
         public async Task<ConfigDTO> GetConfigAsync(string configId)
