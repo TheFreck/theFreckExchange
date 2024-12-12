@@ -45,10 +45,14 @@ export const Descriptions = ({ isConfig }) => {
     const [activeCategory, setActiveCategory] = useState(activeCategoryEnum.none);
     const [background, setBackground] = useState({});
 
-    const descriptionApi = axios.create({
-        baseURL: `/Site`
-    });
-
+    const getBaseURL = (cb) => {
+        if(process.env.NODE_ENV === "development"){
+            cb("https://localhost:7299/Site");
+        }
+        else if(process.env.NODE_ENV === "production"){
+            cb("/Site");
+        }
+    }
     useEffect(() => {
         getConfigurationAsync(figs => {
             getBackground(im => {
@@ -100,16 +104,22 @@ export const Descriptions = ({ isConfig }) => {
         setOpen(false);
     }
 
-    const getDescriptionAsync = (product) => {
-        descriptionApi.get(product)
-            .then(yup => {
-                let reggy1 = new RegExp("(?=<sup)(.*?)(?<=>)|(<a)(.*?)(?<=>)|(</a>)|(&#91)(.*?)(?<=&#93)", "g");
-                let reggy2 = new RegExp(">;", "g");
-                let reggied = yup.data.replace(reggy1, "");
-                let final = reggied.replace(reggy2, ',');
-                setDescription(`<div>${final}</div>`);
+    const getDescriptionAsync = (resource) => {
+        getBaseURL(url => {
+            const descriptionApi = axios.create({
+                baseURL: url
             })
-            .catch(nope => console.error(nope));
+            descriptionApi.post("resource",resource)
+                .then(yup => {
+                    let reggy1 = new RegExp("(?=<sup)(.*?)(?<=>)|(<a)(.*?)(?<=>)|(</a>)|(&#91)(.*?)(?<=&#93)", "g");
+                    let reggy2 = new RegExp(">;", "g");
+                    let reggied = yup.data.replace(reggy1, "");
+                    let final = reggied.replace(reggy2, ',');
+                    setDescription(`<div>${final}</div>`);
+                    setOpen(true);
+                })
+                .catch(nope => console.error(nope));
+        })
     }
 
     const saveChanges = async () => {
@@ -120,9 +130,8 @@ export const Descriptions = ({ isConfig }) => {
         config.categories[4] = rightMiddle;
         config.categories[5] = rightBottom;
         config.categoryTitle = title;
-        console.log("save changes: ", config);
         await updateConfigurationAsync(config, cb => {
-            console.log("after updating config: ", cb);
+            console.info("after updating config: ", cb);
         })
     }
 
@@ -184,15 +193,21 @@ export const Descriptions = ({ isConfig }) => {
                                 {productName}
                             </Typography>
                             {description !== "" && <div dangerouslySetInnerHTML={{ __html: description }} />}
-                            <br />
-                            <Typography>
-                                This description brought to you by Wikipedia.
-                            </Typography>
                         </Box>
                     }
                     {isConfig &&
                         <Box
-                            sx={{ width: "40vw", height: "80vh", border: "solid", padding: "2vw", margin: "auto", marginTop: "10vh", background: "tan", display: "flex", flexDirection: "column" }}
+                            sx={{ 
+                                width: "40vw", 
+                                height: "80vh", 
+                                border: "solid", 
+                                padding: "2vw", 
+                                margin: "auto", 
+                                marginTop: "10vh", 
+                                background: "tan", 
+                                display: "flex", 
+                                flexDirection: "column" 
+                            }}
                         >
                             <Grid2
                                 size={4}
@@ -385,6 +400,7 @@ export const Descriptions = ({ isConfig }) => {
                                 sx={{ width: "100%", ":hover": { cursor: "pointer" } }}
                                 variant="h4"
                                 onClick={() => {
+                                    setActiveCategory(activeCategoryEnum.lt);
                                     setProductname(leftTop.name);
                                     getDescriptionAsync(leftTop);
                                 }}
@@ -422,6 +438,7 @@ export const Descriptions = ({ isConfig }) => {
                                 sx={{ width: "100%", ":hover": { cursor: "pointer" } }}
                                 variant="h4"
                                 onClick={() => {
+                                    setActiveCategory(activeCategoryEnum.lm);
                                     setProductname(leftMiddle.name);
                                     getDescriptionAsync(leftMiddle);
                                 }}
@@ -458,6 +475,7 @@ export const Descriptions = ({ isConfig }) => {
                                 sx={{ width: "100%", ":hover": { cursor: "pointer" } }}
                                 variant="h4"
                                 onClick={() => {
+                                    setActiveCategory(activeCategoryEnum.lb);
                                     setProductname(leftBottom.name);
                                     getDescriptionAsync(leftBottom);
                                 }}
@@ -501,6 +519,7 @@ export const Descriptions = ({ isConfig }) => {
                                 sx={{ width: "100%", ":hover": { cursor: "pointer" } }}
                                 variant="h4"
                                 onClick={() => {
+                                    setActiveCategory(activeCategoryEnum.rt);
                                     setProductname(rightTop.name);
                                     getDescriptionAsync(rightTop);
                                 }}
@@ -537,6 +556,7 @@ export const Descriptions = ({ isConfig }) => {
                                 sx={{ width: "100%", ":hover": { cursor: "pointer" } }}
                                 variant="h4"
                                 onClick={() => {
+                                    setActiveCategory(activeCategoryEnum.rm);
                                     setProductname(rightMiddle.name);
                                     getDescriptionAsync(rightMiddle);
                                 }}
@@ -574,6 +594,7 @@ export const Descriptions = ({ isConfig }) => {
                                 sx={{ width: "100%", ":hover": { cursor: "pointer" } }}
                                 variant="h4"
                                 onClick={() => {
+                                    setActiveCategory(activeCategoryEnum.rb);
                                     setProductname(rightBottom.name);
                                     getDescriptionAsync(rightBottom);
                                 }}

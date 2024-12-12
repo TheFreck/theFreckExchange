@@ -21,15 +21,7 @@ export const StoreFront = () => {
         }
     }
 
-
     const [images, setImages] = useState([]);
-    const [open,setOpen] = useState(false);
-    const [background,setBackground] = useState("");
-    
-    useEffect(() => {
-        console.log("images: ", images);
-    },[images]);
-
 
     useEffect(() => {
         getConfigurationAsync(figs => {
@@ -40,7 +32,6 @@ export const StoreFront = () => {
                 });
                 productApi.get(`images/site/${localStorage.getItem("configId")}`)
                     .then(async yup => {
-                        console.log("site images: ", yup);
                             let yupReturn = [];
                             for (var im of yup.data) {
                                 let img = await fetch(window.atob(im.image));

@@ -24,8 +24,8 @@ namespace TheFreckExchange.Server.Controllers
         [HttpGet("anything")]
         public IActionResult Get() { return Ok("you made it here"); }
 
-        [HttpGet("resource")]
-        public async Task<string> GetResourceAsync([FromBody] Categories resource)
+        [HttpPost("resource")]
+        public async Task<string> GetResourceAsync([FromBody]Categories resource)
         {
             var desc = await data.GetDataAsync(resource);
             return desc;
