@@ -8,8 +8,9 @@ namespace TheFreckExchange.Server.Repos
     {
         IEnumerable<ImageFile> GetAll();
         Task<ImageFile> GetBackgroundImageAsync(string imageId);
+        Task<IEnumerable<ImageFile>> GetImageFilesAsync(IEnumerable<string> list);
         Task UploadImageAsync(ImageFile imageFile);
-        Task UploadImagesAsync(List<ImageFile> imageFiles);
+        Task UploadImagesAsync(IEnumerable<ImageFile> imageFiles);
     }
     public class ImageRepo : IImageRepo
     {
@@ -32,12 +33,17 @@ namespace TheFreckExchange.Server.Repos
             return (await imageCollection.FindAsync(i => i.ImageId == imageId)).FirstOrDefault();
         }
 
+        public async Task<IEnumerable<ImageFile>> GetImageFilesAsync(IEnumerable<string> imageIds)
+        {
+            return (await imageCollection.FindAsync(i => imageIds.Contains(i.ImageId))).ToEnumerable();
+        }
+
         public async Task UploadImageAsync(ImageFile imageFile)
         {
             await imageCollection.InsertOneAsync(imageFile);
         }
 
-        public async Task UploadImagesAsync(List<ImageFile> imageFiles)
+        public async Task UploadImagesAsync(IEnumerable<ImageFile> imageFiles)
         {
             await imageCollection.InsertManyAsync(imageFiles);
         }

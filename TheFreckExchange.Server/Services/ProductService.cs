@@ -12,8 +12,8 @@ namespace TheFreckExchange.Server.Services
     public interface IProductService
     {
         Task<Item> CreateItemAsync(string productId, Item item);
-        Task<IEnumerable<Item>> CreateManyItemsAsync(string productName, int itemQuantity, List<ItemAttribute> attributes, LoginCredentials credentials);
-        Task<Product> CreateProductAsync(string name, string description, List<string> attributes, double price, LoginCredentials credentials, List<string> images);
+        Task<IEnumerable<Item>> CreateManyItemsAsync(string productName, int itemQuantity, IEnumerable<ItemAttribute> attributes, LoginCredentials credentials);
+        Task<Product> CreateProductAsync(string name, string description, IEnumerable<string> attributes, double price, LoginCredentials credentials, IEnumerable<string> images);
         IEnumerable<Product> GetAll();
         Task<IEnumerable<GroupedAttributes>> GetAttributesAsync(string productName);
         Task<IEnumerable<Item>> GetByAttributeAsync(string productName, string type, string value);
@@ -22,14 +22,15 @@ namespace TheFreckExchange.Server.Services
         Task<Product> ModifyDescriptionAsync(string productName, string newDescription, LoginCredentials credentials);
         Task<Product> ModifyNameAsync(string oldName, string newName, LoginCredentials credentials);
         Task<Product> ModifyPriceAsync(string productName, double price, LoginCredentials credentials);
-        Task<List<Item>> PurchaseItem(ItemDTO item, int qty);
-        Task<List<string>> GetAvailableAttributes(string productName);
-        Task UpdateProductWithImageAsync(string productId, List<IFormFile> images);
+        Task<IEnumerable<Item>> PurchaseItem(ItemDTO item, int qty);
+        Task<IEnumerable<string>> GetAvailableAttributes(string productName);
+        Task UpdateProductWithImageAsync(string productId, IEnumerable<IFormFile> images);
         Task<Product> ModifyProductAsync(Product newProduct);
         IEnumerable<ImageFile> GetAllImages();
-        Task<IEnumerable<ImageFile>> UploadImagesAsync(List<IFormFile> images);
-        Task<IEnumerable<ImageFile>> GetAllSiteImagesAsync(string configId);
-        Task<ImageFile> GetBackgroundImageAsync(string configId);
+        Task<IEnumerable<ImageFile>> UploadImagesAsync(IEnumerable<IFormFile> images);
+        Task<IEnumerable<ImageFile>> GetAllSiteImagesAsync();
+        Task<ImageFile> GetBackgroundImageAsync();
+        Task<IEnumerable<ImageFile>> GetImagesAsync(IEnumerable<string> imageIds);
     }
     public class ProductService : IProductService
     {
@@ -77,7 +78,7 @@ namespace TheFreckExchange.Server.Services
             return item;
         }
 
-        public async Task<IEnumerable<Item>> CreateManyItemsAsync(string productName, int itemQuantity, List<ItemAttribute> attributes, LoginCredentials credentials)
+        public async Task<IEnumerable<Item>> CreateManyItemsAsync(string productName, int itemQuantity, IEnumerable<ItemAttribute> attributes, LoginCredentials credentials)
         {
             var account = await accountRepo.GetByUsernameAsync(credentials.Username);
             if (await loginService.ValidatePermissionsAsync(account, PermissionType.Admin, credentials.AdminToken))
@@ -103,7 +104,7 @@ namespace TheFreckExchange.Server.Services
             return new List<Item>();
         }
 
-        public async Task<Product> CreateProductAsync(string name, string description, List<string> attributes, double price, LoginCredentials credentials, List<string> images)
+        public async Task<Product> CreateProductAsync(string name, string description, IEnumerable<string> attributes, double price, LoginCredentials credentials, IEnumerable<string> images)
         {
             var account = await accountRepo.GetByUsernameAsync(credentials.Username);
 
@@ -132,7 +133,7 @@ namespace TheFreckExchange.Server.Services
             };
         }
 
-        public async Task UpdateProductWithImageAsync(string productId, List<IFormFile> images)
+        public async Task UpdateProductWithImageAsync(string productId, IEnumerable<IFormFile> images)
         {
             var product = await productRepo.GetByProductIdAsync(productId);
             long size = images.Sum(f => f.Length);
@@ -146,7 +147,7 @@ namespace TheFreckExchange.Server.Services
                         formFile.CopyTo(stream);
                         var fileBytes = stream.ToArray();
                         var imageId = Guid.NewGuid().ToString();
-                        product.ImageReferences.Add(imageId);
+                        product.ImageReferences.ToList().Add(imageId);
                         await productRepo.UpdateAsync(product);
 
                         await imageRepo.UploadImageAsync(new ImageFile
@@ -181,7 +182,7 @@ namespace TheFreckExchange.Server.Services
             return groups;
         }
 
-        public async Task<List<string>> GetAvailableAttributes(string productName)
+        public async Task<IEnumerable<string>> GetAvailableAttributes(string productName)
         {
             var product = await productRepo.GetByNameAsync(productName);
             return product.AvailableAttributes;
@@ -201,10 +202,10 @@ namespace TheFreckExchange.Server.Services
 
         public async Task<IEnumerable<Item>> GetItemsAsync(string name)
         {
-            var items = await itemRepo.GetAllItemsAsync(name);
+            var items = (await itemRepo.GetAllItemsAsync(name)).ToList();
             if (items.Any())
                 return items;
-            else return Enumerable.Empty<Item>();
+            else return new List<Item>();
         }
 
         public async Task<Product> ModifyDescriptionAsync(string productName, string newDescription, LoginCredentials credentials)
@@ -264,7 +265,7 @@ namespace TheFreckExchange.Server.Services
             };
         }
 
-        public async Task<List<Item>> PurchaseItem(ItemDTO item, int qty)
+        public async Task<IEnumerable<Item>> PurchaseItem(ItemDTO item, int qty)
         {
             if (item.Credentials == null) return new List<Item>();
             var account = await accountRepo.GetByUsernameAsync(item.Credentials.Username);
@@ -275,7 +276,7 @@ namespace TheFreckExchange.Server.Services
                 var product = await productRepo.GetByNameAsync(item.Name);
                 var itemsReturned = (await itemRepo.GetByAttributesAsync(item.Name, item.Attributes)).ToList();
 
-                if (itemsReturned.Count > qty)
+                if (itemsReturned.Count() >= qty)
                 {
                     var purchased = new List<Item>();
                     for (var i = 0; i < qty; i++)
@@ -297,8 +298,8 @@ namespace TheFreckExchange.Server.Services
             var product = await productRepo.GetByNameAsync(newProduct.Name);
             product.Price = newProduct.Price > 0 ? newProduct.Price : product.Price;
             product.ProductDescription = newProduct.ProductDescription != String.Empty ? newProduct.ProductDescription : product.ProductDescription;
-            product.AvailableAttributes = newProduct.AvailableAttributes.Count > 0 ? product.AvailableAttributes.Concat(newProduct.AvailableAttributes).ToHashSet().ToList() : product.AvailableAttributes;
-            product.ImageReferences = newProduct.ImageReferences.Count > 0 ? product.ImageReferences.Concat(newProduct.ImageReferences).ToHashSet().ToList() : product.ImageReferences;
+            product.AvailableAttributes = newProduct.AvailableAttributes.Count() > 0 ? product.AvailableAttributes.Concat(newProduct.AvailableAttributes).ToHashSet().ToList() : product.AvailableAttributes;
+            product.ImageReferences = newProduct.ImageReferences.Count() > 0 ? product.ImageReferences.Concat(newProduct.ImageReferences).ToHashSet().ToList() : product.ImageReferences;
             await productRepo.UpdateAsync(product);
             return product;
         }
@@ -308,7 +309,7 @@ namespace TheFreckExchange.Server.Services
             return imageRepo.GetAll();
         }
 
-        public async Task<IEnumerable<ImageFile>> UploadImagesAsync(List<IFormFile> images)
+        public async Task<IEnumerable<ImageFile>> UploadImagesAsync(IEnumerable<IFormFile> images)
         {
             long size = images.Sum(f => f.Length);
             var imageList = new List<ImageFile>();
@@ -335,20 +336,25 @@ namespace TheFreckExchange.Server.Services
             return imageList;
         }
 
-        public async Task<IEnumerable<ImageFile>> GetAllSiteImagesAsync(string configId)
+        public async Task<IEnumerable<ImageFile>> GetAllSiteImagesAsync()
         {
-            var config = await configRepo.GetConfigAsync(configId);
+            var config = await configRepo.GetConfigAsync();
             if (config == null) return new List<ImageFile>();
             var images = imageRepo.GetAll();
             var siteImages = images.Where(i => config.Images.Contains(i.ImageId));
             return siteImages;
         }
 
-        public async Task<ImageFile> GetBackgroundImageAsync(string configId)
+        public async Task<ImageFile> GetBackgroundImageAsync()
         {
-            var config = await configRepo.GetConfigAsync(configId);
+            var config = await configRepo.GetConfigAsync();
             if (config == null || config.Background == null) return new ImageFile { Image = new byte[64],Name = "no background found" };
             return await imageRepo.GetBackgroundImageAsync(config.Background);
+        }
+
+        public async Task<IEnumerable<ImageFile>> GetImagesAsync(IEnumerable<string> imageIds)
+        {
+            return await imageRepo.GetImageFilesAsync(imageIds);
         }
     }
 }

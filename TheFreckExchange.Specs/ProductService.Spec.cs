@@ -450,17 +450,17 @@ namespace TheFreckExchange.Specs
                         new ItemAttribute
                         {
                             Type = "Color",
-                            Value = colors[i%3]
+                            Value = colors.ToList()[i%3]
                         },
                         new ItemAttribute
                         {
                             Type = "Size",
-                            Value = sizes[i%4]
+                            Value = sizes.ToList()[i%4]
                         },
                         new ItemAttribute
                         {
                             Type = "Style",
-                            Value = hatTypes[i%2]
+                            Value = hatTypes.ToList()[i%2]
                         }
                     },
                     Credentials = loginCreds,
@@ -474,9 +474,9 @@ namespace TheFreckExchange.Specs
                 };
                 hats.Add(newHat);
             }
-            for (var i = 0; i < hats.Count; i++)
+            for (var i = 0; i < hats.Count(); i++)
             {
-                itemRepoMock.Setup(r => r.CreateAsync(hats[i])).ReturnsAsync(hats[i]);
+                itemRepoMock.Setup(r => r.CreateAsync(hats.ToList()[i])).ReturnsAsync(hats.ToList()[i]);
             }
             hatOutcomes = new List<Item>();
             accountRepoMock.Setup(a => a.GetByAccountIdAsync(Moq.It.IsAny<string>())).ReturnsAsync(account1);
@@ -490,25 +490,25 @@ namespace TheFreckExchange.Specs
             });
             for (var i = 0; i < 10; i++)
             {
-                itemRepoMock.Setup(p => p.CreateAsync(Moq.It.IsAny<Item>())).ReturnsAsync(hats[i]);
+                itemRepoMock.Setup(p => p.CreateAsync(Moq.It.IsAny<Item>())).ReturnsAsync(hats.ToList()[i]);
             }
             productService = new ProductService(productRepoMock.Object, itemRepoMock.Object, accountRepoMock.Object, loginServiceMock.Object, imageRepoMock.Object, configRepoMock.Object);
         };
 
         Because of = () =>
         {
-            for (var i = 0; i < hats.Count; i++)
+            for (var i = 0; i < hats.Count(); i++)
             {
-                var hat = productService.CreateItemAsync(product1Id, hats[i]).GetAwaiter().GetResult();
+                var hat = productService.CreateItemAsync(product1Id, hats.ToList()[i]).GetAwaiter().GetResult();
                 hatOutcomes.Add(hat);
             }
-            hatOutcomes.OrderBy(o => o.SKU).ToList();
-            hats.OrderBy(o => o.SKU).ToList();
+            hatOutcomes.OrderBy(o => o.SKU);
+            hats.OrderBy(o => o.SKU);
         };
 
         It Should_Validate_Admin_Permission = () =>
         {
-            loginServiceMock.Verify(l => l.ValidatePermissionsAsync(Moq.It.IsAny<Account>(), Moq.It.IsAny<PermissionType>(), Moq.It.IsAny<string>()), Times.Exactly(hats.Count));
+            loginServiceMock.Verify(l => l.ValidatePermissionsAsync(Moq.It.IsAny<Account>(), Moq.It.IsAny<PermissionType>(), Moq.It.IsAny<string>()), Times.Exactly(hats.Count()));
         };
 
         It Should_Return_Item = () =>
@@ -520,36 +520,37 @@ namespace TheFreckExchange.Specs
                 hatOutcomes[i].ProductDescription.ShouldEqual(hats[i].ProductDescription);
                 hatOutcomes[i].SKU.ShouldNotEqual(Guid.Empty.ToString());
                 hatOutcomes[i].Attributes.OrderBy(o => o.Type);
-                var outAttributes = hats.Where(h => h.SKU == hatOutcomes[i].SKU).FirstOrDefault().Attributes.OrderBy(o => o.Type).ToList();
+                var outAttributes = new List<ItemAttribute>();
+                outAttributes = hats.Where(h => h.SKU == hatOutcomes[i].SKU).FirstOrDefault().Attributes.OrderBy(o => o.Type).ToList();
                 for (var j = 0; j < outAttributes.Count; j++)
                 {
-                    hatOutcomes[i].Attributes[j].Value.ShouldEqual(outAttributes[j].Value);
+                    hatOutcomes[i].Attributes.ToList()[j].Value.ShouldEqual(outAttributes[j].Value);
                 }
             }
         };
 
         It Should_Find_Product_In_Repo = () =>
         {
-            productRepoMock.Verify(r => r.GetByProductIdAsync(product1Id), Times.Exactly(hats.Count));
+            productRepoMock.Verify(r => r.GetByProductIdAsync(product1Id), Times.Exactly(hats.Count()));
         };
 
         It Should_Persist_Item_In_Repo = () =>
         {
-            itemRepoMock.Verify(r => r.CreateAsync(Moq.It.IsAny<Item>()), Times.Exactly(hats.Count));
+            itemRepoMock.Verify(r => r.CreateAsync(Moq.It.IsAny<Item>()), Times.Exactly(hats.Count()));
         };
 
         private static IProductService productService;
-        private static List<string> colors;
-        private static List<string> sizes;
-        private static List<string> hatTypes;
-        private static List<string> prod1skus;
+        private static IEnumerable<string> colors;
+        private static IEnumerable<string> sizes;
+        private static IEnumerable<string> hatTypes;
+        private static IEnumerable<string> prod1skus;
         private static List<Item> hats;
-        private static List<string> shirtTypes;
-        private static List<string> prod2Skus;
-        private static List<Item> shirts;
+        private static IEnumerable<string> shirtTypes;
+        private static IEnumerable<string> prod2Skus;
+        private static IEnumerable<Item> shirts;
         private static List<Item> hatOutcomes;
-        private static List<Item> shirtOutcomes;
-        private static List<FormFile> images;
+        private static IEnumerable<Item> shirtOutcomes;
+        private static IEnumerable<FormFile> images;
     }
 
     public class When_Creating_Items_For_A_Product_Without_Image : With_ProductRepo_Setup
@@ -662,7 +663,7 @@ namespace TheFreckExchange.Specs
         private static List<FormFile> images;
     }
 
-    public class When_Upadting_A_Product_With_An_Image : With_ProductRepo_Setup
+    public class When_Updating_A_Product_With_An_Image : With_ProductRepo_Setup
     {
         Establish context = () =>
         {
@@ -799,7 +800,7 @@ namespace TheFreckExchange.Specs
                 var outAttributes = hats.Where(h => h.SKU == hatOutcomes[i].SKU).FirstOrDefault().Attributes.OrderBy(o => o.Type).ToList();
                 for (var j = 0; j < outAttributes.Count; j++)
                 {
-                    hatOutcomes[i].Attributes[j].Value.ShouldEqual(outAttributes[j].Value);
+                    hatOutcomes[i].Attributes.ToList()[j].Value.ShouldEqual(outAttributes[j].Value);
                 }
             }
         };
@@ -988,7 +989,7 @@ namespace TheFreckExchange.Specs
 
         private static Product product;
         private static ProductService service;
-        private static List<string> attributes;
+        private static IEnumerable<string> attributes;
     }
 
     public class When_Geting_Items_By_Attribute : With_ProductRepo_Setup
@@ -1371,7 +1372,7 @@ namespace TheFreckExchange.Specs
             loginServiceMock.Setup(l => l.ValidateTokenAsync(Moq.It.IsAny<string>(), Moq.It.IsAny<string>())).ReturnsAsync(true);
             loginServiceMock.Setup(l => l.ValidatePermissionsAsync(account1, PermissionType.User, Moq.It.IsAny<string>())).ReturnsAsync(true);
             accountRepoMock.Setup(a => a.GetByUsernameAsync(Moq.It.IsAny<string>())).ReturnsAsync(account1);
-            itemRepoMock.Setup(i => i.GetByAttributesAsync(product1Name, Moq.It.IsAny<List<ItemAttribute>>())).ReturnsAsync(selectedHats);
+            itemRepoMock.Setup(i => i.GetByAttributesAsync(Moq.It.IsAny<string>(), Moq.It.IsAny<List<ItemAttribute>>())).ReturnsAsync(selectedHats);
             productService = new ProductService(productRepoMock.Object, itemRepoMock.Object, accountRepoMock.Object, loginServiceMock.Object, imageRepoMock.Object, configRepoMock.Object);
             items = new List<Item>();
         };
@@ -1380,15 +1381,15 @@ namespace TheFreckExchange.Specs
 
         It Should_Return_Items_To_Purchase = () =>
         {
-            for (var i = 0; i < items.Count; i++)
+            for (var i = 0; i < items.Count(); i++)
             {
-                selectedHats[0].Attributes.OrderBy(o => o.Type).ToList();
-                items[i].Name.ShouldEqual(product1Name);
-                items[i].Attributes.OrderBy(o => o.Type).ToList();
-                for (var j = 0; j < items[i].Attributes.Count; j++)
+                selectedHats.ToList()[0].Attributes.OrderBy(o => o.Type).ToList();
+                items.ToList()[i].Name.ShouldEqual(product1Name);
+                items.ToList()[i].Attributes.OrderBy(o => o.Type).ToList();
+                for (var j = 0; j < items.ToList()[i].Attributes.Count(); j++)
                 {
-                    items[i].Attributes[j].Type.ShouldEqual(selectedHats[0].Attributes[j].Type);
-                    items[i].Attributes[j].Value.ShouldEqual(selectedHats[0].Attributes[j].Value);
+                    items.ToList()[i].Attributes.ToList()[j].Type.ShouldEqual(selectedHats.ToList()[0].Attributes.ToList()[j].Type);
+                    items.ToList()[i].Attributes.ToList()[j].Value.ShouldEqual(selectedHats.ToList()[0].Attributes.ToList()[j].Value);
                 }
 
             }
@@ -1408,16 +1409,16 @@ namespace TheFreckExchange.Specs
         It Should_Add_The_Price_To_Account_Balance = () => accountRepoMock.Verify(r => r.Update(Moq.It.IsAny<Account>()), Times.Once);
 
         private static int qty;
-        private static List<string> colors;
-        private static List<string> sizes;
-        private static List<string> hatTypes;
-        private static List<string> attributes;
-        private static List<string> attributeValues;
+        private static IEnumerable<string> colors;
+        private static IEnumerable<string> sizes;
+        private static IEnumerable<string> hatTypes;
+        private static IEnumerable<string> attributes;
+        private static IEnumerable<string> attributeValues;
         private static Product product;
         private static ItemDTO hatDTO;
         private static List<Item> selectedHats;
         private static IProductService productService;
-        private static List<Item> items;
+        private static IEnumerable<Item> items;
     }
 
     public class When_Getting_All_Images : With_ProductRepo_Setup
@@ -1491,12 +1492,12 @@ namespace TheFreckExchange.Specs
                     Image = Encoding.ASCII.GetBytes("the third image not attached to the config")
                 }
             };
-            configRepoMock.Setup(c => c.GetConfigAsync(Moq.It.IsAny<string>())).ReturnsAsync(config);
+            configRepoMock.Setup(c => c.GetConfigAsync()).ReturnsAsync(config);
             imageRepoMock.Setup(r => r.GetAll()).Returns(images);
             productService = new ProductService(productRepoMock.Object, itemRepoMock.Object, accountRepoMock.Object, loginServiceMock.Object, imageRepoMock.Object, configRepoMock.Object);
         };
 
-        Because of = () => outcome = productService.GetAllSiteImagesAsync(configId).GetAwaiter().GetResult();
+        Because of = () => outcome = productService.GetAllSiteImagesAsync().GetAwaiter().GetResult();
 
         It Should_Only_Return_Site_Images = () => outcome.Count().ShouldEqual(config.Images.Count);
 
@@ -1511,7 +1512,7 @@ namespace TheFreckExchange.Specs
 
         It Should_Get_Images_From_ImageRepo = () => imageRepoMock.Verify(r => r.GetAll(), Times.Once);
 
-        It Should_Get_Config_From_Repo = () => configRepoMock.Verify(c => c.GetConfigAsync(Moq.It.IsAny<string>()), Times.Once);
+        It Should_Get_Config_From_Repo = () => configRepoMock.Verify(c => c.GetConfigAsync(), Times.Once);
 
         private static List<ImageFile> images;
         private static IProductService productService;
@@ -1532,12 +1533,12 @@ namespace TheFreckExchange.Specs
                     ImageId = image1Id,
                     Image = Encoding.ASCII.GetBytes("the image for the background of the site")
             };
-            configRepoMock.Setup(c => c.GetConfigAsync(Moq.It.IsAny<string>())).ReturnsAsync(config);
+            configRepoMock.Setup(c => c.GetConfigAsync()).ReturnsAsync(config);
             imageRepoMock.Setup(p => p.GetBackgroundImageAsync(Moq.It.IsAny<string>())).ReturnsAsync(image);
             productService = new ProductService(productRepoMock.Object, itemRepoMock.Object, accountRepoMock.Object, loginServiceMock.Object, imageRepoMock.Object, configRepoMock.Object);
         };
 
-        Because of = () => outcome = productService.GetBackgroundImageAsync(configId).GetAwaiter().GetResult();
+        Because of = () => outcome = productService.GetBackgroundImageAsync().GetAwaiter().GetResult();
 
         It Should_Return_Background_ImageFile = () =>
         {
@@ -1545,7 +1546,7 @@ namespace TheFreckExchange.Specs
             outcome.Image.ShouldEqual(image.Image);
         };
 
-        It Should_Get_Config_From_Repo = () => configRepoMock.Verify(c => c.GetConfigAsync(Moq.It.IsAny<string>()), Times.Once);
+        It Should_Get_Config_From_Repo = () => configRepoMock.Verify(c => c.GetConfigAsync(), Times.Once);
 
         It Should_Get_Background_Image_From_Repo = () => imageRepoMock.Verify(i => i.GetBackgroundImageAsync(Moq.It.IsAny<string>()),Times.Once);
 
@@ -1558,6 +1559,44 @@ namespace TheFreckExchange.Specs
         private static string image3Id;
     }
 
+    public class When_Getting_Background_Image_For_Site_Without_Config : With_ProductRepo_Setup
+    {
+        Establish context = () =>
+        {
+            image1Id = Guid.NewGuid().ToString();
+            image = new ImageFile
+            {
+                Name = "backgroundImage",
+                ImageId = image1Id,
+                Image = Encoding.ASCII.GetBytes("the image for the background of the site")
+            };
+            blankConfig = Guid.Empty.ToString();
+            configRepoMock.Setup(c => c.GetConfigAsync()).ReturnsAsync(config);
+            imageRepoMock.Setup(p => p.GetBackgroundImageAsync(Moq.It.IsAny<string>())).ReturnsAsync(image);
+            productService = new ProductService(productRepoMock.Object, itemRepoMock.Object, accountRepoMock.Object, loginServiceMock.Object, imageRepoMock.Object, configRepoMock.Object);
+        };
+
+        Because of = () => outcome = productService.GetBackgroundImageAsync().GetAwaiter().GetResult();
+
+        It Should_Return_Background_ImageFile = () =>
+        {
+            outcome.ImageId.ShouldEqual(image.ImageId);
+            outcome.Image.ShouldEqual(image.Image);
+        };
+
+        It Should_Get_Config_From_Repo = () => configRepoMock.Verify(c => c.GetConfigAsync(), Times.Once);
+
+        It Should_Get_Background_Image_From_Repo = () => imageRepoMock.Verify(i => i.GetBackgroundImageAsync(Moq.It.IsAny<string>()), Times.Once);
+
+        private static List<ImageFile> images;
+        private static IProductService productService;
+        private static ImageFile outcome;
+        private static string image1Id;
+        private static ImageFile image;
+        private static string blankConfig;
+        private static string image2Id;
+        private static string image3Id;
+    }
 
     public class When_Uploading_An_Image_To_The_Site : With_ProductRepo_Setup
     {
@@ -1583,5 +1622,48 @@ namespace TheFreckExchange.Specs
         private static IProductService productService;
         private static MemoryStream stream1;
         private static MemoryStream stream2;
+    }
+
+    public class When_Getting_Images : With_ProductRepo_Setup
+    {
+        Establish context = () =>
+        {
+            image1Id = Guid.NewGuid().ToString();
+            image2Id = Guid.NewGuid().ToString();
+            imageIds = new List<string>
+            {
+                image1Id,image2Id
+            };
+            images = new List<ImageFile>
+            {
+                new ImageFile
+                {
+                    Image = Encoding.ASCII.GetBytes("First image"),
+                    ImageId = image1Id,
+                    Name = "Image 1"
+                },
+                new ImageFile
+                {
+                    Image = Encoding.ASCII.GetBytes("Second image"),
+                    ImageId = image2Id,
+                    Name = "Image 2"
+                }
+            };
+            imageRepoMock.Setup(r => r.GetImageFilesAsync(Moq.It.IsAny<IEnumerable<string>>())).ReturnsAsync(images);
+            productService = new ProductService(productRepoMock.Object, itemRepoMock.Object, accountRepoMock.Object, loginServiceMock.Object, imageRepoMock.Object, configRepoMock.Object);
+        };
+
+        Because of = () => foundImages = productService.GetImagesAsync(imageIds).GetAwaiter().GetResult();
+
+        It Should_Return_Image_Files = () => foundImages.Count().ShouldEqual(images.Count());
+
+        It Should_Find_ImageFiles_In_Repo = () => imageRepoMock.Verify(i => i.GetImageFilesAsync(Moq.It.IsAny<List<string>>()), Times.Once);
+
+        private static IProductService productService;
+        private static string image1Id;
+        private static string image2Id;
+        private static List<string> imageIds;
+        private static IEnumerable<ImageFile> images;
+        private static IEnumerable<ImageFile> foundImages;
     }
 }

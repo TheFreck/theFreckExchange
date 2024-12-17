@@ -6,9 +6,9 @@ namespace TheFreckExchange.Server.Repos
 {
     public interface IConfigRepo
     {
-        Task<ConfigDTO> DeleteConfigAsync(string configId);
-        Task<ConfigDTO> GetConfigAsync(string configId);
-        Task UploadNewAsync(ConfigDTO configDTO);
+        Task<ConfigDTO> DeleteConfigAsync();
+        Task<ConfigDTO> GetConfigAsync();
+        Task ReplaceConfigAsync(ConfigDTO configDTO);
     }
 
     public class ConfigRepo : IConfigRepo
@@ -22,20 +22,20 @@ namespace TheFreckExchange.Server.Repos
             configCollection = mongoDatabase.GetCollection<ConfigDTO>(settings.Value.ConfigCollectionName);
         }
 
-        public async Task<ConfigDTO> DeleteConfigAsync(string configId)
+        public async Task<ConfigDTO> DeleteConfigAsync()
         {
-            return await configCollection.FindOneAndDeleteAsync(c => c.ConfigId == configId);
+            return await configCollection.FindOneAndDeleteAsync(c => c != null);
         }
 
-        public async Task<ConfigDTO> GetConfigAsync(string configId)
+        public async Task<ConfigDTO> GetConfigAsync()
         {
-            var config = await configCollection.FindAsync(c => c.ConfigId == configId);
+            var config = await configCollection.FindAsync(c => c != null);
             return config.FirstOrDefault();
         }
 
-        public async Task UploadNewAsync(ConfigDTO configDTO)
+        public async Task ReplaceConfigAsync(ConfigDTO configDTO)
         {
-            if((await configCollection.FindAsync(c => c!= null)).Any())
+            if((await configCollection.FindAsync(c => c != null)).Any())
             {
                 await configCollection.DeleteManyAsync(c => c != null);
             }

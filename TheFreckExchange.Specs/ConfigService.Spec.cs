@@ -103,7 +103,7 @@ namespace TheFreckExchange.Specs
     {
         Establish context = () =>
         {
-            configRepoMock.Setup(c => c.UploadNewAsync(Moq.It.IsAny<ConfigDTO>()));
+            configRepoMock.Setup(c => c.ReplaceConfigAsync(Moq.It.IsAny<ConfigDTO>()));
             accountRepoMock.Setup(a => a.GetByAccountIdAsync(Moq.It.IsAny<string>())).ReturnsAsync(account);
             configService = new ConfigService(configRepoMock.Object,accountRepoMock.Object,productRepoMock.Object);
         };
@@ -129,7 +129,7 @@ namespace TheFreckExchange.Specs
 
         It Should_Get_Admin_Account_From_Repo = () => accountRepoMock.Verify(a => a.GetByAccountIdAsync(Moq.It.IsAny<string>()), Times.Once);
 
-        It Should_Store_Config_In_The_Repo = () => configRepoMock.Verify(c => c.UploadNewAsync(Moq.It.IsAny<ConfigDTO>()), Times.Once);
+        It Should_Store_Config_In_The_Repo = () => configRepoMock.Verify(c => c.ReplaceConfigAsync(Moq.It.IsAny<ConfigDTO>()), Times.Once);
 
         private static ConfigDTO configOutcome;
         private static IConfigService configService;
@@ -144,8 +144,8 @@ namespace TheFreckExchange.Specs
             {
                 SiteTitle = updatedTitle
             };
-            configRepoMock.Setup(c => c.UploadNewAsync(Moq.It.IsAny<ConfigDTO>()));
-            configRepoMock.Setup(c => c.GetConfigAsync(Moq.It.IsAny<string>())).ReturnsAsync(configDTO);
+            configRepoMock.Setup(c => c.ReplaceConfigAsync(Moq.It.IsAny<ConfigDTO>()));
+            configRepoMock.Setup(c => c.GetConfigAsync()).ReturnsAsync(configDTO);
             configService = new ConfigService(configRepoMock.Object, accountRepoMock.Object, productRepoMock.Object);
         };
 
@@ -168,7 +168,7 @@ namespace TheFreckExchange.Specs
             }
         };
 
-        It Should_Store_Config_In_The_Repo = () => configRepoMock.Verify(c => c.UploadNewAsync(Moq.It.IsAny<ConfigDTO>()), Times.Once);
+        It Should_Store_Config_In_The_Repo = () => configRepoMock.Verify(c => c.ReplaceConfigAsync(Moq.It.IsAny<ConfigDTO>()), Times.Once);
 
         private static ConfigDTO configOutcome;
         private static string updatedTitle;
@@ -185,8 +185,8 @@ namespace TheFreckExchange.Specs
             {
                 AdminAccountId = updatedAdminId
             };
-            configRepoMock.Setup(c => c.UploadNewAsync(Moq.It.IsAny<ConfigDTO>()));
-            configRepoMock.Setup(c => c.GetConfigAsync(Moq.It.IsAny<string>())).ReturnsAsync(configDTO);
+            configRepoMock.Setup(c => c.ReplaceConfigAsync(Moq.It.IsAny<ConfigDTO>()));
+            configRepoMock.Setup(c => c.GetConfigAsync()).ReturnsAsync(configDTO);
             configService = new ConfigService(configRepoMock.Object, accountRepoMock.Object, productRepoMock.Object);
         };
 
@@ -209,7 +209,7 @@ namespace TheFreckExchange.Specs
             }
         };
 
-        It Should_Store_Config_In_The_Repo = () => configRepoMock.Verify(c => c.UploadNewAsync(Moq.It.IsAny<ConfigDTO>()), Times.Once);
+        It Should_Store_Config_In_The_Repo = () => configRepoMock.Verify(c => c.ReplaceConfigAsync(Moq.It.IsAny<ConfigDTO>()), Times.Once);
 
         private static ConfigDTO configOutcome;
         private static IConfigService configService;
@@ -226,8 +226,8 @@ namespace TheFreckExchange.Specs
             {
                 CategoryTitle = updatedCategoryTitle,
             };
-            configRepoMock.Setup(c => c.UploadNewAsync(Moq.It.IsAny<ConfigDTO>()));
-            configRepoMock.Setup(c => c.GetConfigAsync(Moq.It.IsAny<string>())).ReturnsAsync(configDTO);
+            configRepoMock.Setup(c => c.ReplaceConfigAsync(Moq.It.IsAny<ConfigDTO>()));
+            configRepoMock.Setup(c => c.GetConfigAsync()).ReturnsAsync(configDTO);
             configService = new ConfigService(configRepoMock.Object, accountRepoMock.Object, productRepoMock.Object);
         };
 
@@ -250,7 +250,7 @@ namespace TheFreckExchange.Specs
             }
         };
 
-        It Should_Store_Config_In_The_Repo = () => configRepoMock.Verify(c => c.UploadNewAsync(Moq.It.IsAny<ConfigDTO>()), Times.Once);
+        It Should_Store_Config_In_The_Repo = () => configRepoMock.Verify(c => c.ReplaceConfigAsync(Moq.It.IsAny<ConfigDTO>()), Times.Once);
 
         private static ConfigDTO configOutcome;
         private static string updatedCategoryTitle;
@@ -299,8 +299,8 @@ namespace TheFreckExchange.Specs
             {
                 Categories = updatedCategories
             };
-            configRepoMock.Setup(c => c.UploadNewAsync(Moq.It.IsAny<ConfigDTO>()));
-            configRepoMock.Setup(c => c.GetConfigAsync(Moq.It.IsAny<string>())).ReturnsAsync(configDTO);
+            configRepoMock.Setup(c => c.ReplaceConfigAsync(Moq.It.IsAny<ConfigDTO>()));
+            configRepoMock.Setup(c => c.GetConfigAsync()).ReturnsAsync(configDTO);
             configService = new ConfigService(configRepoMock.Object, accountRepoMock.Object, productRepoMock.Object);
         };
 
@@ -323,7 +323,7 @@ namespace TheFreckExchange.Specs
             }
         };
 
-        It Should_Store_Config_In_The_Repo = () => configRepoMock.Verify(c => c.UploadNewAsync(Moq.It.IsAny<ConfigDTO>()), Times.Once);
+        It Should_Store_Config_In_The_Repo = () => configRepoMock.Verify(c => c.ReplaceConfigAsync(Moq.It.IsAny<ConfigDTO>()), Times.Once);
 
         private static ConfigDTO configOutcome;
         private static List<Categories> updatedCategories;
@@ -344,8 +344,8 @@ namespace TheFreckExchange.Specs
             {
                 Images = updatedImageFiles
             };
-            configRepoMock.Setup(c => c.UploadNewAsync(Moq.It.IsAny<ConfigDTO>()));
-            configRepoMock.Setup(c => c.GetConfigAsync(Moq.It.IsAny<string>())).ReturnsAsync(configDTO);
+            configRepoMock.Setup(c => c.ReplaceConfigAsync(Moq.It.IsAny<ConfigDTO>()));
+            configRepoMock.Setup(c => c.GetConfigAsync()).ReturnsAsync(configDTO);
             configService = new ConfigService(configRepoMock.Object, accountRepoMock.Object, productRepoMock.Object);
         };
 
@@ -365,7 +365,7 @@ namespace TheFreckExchange.Specs
             configOutcome.Images.Count.ShouldEqual(configDTO.Images.Count);
         };
 
-        It Should_Store_Config_In_The_Repo = () => configRepoMock.Verify(c => c.UploadNewAsync(Moq.It.IsAny<ConfigDTO>()), Times.Once);
+        It Should_Store_Config_In_The_Repo = () => configRepoMock.Verify(c => c.ReplaceConfigAsync(Moq.It.IsAny<ConfigDTO>()), Times.Once);
 
         private static ConfigDTO configOutcome;
         private static IConfigService configService;
@@ -382,8 +382,8 @@ namespace TheFreckExchange.Specs
             {
                 Background = updatedBackground,
             };
-            configRepoMock.Setup(c => c.UploadNewAsync(Moq.It.IsAny<ConfigDTO>()));
-            configRepoMock.Setup(c => c.GetConfigAsync(Moq.It.IsAny<string>())).ReturnsAsync(configDTO);
+            configRepoMock.Setup(c => c.ReplaceConfigAsync(Moq.It.IsAny<ConfigDTO>()));
+            configRepoMock.Setup(c => c.GetConfigAsync()).ReturnsAsync(configDTO);
             configService = new ConfigService(configRepoMock.Object, accountRepoMock.Object, productRepoMock.Object);
         };
 
@@ -406,7 +406,7 @@ namespace TheFreckExchange.Specs
             }
         };
 
-        It Should_Store_Config_In_The_Repo = () => configRepoMock.Verify(c => c.UploadNewAsync(Moq.It.IsAny<ConfigDTO>()), Times.Once);
+        It Should_Store_Config_In_The_Repo = () => configRepoMock.Verify(c => c.ReplaceConfigAsync(Moq.It.IsAny<ConfigDTO>()), Times.Once);
 
         private static ConfigDTO configOutcome;
         private static string updatedBackground;
@@ -414,17 +414,17 @@ namespace TheFreckExchange.Specs
         private static IConfigService configService;
     }
 
-    public class When_Retrieving_Site_Config : With_ConfigRepo_Setup
+    public class When_Getting_Site_Config : With_ConfigRepo_Setup
     {
         Establish context = () =>
         {
-            configRepoMock.Setup(c => c.GetConfigAsync(Moq.It.IsAny<string>())).ReturnsAsync(configDTO);
+            configRepoMock.Setup(c => c.GetConfigAsync()).ReturnsAsync(configDTO);
             configService = new ConfigService(configRepoMock.Object, accountRepoMock.Object, productRepoMock.Object);
         };
 
-        Because of = () => configOutcome = configService.GetConfigAsync(configDTO.ConfigId).GetAwaiter().GetResult();
+        Because of = () => configOutcome = configService.GetConfigAsync().GetAwaiter().GetResult();
 
-        It Should_Get_Config_From_Repo = () => configRepoMock.Verify(c => c.GetConfigAsync(Moq.It.IsAny<string>()), Times.Once);
+        It Should_Get_Config_From_Repo = () => configRepoMock.Verify(c => c.GetConfigAsync(), Times.Once);
 
         It Should_Return_Config = () =>
         {
@@ -445,14 +445,14 @@ namespace TheFreckExchange.Specs
     {
         Establish context = () =>
         {
-            configRepoMock.Setup(c => c.GetConfigAsync(Moq.It.IsAny<string>())).ReturnsAsync(configDTO);
-            configRepoMock.Setup(c => c.DeleteConfigAsync(Moq.It.IsAny<string>())).ReturnsAsync(configDTO);
+            configRepoMock.Setup(c => c.GetConfigAsync()).ReturnsAsync(configDTO);
+            configRepoMock.Setup(c => c.DeleteConfigAsync()).ReturnsAsync(configDTO);
             configService = new ConfigService(configRepoMock.Object, accountRepoMock.Object, productRepoMock.Object);
         };
 
-        Because of = () => deleteOutcome = configService.DeleteConfigAsync(configDTO.ConfigId).GetAwaiter().GetResult();
+        Because of = () => deleteOutcome = configService.DeleteConfigAsync().GetAwaiter().GetResult();
 
-        It Should_Find_Config_In_Repo = () => configRepoMock.Verify(c => c.GetConfigAsync(Moq.It.IsAny<string>()), Times.Once);
+        It Should_Find_Config_In_Repo = () => configRepoMock.Verify(c => c.GetConfigAsync(), Times.Once);
 
         It Should_Return_Deleted_Config = () =>
         {
@@ -461,7 +461,7 @@ namespace TheFreckExchange.Specs
             deleteOutcome.SiteTitle.ShouldEqual(configDTO.SiteTitle);
         };
 
-        It Should_Remove_Config_From_Repo = () => configRepoMock.Verify(c => c.DeleteConfigAsync(Moq.It.IsAny<string>()),Times.Once);
+        It Should_Remove_Config_From_Repo = () => configRepoMock.Verify(c => c.DeleteConfigAsync(),Times.Once);
 
         private static IConfigService configService;
         private static ConfigDTO deleteOutcome;

@@ -13,9 +13,9 @@ namespace TheFreckExchange.Server.DTO
         [BsonElement("ProductId")]
         public required string ProductId { get; init; }
         public required string ProductDescription { get; set; }
-        public List<string> AvailableAttributes { get; set; } = new List<string>();
+        public IEnumerable<string> AvailableAttributes { get; set; } = new List<string>();
         public required double Price { get; set; }
-        public List<string> ImageReferences { get; set; } = new List<string>();
+        public IEnumerable<string> ImageReferences { get; set; } = new List<string>();
         public string? ProductOwnerId { get; set; }
 
         public Product()
@@ -30,15 +30,15 @@ namespace TheFreckExchange.Server.DTO
         public required double Price { get; set; }
         public required string Description { get; set; }
         public LoginCredentials? Credentials { get; set; }
-        public List<string> Attributes { get; set; } = new List<string>();
-        public List<string> ImageReferences { get; set; } = new List<string>();
+        public IEnumerable<string> Attributes { get; set; } = new List<string>();
+        public IEnumerable<string> ImageReferences { get; set; } = new List<string>();
     }
 
     public class Item : Product
     {
         [BsonElement("SKU")]
         public required string SKU { get; set; } = Guid.NewGuid().ToString();
-        public List<ItemAttribute> Attributes { get; set; } = new List<ItemAttribute>();
+        public IEnumerable<ItemAttribute> Attributes { get; set; } = new List<ItemAttribute>();
         public LoginCredentials? Credentials { get; set; }
         public string SellerId { get; set; } = String.Empty;
     }
@@ -47,7 +47,7 @@ namespace TheFreckExchange.Server.DTO
     {
         public required string Name { get; set; } = String.Empty;
         public LoginCredentials? Credentials { get; set; }
-        public List<ItemAttribute> Attributes { get; set; } = new List<ItemAttribute>();
+        public IEnumerable<ItemAttribute> Attributes { get; set; } = new List<ItemAttribute>();
         public string SellerId { get; set; } = String.Empty;
     }
 

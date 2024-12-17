@@ -31,19 +31,17 @@ namespace TheFreckExchange.Server.Controllers
             return desc;
         }
 
-        [HttpGet("config/{configId}")]
-        public async Task<ConfigDTO> GetSiteConfig(string configId)
+        [HttpGet("config")]
+        public async Task<ConfigDTO> GetSiteConfig()
         {
-            if (String.IsNullOrWhiteSpace(configId)) return new ConfigDTO();
-            var config = await configService.GetConfigAsync(configId);
-            if (String.IsNullOrWhiteSpace(config?.ConfigId)) return new ConfigDTO();
+            var config = await configService.GetConfigAsync();
             return config;
         }
 
-        [HttpGet("config/background/{configId}")]
-        public async Task<ImageFile> GetBackgroundImageAsync(string configId)
+        [HttpGet("config/background")]
+        public async Task<ImageFile> GetBackgroundImageAsync()
         {
-            return await productService.GetBackgroundImageAsync(configId);
+            return await productService.GetBackgroundImageAsync();
         }
 
         [HttpPost("config/set")]
@@ -58,10 +56,10 @@ namespace TheFreckExchange.Server.Controllers
             return await configService.UpdateConfigAsync(config);
         }
 
-        [HttpDelete("config/{configId}")]
-        public async Task<ConfigDTO> DeleteCurrentConfig(string configId)
+        [HttpDelete("config")]
+        public async Task<ConfigDTO> DeleteCurrentConfig()
         {
-            return await configService.DeleteConfigAsync(configId);
+            return await configService.DeleteConfigAsync();
         }
     }
 }

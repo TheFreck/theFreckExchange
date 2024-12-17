@@ -105,8 +105,8 @@ namespace TheFreckExchange.Server.Controllers
                 var product = await productService.GetByNameAsync(input.Name);
                 product.Price = input.Price != 0 ? input.Price : product.Price;
                 product.ProductDescription = input.Description != "" ? input.Description : product.ProductDescription;
-                product.AvailableAttributes = input.Attributes.Count > 0 ? product.AvailableAttributes.Concat(input.Attributes).ToHashSet().ToList() : product.AvailableAttributes;
-                product.ImageReferences = input.ImageReferences.Count > 0 ? product.ImageReferences.Concat(input.ImageReferences).ToHashSet().ToList() : product.ImageReferences;
+                product.AvailableAttributes = input.Attributes.Count() > 0 ? product.AvailableAttributes.Concat(input.Attributes).ToHashSet().ToList() : product.AvailableAttributes;
+                product.ImageReferences = input.ImageReferences.Count() > 0 ? product.ImageReferences.Concat(input.ImageReferences).ToHashSet().ToList() : product.ImageReferences;
                 return await productService.ModifyProductAsync(product);
             }
             return new Product
@@ -200,8 +200,8 @@ namespace TheFreckExchange.Server.Controllers
         /// <param name="username"></param>
         /// <param name="attributes"></param>
         /// <returns></returns>
-        [HttpDelete("item/buy/{qty}")]
-        public async Task<List<Item>> PurchaseItem(ItemDTO item, int qty)
+        [HttpPost("item/buy/{qty}")]
+        public async Task<List<Item>> PurchaseItem([FromBody]ItemDTO item, int qty)
         {
             if(item.Credentials == null)
             {
@@ -246,6 +246,12 @@ namespace TheFreckExchange.Server.Controllers
             return Ok();
         }
 
+        [HttpPost("imageItems")]
+        public async Task<IEnumerable<ImageFile>> GetProductImages(IEnumerable<string> imageIds)
+        {
+            return await productService.GetImagesAsync(imageIds);
+        }
+
         [HttpGet("images")]
         public IEnumerable<ImageFile> GetAllImages()
         {
@@ -253,11 +259,10 @@ namespace TheFreckExchange.Server.Controllers
             return images;
         }
 
-        [HttpGet("images/site/{configId}")]
-        public async Task<IEnumerable<ImageFile>> GetSiteImages(string configId)
+        [HttpGet("images/site")]
+        public async Task<IEnumerable<ImageFile>> GetSiteImages()
         {
-            if (String.IsNullOrWhiteSpace(configId)) return new List<ImageFile>();
-            var images = await productService.GetAllSiteImagesAsync(configId);
+            var images = await productService.GetAllSiteImagesAsync();
             return images;
         }
 
