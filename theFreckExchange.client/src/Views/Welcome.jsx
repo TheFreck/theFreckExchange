@@ -31,6 +31,7 @@ export const Welcome = () => {
     const [products, setProducts] = useState([]);
     const [ready, setReady] = useState(false);
     const [config,setConfig] = useState(configTemplate);
+    const [background,setBackground] = useState({});
 
     const siteApi = axios.create({
         baseURL: `${process.env.NODE_ENV === "development" ? "https://localhost:7299/Site" : "/Site"}`
@@ -42,38 +43,38 @@ export const Welcome = () => {
 
     useEffect(() => {
         getConfigurationAsync(figs => {
-            if(figs.configId !== null && figs.configId !== undefined)
-                localStorage.setItem("configId", figs.configId);
-            if(figs.siteTitle !== null && figs.siteTitle !== undefined && figs.siteTitle !== "" && figs.siteTitle !== "undefined")
-                localStorage.setItem("siteTitle", figs.siteTitle);
-            else
-                localStorage.setItem("siteTitle", "Default Site Title");
-            if(figs.adminAccountId !== null && figs.adminAccountId !== undefined){
+            getBackground(async backgrnd => {
                 setConfig(figs);
-                getProductsAsync(prods => {
-                    setProducts(prods);
-                    setReady(true);
-                });
-            }
+                if (backgrnd) {
+                    let img = await fetch(window.atob(backgrnd.image));
+                    let blob = await img.blob();
+                    let url = URL.createObjectURL(blob);
+                    setBackground(url);
+                }
+                if(figs.configId !== null && figs.configId !== undefined)
+                    localStorage.setItem("configId", figs.configId);
+                if(figs.siteTitle !== null && figs.siteTitle !== undefined && figs.siteTitle !== "" && figs.siteTitle !== "undefined")
+                    localStorage.setItem("siteTitle", figs.siteTitle);
+                if(figs.adminAccountId !== null && figs.adminAccountId !== undefined){
+                    getProductsAsync(prods => {
+                        setProducts(prods);
+                        setReady(true);
+                    });
+                }
+            });
         });
     }, []);
 
     // **********SITE*CONFIG************
     const getConfigurationAsync = async (cb) => {
-        if(localStorage.getItem("loginToken") !== null && localStorage.getItem("loginToken") !== "" && localStorage.getItem("configId") !== null && localStorage.getItem("configId") !== ""){
-
-            await siteApi.get(`config/${localStorage.getItem("configId")}`)
-                .then(yup => {
-                    cb(yup.data);
-                })
-                .catch(nope => {
-                    console.error(nope);
-                    cb(nope);
-                });
-        }
-        else{
-            cb(configTemplate);
-        }
+        await siteApi.get(`config`)
+            .then(yup => {
+                cb(yup.data);
+            })
+            .catch(nope => {
+                console.error(nope);
+                cb(nope);
+            });
     }
     
     const createConfigurationAsync = async (cb) => {
@@ -105,7 +106,7 @@ export const Welcome = () => {
     }
 
     const deleteConfigurationAsync = async (configId,cb) => {
-        await siteApi.delete(`config/${configId}`)
+        await siteApi.delete(`config`)
             .then(yup => {
                 console.log("deleted: ", yup.data);
                 localStorage.setItem("configId","")
@@ -123,45 +124,26 @@ export const Welcome = () => {
     const getProductsAsync = async (cb) => {
         await productApi.get()
             .then(yup => {
-                let prods = [];
-                if(yup.data.length === 0) cb([]);
-                for (let prod of yup.data) {
-                    let imageObjects = [];
-                    for (let image of prod.imageBytes) {
-                        let bytes = image;
-                        imageObjects.push({
-                            bytes
-                        })
-                    }
-                    prod.imageBytes = imageObjects;
-                    prods.push(prod);
-                }
-                cb(prods);
+                cb(yup.data);
             })
             .catch(nope => {
                 console.error(nope)
-                cb(nope);p
+                cb(nope);
             });
     }
 
     const createProductAsync = async ({ name, description, attributes, price, images }, cb) => {
-        readImagesAsync(images, ready => {
-            let data = [];
-            for (var i = 0; i < ready.length; i++) {
-                data.push(window.btoa([ready[i]]));
-            }
-            productApi.post(`create`, { name, description, price, attributes, credentials: getCreds(), imageBytes:data})
-                .then(yup => {
-                    getProductsAsync(prods => {
-                        setProducts(prods);
-                        cb();
-                    });
-                })
-                .catch(nope => {
-                    console.error(nope)
-                    cb(nope);
+        productApi.post(`create`, { name, description, price, attributes, credentials: getCreds(), imageReferences: images})
+            .then(yup => {
+                getProductsAsync(prods => {
+                    setProducts(prods);
+                    cb();
                 });
-        })
+            })
+            .catch(nope => {
+                console.error(nope)
+                cb(nope);
+            });
     }
 
     // **********ITEM*****************
@@ -180,11 +162,7 @@ export const Welcome = () => {
         item.credentials = getCreds();
         item.attributes = attributes;
         item.sku = "";
-        const imagesBytes = [];
-        for (var imageBytes of item.imageBytes) {
-            imagesBytes.push(imageBytes.bytes);
-        }
-        item.imageBytes = imagesBytes;
+        
         productApi.post(`items/create/${quantity}`, item)
             .then(yup => {
                 console.info("item created: ", yup.data);
@@ -204,8 +182,14 @@ export const Welcome = () => {
         cb(item);
     }
 
-    const purchaseItemAsync = async (item, qty) => {
-        productApi.delete("item/buy")
+    const purchaseItemAsync = async (product, qty) => {
+        let item = {
+            name: product.name,
+            credentials: getCreds(),
+            attributes: product.attributes,
+            sellerId: ""
+        }
+        productApi.post(`item/buy/${qty}`,item)
             .then(yup => {
                 console.info("purchased: ", yup.data);
             })
@@ -263,8 +247,16 @@ export const Welcome = () => {
         cb(targetImages);
     }
 
+    const getImagesFromReferencesAsync = (refs,cb) => {
+        productApi.post("imageItems",refs)
+        .then(yup => {
+            cb(yup.data);
+        })
+        .catch(nope => console.error(nope));
+    }
+
     const getBackground = async (cb) => {
-        await siteApi.get(`config/background/${localStorage.getItem("configId")}`)
+        await siteApi.get(`config/background`)
             .then(yup => {
                 cb(yup.data);
             })
@@ -297,23 +289,35 @@ export const Welcome = () => {
     const created = () => {
         console.info("created");
     }
-    
-    const CreateItemsCallback = useCallback(() => <CreateItems products={products} />,[products]);
+
+    useEffect(() => {
+        setReady(true);
+    },[userView]);
 
     const WelcomeCallback = useCallback(() => {
         if (ready) return (
-            <>
-                {userView !== userEnum.siteConfig && <StoreFront />}
+            <Box
+                sx={{
+                    backgroundImage: `url(${background})`,
+                    backgroundRepeat: "no-repeat",
+                    backgroundSize: "cover",
+                    backgroundColor: "rgba(255,255,255,.2)",
+                    backgroundBlendMode: "lighten",
+                    height: "100vh",
+                    color: "black"
+                }}
+            >
+                {userView === userEnum.home && <StoreFront />}
                 {/* {check local storage against server} */}
 
                 {userView === userEnum.createProduct && localStorage.getItem("permissions.admin") !== null && <CreateProduct created={created} />}
-                {userView === userEnum.createItems && localStorage.getItem("permissions.admin") !== null && <CreateItemsCallback />}
+                {userView === userEnum.createItems && localStorage.getItem("permissions.admin") !== null && <CreateItems />}
                 {userView === userEnum.updateProduct && localStorage.getItem("permissions.admin") !== null && <ModifyProduct />}
                 {userView === userEnum.siteConfig && localStorage.getItem("permissions.admin") !== null && <SiteConfiguration />}
                 {userView === userEnum.shop && localStorage.getItem("permissions.user") !== null && <Store />}
                 {userView === userEnum.viewAccount && localStorage.getItem("permissions.user") !== null && <div>Placeholder for account view</div>}
                 
-            </>
+            </Box>
             )
         else return;
     }, [products, ready, userView]);
@@ -339,7 +343,8 @@ export const Welcome = () => {
                 updateConfigurationAsync,
                 getConfigurationAsync,
                 createConfigurationAsync,
-                deleteConfigurationAsync
+                deleteConfigurationAsync,
+                getImagesFromReferencesAsync
             }}
         >
         <WelcomeCallback />

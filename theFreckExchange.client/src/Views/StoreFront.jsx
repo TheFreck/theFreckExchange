@@ -5,6 +5,7 @@ import axios from "axios";
 import ProductDescription from "./productDescription";
 import Descriptions from "../components/Descriptions";
 import { ProductContext } from "../Context";
+import { ImageCarousel } from "../components/ImageCarousel";
 
 export const StoreFront = () => {
     const {getConfigurationAsync,getBackground} = useContext(ProductContext);
@@ -30,33 +31,22 @@ export const StoreFront = () => {
                 const productApi = axios.create({
                     baseURL: `${url}/Product`
                 });
-                productApi.get(`images/site/${localStorage.getItem("configId")}`)
+                productApi.get(`images/site`)
                     .then(async yup => {
-                            let yupReturn = [];
-                            for (var im of yup.data) {
-                                let img = await fetch(window.atob(im.image));
-                                let blob = await img.blob();
-                                im.img = URL.createObjectURL(blob);
-                                yupReturn.push(im);
-                                if (yupReturn.length === yup.data.length) setImages(yupReturn);
-                            }
+                        let yupReturn = [];
+                        for (var im of yup.data) {
+                            im.image = window.atob(im.image);
+                            let img = await fetch(im.image);
+                            let blob = await img.blob();
+                            im.url = URL.createObjectURL(blob);
+                            yupReturn.push(im);
+                            setImages(yupReturn);
+                        }
                     })
                     .catch(nope => console.error(nope));
-
             });
         })
     }, []);
-
-    const ImageGroups = () => {
-        return <Box
-            sx={{display: "flex", flexDirection: "row"}}
-        >
-            <img alt="first" src={images[Math.floor(Math.random() * images.length)].img} style={{ width: "auto", height: "60vh" }} />
-            <img alt="second" src={images[Math.floor(Math.random() * images.length)].img} style={{ width: "auto", height: "60vh" }} />
-            <img alt="third" src={images[Math.floor(Math.random() * images.length)].img} style={{ width: "auto", height: "60vh" }} />
-            <img alt="fourth" src={images[Math.floor(Math.random() * images.length)].img} style={{ width: "auto", height: "60vh" }} />
-        </Box>
-    }
 
     return <Box
         sx={{
@@ -64,9 +54,16 @@ export const StoreFront = () => {
             width: "100vw",
             margin: 0,
             padding: 0,
+            color: "black"
         }}
     >
-        <Carousel
+        <ImageCarousel
+            imageObjects={images}
+            height="60vh"
+            width="100%"
+            isGrouped={true}
+        />
+        {/* <Carousel
             sx={{ width: "100%", height: "60vh" }}
             cycleNavigation={true}
             autoPlay={true}
@@ -88,7 +85,7 @@ export const StoreFront = () => {
                     </div>
                 ))
             }
-        </Carousel>
+        </Carousel> */}
         <Descriptions />
     </Box>
 }
