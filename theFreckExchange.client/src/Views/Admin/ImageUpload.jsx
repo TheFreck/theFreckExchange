@@ -3,16 +3,9 @@ import react, { useContext, useEffect, useState } from "react";
 import axios from "axios";
 import { ProductContext } from "../../Context";
 
-export const ImageUpload = ({getImages,uploadImagesAsync,type,multiple}) => {
-    const {updateConfigurationAsync} = useContext(ProductContext);
-    const imageApi = axios.create({
-        baseURL: `/Product`
-    })
+export const ImageUpload = ({getImages,type,multiple,uploadImages}) => {
+    const {updateConfigurationAsync,uploadImagesAsync} = useContext(ProductContext);
     const [images, setImages] = useState([]);
-
-    useEffect(() => {
-        // console.log("set images: ", images);
-    },[images]);
 
     return <Box
         sx={{marginTop: "10em"}}
@@ -42,10 +35,15 @@ export const ImageUpload = ({getImages,uploadImagesAsync,type,multiple}) => {
             variant="contained"
             onClick={() => uploadImagesAsync(images,async uploaded => {
                 // console.log("before updating config: ", uploaded[0].imageId);
+
                 if(type==="background"){
                     await updateConfigurationAsync({background: uploaded[0].imageId, configId: localStorage.getItem("configId")},cbck => {
                         console.info("updated site background: ", cbck);
                     })
+                }
+                else
+                if(type === "product"){
+                    uploadImages(uploaded.map(u => u.imageId));
                 }
                 else{
                     await updateConfigurationAsync({images: uploaded.map(u => u.imageId), configId: localStorage.getItem("configId")}, cbck => {

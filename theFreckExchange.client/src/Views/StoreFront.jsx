@@ -3,7 +3,7 @@ import react, { useContext, useEffect, useState } from "react";
 import Carousel from "react-material-ui-carousel";
 import axios from "axios";
 import ProductDescription from "./productDescription";
-import Descriptions from "../components/Descriptions";
+import Descriptions from "../components/Descriptions-dep";
 import { ProductContext } from "../Context";
 import { ImageCarousel } from "../components/ImageCarousel";
 

@@ -11,17 +11,20 @@ export const CreateProduct = ({created}) => {
     const [description, setDescription] = useState("");
     const [attributeInput, setAttributeInput] = useState("");
     const [attributes, setAttributes] = useState([]);
-    const [images, setImages] = useState({});
+    const [images, setImages] = useState([]);
 
     const uploadImages = (im) => {
         setImages(im);
     }
 
-    return <div>
-        <div>Create Product Here</div>
+    useEffect(() => {
+        console.log("product images: ", images);
+    },[images]);
+
+    return (
         <Box
             component="form"
-            sx={{ display: "flex", flexDirection: "column" }}
+            sx={{ display: "flex", flexDirection: "column", margin: "10vh auto", width: "80vw" }}
         >
             <TextField
                 required
@@ -68,7 +71,7 @@ export const CreateProduct = ({created}) => {
                     setAttributeInput("");
                 }}
             />
-            <ImageUpload getImages={getImages} uploadImages={uploadImages} />
+            <ImageUpload getImages={getImages} type="product" multiple={true} uploadImages={uploadImages} />
             <br/>
             <Button
                 id="createProductButton"
@@ -81,8 +84,7 @@ export const CreateProduct = ({created}) => {
             >
                 Create
             </Button>
-        </Box>
-    </div>
+        </Box>);
 }
 
 export default CreateProduct;

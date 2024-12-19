@@ -53,6 +53,7 @@ export const Descriptions = ({ isConfig }) => {
             cb("/Site");
         }
     }
+    
     useEffect(() => {
         getConfigurationAsync(figs => {
             getBackground(im => {
@@ -64,13 +65,13 @@ export const Descriptions = ({ isConfig }) => {
                         setBackground(url);
                     }
                     setConfig(figs);
-                    setTitle(isGood(figs.categoryTitle, configTemplate.categoryTitle));
-                    setLeftTop(isGood(figs.categories[0], configTemplate.categories[0]));
-                    setLeftMiddle(isGood(figs.categories[1], configTemplate.categories[1]));
-                    setLeftBottom(isGood(figs.categories[2], configTemplate.categories[2]));
-                    setRightTop(isGood(figs.categories[3], configTemplate.categories[3]));
-                    setRightMiddle(isGood(figs.categories[4], configTemplate.categories[4]));
-                    setRightBottom(isGood(figs.categories[5], configTemplate.categories[5]));
+                    setTitle(isGood(figs?.categoryTitle, configTemplate.categoryTitle));
+                    setLeftTop(isGood(figs && figs.categories[0], configTemplate.categories[0]));
+                    setLeftMiddle(isGood(figs && figs.categories[1], configTemplate.categories[1]));
+                    setLeftBottom(isGood(figs && figs.categories[2], configTemplate.categories[2]));
+                    setRightTop(isGood(figs && figs.categories[3], configTemplate.categories[3]));
+                    setRightMiddle(isGood(figs && figs.categories[4], configTemplate.categories[4]));
+                    setRightBottom(isGood(figs && figs.categories[5], configTemplate.categories[5]));
                 });
             });
         })
@@ -359,15 +360,15 @@ export const Descriptions = ({ isConfig }) => {
 
     return <>
         <Box
-            sx={{
-                backgroundImage: `url(${background})`,
-                backgroundRepeat: "no-repeat",
-                backgroundSize: "cover",
-                backgroundColor: "rgba(255,255,255,.2)",
-                backgroundBlendMode: "lighten",
-                height: "66%",
-                color: "black"
-            }}
+            // sx={{
+            //     backgroundImage: `url(${background})`,
+            //     backgroundRepeat: "no-repeat",
+            //     backgroundSize: "cover",
+            //     backgroundColor: "rgba(255,255,255,.2)",
+            //     backgroundBlendMode: "lighten",
+            //     height: "66%",
+            //     color: "black"
+            // }}
         >
             {!isConfig &&
                 <Typography
