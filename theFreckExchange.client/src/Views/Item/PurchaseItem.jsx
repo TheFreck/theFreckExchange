@@ -42,13 +42,12 @@ export const PurchaseItem = ({product}) => {
                 }
             }
         }
-        console.log("availables: ", availables);
         cb(availables);
     }
 
-    const groupItemsByAttribute = (items) => {
+    const groupItemsByAttribute = (itms) => {
         let types = {};
-        items.forEach(element => {
+        itms.forEach(element => {
             element.attributes.forEach(attribute => {
                 if(!Object.keys(types).includes(attribute.type)){
                     types[attribute.type] = {[attribute.value]: []};
@@ -64,7 +63,6 @@ export const PurchaseItem = ({product}) => {
             attChoices[type[0]] = "";
         })
         setAttributeChoices(attChoices);
-        console.log("att types: ", types);
         setAttributes(types);
     }
 
@@ -131,7 +129,6 @@ export const PurchaseItem = ({product}) => {
                 <Grid2
                     sx={{width: "30vw",  height: "20vh"}}
                 >
-                    {console.log("orderedAttributes: ", orderedAttributes)}
                     {
                         orderedAttributes && Object.entries(orderedAttributes).length && 
                         Object.entries(orderedAttributes).map((a,i) => 
@@ -141,7 +138,6 @@ export const PurchaseItem = ({product}) => {
                             >
                                 <InputLabel>
                                     {a[0]}
-                                    {console.log("a: ",a)}
                                 </InputLabel>
                                 <Select
                                     label={a[0]}
@@ -174,10 +170,10 @@ export const PurchaseItem = ({product}) => {
                         )
                     }
                     <Grid2
-                        sx={{width: "100%", display: "flex", flexDirection: "row"}}
+                        sx={{width: "100%", display: "flex", flexDirection: "row", justifyContent: "space-between"}}
                     >
                         <FormControl
-                            sx={{width: "70%"}}
+                            sx={{width: "30%"}}
                         >
                             <TextField 
                                 label="Quantity"
@@ -196,20 +192,30 @@ export const PurchaseItem = ({product}) => {
                                 value={quantity}
                             />
                         </FormControl>
-                        <Button
-                            sx={{width: "30%"}}
-                            variant="contained"
-                            onClick={() => {
-                                let attArray = [];
-                                for(let att of Object.entries(attributeChoices)){
-                                    attArray.push({type:att[0],value: att[1]});
-                                }
-                                purchaseItemAsync({name: product.name,attributes: attArray},quantity)
-                            }
-                            }
+                        <Box 
+                            sx={{width: "auto", display: "flex", flexDirection: "row", justifyContent: "space-around"}}
                         >
-                            Purchase
-                        </Button>
+                            <Button
+                                sx={{width: "30%"}}
+                                onClick={() => groupItemsByAttribute(items)}
+                            >
+                                Reset Attributes
+                            </Button>
+                            <Button
+                                sx={{width: "30%", padding: "0 4vw"}}
+                                variant="contained"
+                                onClick={() => {
+                                    let attArray = [];
+                                    for(let att of Object.entries(attributeChoices)){
+                                        attArray.push({type:att[0],value: att[1]});
+                                    }
+                                    purchaseItemAsync({name: product.name,attributes: attArray},quantity)
+                                }
+                                }
+                            >
+                                Purchase
+                            </Button>
+                        </Box>
                     </Grid2>
                     {
                         qtyError &&
