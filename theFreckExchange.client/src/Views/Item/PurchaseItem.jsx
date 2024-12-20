@@ -30,6 +30,21 @@ export const PurchaseItem = ({product}) => {
         });
     },[]);
 
+    const setAttributesFromItems = (itms) => {
+        let availables = {};
+        for(let itm of itms){
+            for(let i=0; i<itm.attributes.length; i++){
+                if(availables[itm.attributes[i].type] === undefined){
+                    availables[itm.attributes[i].type] = new Set([itm.attributes[i].value]);
+                }
+                else{
+                    availables[itm.attributes[i].type].add(itm.attributes[i].value);
+                }
+            }
+        }
+        console.log("availables: ", availables);
+    }
+
     const groupItemsByAttribute = (items) => {
         let types = {};
         items.forEach(element => {
@@ -48,6 +63,7 @@ export const PurchaseItem = ({product}) => {
             attChoices[type[0]] = "";
         })
         setAttributeChoices(attChoices);
+        console.log("att types: ", types);
         setAttributes(types);
     }
 
@@ -61,18 +77,29 @@ export const PurchaseItem = ({product}) => {
         narrowField();
     },[attributeChoices]);
 
-    useEffect(() => console.log("narrowedItems: ", narrowedItems.map(i => i)),[narrowedItems]);
-
     const soldOutMessage = (qty,max) => `You have selected more items ${qty} than are in stock ${max}`
 
     const narrowField = () => {
-        console.log("items: ", items.map(i => i));
         let narrowed = items;
-        for(let i=0; i<items.length; i++){
-            
+        for(let i=0; i<narrowed.length; i++){
+            let attArray = Object.entries(attributeChoices);
+            for(let j=0; j<attArray.length; j++){
+                if(!itemContainsAttribute(items[i],attArray[j])){
+                    narrowed.splice(i--,1);
+                }
+            }
         }
-        console.log("narrowed: ", narrowed);
+        setMaxQty(narrowed.length);
         setNarrowedItems(narrowed);
+        setAttributesFromItems(narrowed);
+    }
+
+    const itemContainsAttribute = (item,attribute) => {
+        if(attribute[1] === "") return true;
+        if(item.attributes.find(a => a.type === attribute[0] && a.value === attribute[1])){
+            return true;
+        }
+        return false;
     }
     
     return (
@@ -97,7 +124,7 @@ export const PurchaseItem = ({product}) => {
                 sx={{marginTop: "1vh", width: "100%", display:"flex", flexDirection: "row"}}
             >
                 <Grid2
-                    sx={{width: "30vw",  height: "20vh", width: "20vw"}}
+                    sx={{width: "30vw",  height: "20vh"}}
                 >
                     {
                         orderedAttributes && Object.entries(orderedAttributes).length && 
@@ -153,7 +180,10 @@ export const PurchaseItem = ({product}) => {
                                     if(parseInt(q.target.value) > maxQty){
                                         setQtyError(true);
                                     }
-                                        setQuantity(parseInt(q.target.value))
+                                    else{
+                                        setQtyError(false);
+                                    }
+                                    setQuantity(parseInt(q.target.value))
                                 }
                             }
                                 value={quantity}
@@ -185,9 +215,25 @@ export const PurchaseItem = ({product}) => {
                 </Grid2>
                 <Grid2
                     width={8}
-                    sx={{border: "solid", borderWidth: "1px", height: "20vh", width: "60vw"}}
+                    sx={{height: "auto", width: "50vw", textAlign: "justify"}}
                 >
-                    {product.productDescription}
+                    <TextField
+                        label="Description"
+                        multiline
+                        color="standard"
+                        disabled
+                        sx={{
+                            width: "100%", 
+                            "& .MuiInputBase-input.Mui-disabled": {
+                                WebkitTextFillColor: "black"
+                            },
+                            "& .css-n322op-MuiFormLabel-root-MuiInputLabel-root.Mui-disabled": {
+                                color: "#555555"
+                            }
+                        }}
+                        value={product.productDescription}
+                    />
+                    
                 </Grid2>
             </Grid2>
         </Grid2>
