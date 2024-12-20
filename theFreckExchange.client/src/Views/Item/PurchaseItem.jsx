@@ -30,7 +30,7 @@ export const PurchaseItem = ({product}) => {
         });
     },[]);
 
-    const setAttributesFromItems = (itms) => {
+    const getAttributesFromItems = (itms,cb) => {
         let availables = {};
         for(let itm of itms){
             for(let i=0; i<itm.attributes.length; i++){
@@ -43,6 +43,7 @@ export const PurchaseItem = ({product}) => {
             }
         }
         console.log("availables: ", availables);
+        cb(availables);
     }
 
     const groupItemsByAttribute = (items) => {
@@ -74,12 +75,15 @@ export const PurchaseItem = ({product}) => {
 
     useEffect(() => {
         if(Object.entries(attributeChoices).length === 0) return;
-        narrowField();
+        narrowField(narrowed => {
+            setMaxQty(narrowed.length);
+            setNarrowedItems(narrowed);
+        });
     },[attributeChoices]);
 
     const soldOutMessage = (qty,max) => `You have selected more items ${qty} than are in stock ${max}`
 
-    const narrowField = () => {
+    const narrowField = (cb) => {
         let narrowed = items;
         for(let i=0; i<narrowed.length; i++){
             let attArray = Object.entries(attributeChoices);
@@ -89,9 +93,10 @@ export const PurchaseItem = ({product}) => {
                 }
             }
         }
-        setMaxQty(narrowed.length);
-        setNarrowedItems(narrowed);
-        setAttributesFromItems(narrowed);
+        getAttributesFromItems(narrowed,availables => {
+            setAttributes(availables);
+            cb(narrowed);
+        });
     }
 
     const itemContainsAttribute = (item,attribute) => {
@@ -126,6 +131,7 @@ export const PurchaseItem = ({product}) => {
                 <Grid2
                     sx={{width: "30vw",  height: "20vh"}}
                 >
+                    {console.log("orderedAttributes: ", orderedAttributes)}
                     {
                         orderedAttributes && Object.entries(orderedAttributes).length && 
                         Object.entries(orderedAttributes).map((a,i) => 
@@ -135,6 +141,7 @@ export const PurchaseItem = ({product}) => {
                             >
                                 <InputLabel>
                                     {a[0]}
+                                    {console.log("a: ",a)}
                                 </InputLabel>
                                 <Select
                                     label={a[0]}
@@ -151,7 +158,7 @@ export const PurchaseItem = ({product}) => {
                                         Choose a {a[0]}
                                     </MenuItem>
                                     {
-                                        a && a[1] && Object.keys(a[1]).map((t,j) => (
+                                        a && a[1] && Object.values(Array.from(a[1])).map((t,j) => (
                                             <MenuItem
                                                 key={j}
                                                 name={t}
