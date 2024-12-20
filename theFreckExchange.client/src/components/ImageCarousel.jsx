@@ -25,15 +25,15 @@ export const ImageCarousel = ({
         return <Box
             sx={{display: "flex", flexDirection: "row"}}
         >
-            <img alt="first" src={imageObjects[Math.floor(Math.random() * imageObjects.length)].image} style={{ width: "auto", height: "60vh" }} />
-            <img alt="second" src={imageObjects[Math.floor(Math.random() * imageObjects.length)].image} style={{ width: "auto", height: "60vh" }} />
-            <img alt="third" src={imageObjects[Math.floor(Math.random() * imageObjects.length)].image} style={{ width: "auto", height: "60vh" }} />
-            <img alt="fourth" src={imageObjects[Math.floor(Math.random() * imageObjects.length)].image} style={{ width: "auto", height: "60vh" }} />
+            <img alt="first" src={imageObjects[Math.floor(Math.random() * imageObjects.length)].image} style={{ width: "auto", height: "60vh", top: 0 }} />
+            <img alt="second" src={imageObjects[Math.floor(Math.random() * imageObjects.length)].image} style={{ width: "auto", height: "60vh", top: 0 }} />
+            <img alt="third" src={imageObjects[Math.floor(Math.random() * imageObjects.length)].image} style={{ width: "auto", height: "60vh", top: 0 }} />
+            <img alt="fourth" src={imageObjects[Math.floor(Math.random() * imageObjects.length)].image} style={{ width: "auto", height: "60vh", top: 0 }} />
         </Box>
     }
 
     return <Carousel
-        sx={{ minHeight, maxHeight, height, minWidth, maxWidth, width, border: "solid", borderWidth: "1px" }}
+        sx={{ minHeight, maxHeight, height, width: "100vw", border: "solid", borderWidth: "1px" }}
         cycleNavigation={true}
         interval={10000}
         autoPlay={isAutoPlay}
@@ -47,7 +47,7 @@ export const ImageCarousel = ({
         {
             !isGrouped && imageObjects.map((image, i) => (
                 <img 
-                    style={{ backgroundSize: "contain", maxHeight, maxWidth }} 
+                    style={{ backgroundSize: "contain", height }} 
                     src={image.image} 
                     height={"auto"} 
                     key={i} 

@@ -189,7 +189,13 @@ export const Welcome = () => {
             attributes: product.attributes,
             sellerId: ""
         }
-        productApi.post(`item/buy/${qty}`,item)
+        console.log("item: ", item);
+        productApi.post(`item/buy/${qty}`,{
+            name: product.name,
+            credentials: getCreds(),
+            attributes: product.attributes,
+            sellerId: ""
+        })
             .then(yup => {
                 console.info("purchased: ", yup.data);
             })
