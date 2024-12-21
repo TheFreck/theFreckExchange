@@ -117,7 +117,11 @@ export const Store = ({ }) => {
                     <Autocomplete
                         sx={{width: "100%", background: "#ccbbaa"}}
                         options={productNames}
-                        onChange={c => setSelectedProduct(products.find(p => p.name === c.target.innerHTML))}
+                        onChange={c => {
+                            let product = products.find(p => p.name === c.target.innerHTML);
+                            if(product) setSelectedProduct(product);
+                            else setSelectedProduct("");
+                        }}
                         renderInput={(params) => <TextField {...params} label="Product Search" />}
                     />
                     <SearchIcon 

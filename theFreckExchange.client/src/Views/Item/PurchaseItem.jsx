@@ -6,14 +6,14 @@ import { ImageCarousel } from "../../components/ImageCarousel";
 export const PurchaseItem = ({product}) => {
     const {getItemsAsync,purchaseItemAsync,getImagesFromReferencesAsync} = useContext(ProductContext);
     const [items,setItems] = useState([]);
-    const [attributes,setAttributes] = useState([]);
+    const [narrowedItems,setNarrowedItems] = useState([]);
+    const [availableAttributes,setAvailableAttributes] = useState({});
+    const [orderedAttributes,setOrderedAttributes] = useState({});
     const [attributeChoices, setAttributeChoices] = useState({});
     const [imageObjects,setImageObjects] = useState([]);
-    const [narrowedItems,setNarrowedItems] = useState([]);
     const [quantity, setQuantity] = useState(0);
     const [maxQty,setMaxQty] = useState(0);
     const [qtyError,setQtyError] = useState(false);
-    const [orderedAttributes,setOrderedAttributes] = useState([]);
 
     useEffect(() => {
         getImagesFromReferencesAsync(product.imageReferences,imgs => {
@@ -25,84 +25,81 @@ export const PurchaseItem = ({product}) => {
                 setItems(itms);
                 setNarrowedItems(itms);
                 setMaxQty(itms.length);
-                groupItemsByAttribute(itms);
+                getAttributesFromItems(itms,availables => {
+                    let attChoicesObj = {};
+                    Object.keys(availables).forEach(type => {
+                        attChoicesObj[type] = "";
+                    });
+                    setAttributeChoices(attChoicesObj);
+                    setAvailableAttributes(availables);
+                })
             });
         });
     },[]);
 
     const getAttributesFromItems = (itms,cb) => {
-        let availables = {};
+        let availableAttributes = {};
         for(let itm of itms){
             for(let i=0; i<itm.attributes.length; i++){
-                if(availables[itm.attributes[i].type] === undefined){
-                    availables[itm.attributes[i].type] = new Set([itm.attributes[i].value]);
+                if(availableAttributes[itm.attributes[i].type] === undefined){
+                    availableAttributes[itm.attributes[i].type] = new Set([itm.attributes[i].value]);
                 }
                 else{
-                    availables[itm.attributes[i].type].add(itm.attributes[i].value);
+                    availableAttributes[itm.attributes[i].type].add(itm.attributes[i].value);
                 }
             }
         }
-        cb(availables);
-    }
-
-    const groupItemsByAttribute = (itms) => {
-        let types = {};
-        itms.forEach(element => {
-            element.attributes.forEach(attribute => {
-                if(!Object.keys(types).includes(attribute.type)){
-                    types[attribute.type] = {[attribute.value]: []};
-                }
-                if(types[attribute.type][attribute.value] === undefined){
-                    types[attribute.type][attribute.value] = [];
-                }
-                types[attribute.type][attribute.value].push(element);
-            })
-        });
-        let attChoices = {};
-        Object.entries(types).forEach(type => {
-            attChoices[type[0]] = "";
-        })
-        setAttributeChoices(attChoices);
-        setAttributes(types);
+        cb(availableAttributes);
     }
 
     useEffect(() => {
-        Object.entries(attributes).sort((a,b) => a.order-b.order);
-        setOrderedAttributes(attributes);
-    },[attributes]);
-
-    useEffect(() => {
-        if(Object.entries(attributeChoices).length === 0) return;
-        narrowField(narrowed => {
-            setMaxQty(narrowed.length);
-            setNarrowedItems(narrowed);
-        });
-    },[attributeChoices]);
+        Object.entries(availableAttributes).sort((a,b) => a.order-b.order);
+        setOrderedAttributes(availableAttributes);
+    },[availableAttributes]);
 
     const soldOutMessage = (qty,max) => `You have selected more items ${qty} than are in stock ${max}`
 
-    const narrowField = (cb) => {
-        let narrowed = items;
+    const narrowField = (choices,cb) => {
+        let narrowed = Array.from(items);
         for(let i=0; i<narrowed.length; i++){
-            let attArray = Object.entries(attributeChoices);
-            for(let j=0; j<attArray.length; j++){
-                if(!itemContainsAttribute(items[i],attArray[j])){
-                    narrowed.splice(i--,1);
-                }
+            let attArray = Object.entries(choices);
+            let attarraylen = attArray.length;
+            for(let j=0; j<attarraylen; j++){
+                itemContainsAttribute(narrowed[i],attArray[j], doesContain => {
+                    if(!doesContain){
+                        narrowed.splice(i--,1);
+                        attarraylen--;
+                    }
+                })
             }
         }
-        getAttributesFromItems(narrowed,availables => {
-            setAttributes(availables);
-            cb(narrowed);
-        });
+        cb(narrowed);
+    }
+    
+    const itemContainsAttribute = (item,attribute,cb) => {
+        if(attribute[1] === "" || item.attributes.find(a => a.type === attribute[0] && a.value === attribute[1])){
+            cb(true);
+        }
+        else{
+            cb(false);
+        }
     }
 
-    const itemContainsAttribute = (item,attribute) => {
-        if(attribute[1] === "") return true;
-        if(item.attributes.find(a => a.type === attribute[0] && a.value === attribute[1])){
-            return true;
+    const handleSelection = (choice,type) => {
+        let choices = {};
+        if(choice === "attribute"){
+            choices = {...attributeChoices,[type]: ""};
         }
-        return false;
+        else{
+            choices = {...attributeChoices,[type]:choice}
+        }
+        narrowField(choices,narrowedItems => {
+            setMaxQty(narrowedItems.length);
+            setAttributeChoices(choices);
+            getAttributesFromItems(narrowedItems,narrowedAttributes => {
+                setAvailableAttributes(narrowedAttributes);
+            })
+        })
     }
     
     return (
@@ -130,34 +127,34 @@ export const PurchaseItem = ({product}) => {
                     sx={{width: "30vw",  height: "20vh"}}
                 >
                     {
-                        orderedAttributes && Object.entries(orderedAttributes).length && 
+                        Object.entries(attributeChoices).length && orderedAttributes && Object.entries(orderedAttributes).length && 
                         Object.entries(orderedAttributes).map((a,i) => 
                             <FormControl 
                                 key={i}
-                                sx={{width: "100%", marginBottom: "1vh", visibility: `${i === 0 || (i > 0 && Object.entries(attributeChoices)[i-1][1] !== "") ? "visible" : "hidden"}`}}
+                                sx={{width: "100%", marginBottom: "1vh",  visibility: `${i === 0 || (i > 0 && Object.entries(attributeChoices)[i-1][1] !== "") ? "visible" : "hidden"}` }}
                             >
                                 <InputLabel>
                                     {a[0]}
                                 </InputLabel>
                                 <Select
                                     label={a[0]}
-                                    onChange={(att) => {
-                                        setAttributeChoices({...attributeChoices,[a[0]]:att.target.value})
-                                    }}
+                                    onChange={(e) => handleSelection(e.target.value,a[0])}
                                     value={attributeChoices[a[0]]}
                                 >
                                     <MenuItem
-                                        disabled
+                                        disabled={Object.entries(attributeChoices)[i][1] === ""}
                                         name="attribute"
                                         value="attribute"
                                     >
-                                        Choose a {a[0]}
+                                        {Object.entries(attributeChoices)[i][1] === "" ?
+                                        `Choose a ${a[0]}` : "Clear Selection"}
                                     </MenuItem>
                                     {
                                         a && a[1] && Object.values(Array.from(a[1])).map((t,j) => (
                                             <MenuItem
                                                 key={j}
-                                                name={t}
+                                                id={a[0]}
+                                                name={a[0]}
                                                 value={t}
                                             >
                                                 {t}
@@ -197,7 +194,15 @@ export const PurchaseItem = ({product}) => {
                         >
                             <Button
                                 sx={{width: "30%"}}
-                                onClick={() => groupItemsByAttribute(items)}
+                                onClick={() => {
+                                    getAttributesFromItems(items,availables => {
+                                        let attChoicesObj = {};
+                                        Object.keys(availables).forEach(type => {
+                                            attChoicesObj[type] = "";
+                                        });
+                                        setAttributeChoices(attChoicesObj);
+                                        setAvailableAttributes(availables);
+                                    })}}
                             >
                                 Reset Attributes
                             </Button>
