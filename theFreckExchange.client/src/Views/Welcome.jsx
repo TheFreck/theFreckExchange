@@ -310,7 +310,8 @@ export const Welcome = () => {
                     backgroundColor: "rgba(255,255,255,.2)",
                     backgroundBlendMode: "lighten",
                     height: "100vh",
-                    color: "black"
+                    color: "black",
+                    paddingTop: "10vh"
                 }}
             >
                 {userView === userEnum.home && <StoreFront />}

@@ -50,10 +50,6 @@ export const CreateItems = ({}) => {
     }
 
     useEffect(() => {
-        console.log("productImages: ", productImages);
-    },[productImages]);
-
-    useEffect(() => {
         attributes.sort((a,b) => a.order-b.order);
         setOrderedAttributes(attributes);
     },[attributes]);
@@ -62,11 +58,12 @@ export const CreateItems = ({}) => {
         <Grid2 spacing={1} container
             size={12}
             sx={{
-                margin: "10vh auto",
+                margin: "0 auto",
                 width: "80vw",
                 display: "flex",
                 flexDirection: "column",
-                height: "90vh"
+                maxHeight: "90vh",
+                background: "rgb(204,187,170)"
             }}
         >
             <Grid2 
@@ -103,7 +100,7 @@ export const CreateItems = ({}) => {
                     </FormControl>
                 }
             </Grid2>
-            <Grid2
+            { product && <Grid2
                 size={12}
             >
                 <Box
@@ -203,7 +200,7 @@ export const CreateItems = ({}) => {
                     </Grid2>
                 </Box>
 
-            </Grid2>
+            </Grid2>}
 
         </Grid2>
     </Box>;

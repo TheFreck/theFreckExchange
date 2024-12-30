@@ -1,8 +1,7 @@
 import { Box, Button, Chip, Stack, TextField } from "@mui/material";
 import react, { useContext, useEffect, useState } from "react";
 import { ProductContext } from "../../Context";
-import ImageUpload from "../Admin/ImageUpload";
-import BathtubIcon from '@mui/icons-material/Bathtub';
+import ImageUpload from "../Admin/ImageUpload"
 
 export const CreateProduct = ({created}) => {
     const { createProductAsync, getImages } = useContext(ProductContext);
@@ -17,14 +16,10 @@ export const CreateProduct = ({created}) => {
         setImages(im);
     }
 
-    useEffect(() => {
-        console.log("product images: ", images);
-    },[images]);
-
     return (
         <Box
             component="form"
-            sx={{ display: "flex", flexDirection: "column", margin: "10vh auto", width: "80vw" }}
+            sx={{ display: "flex", flexDirection: "column", margin: "0 auto", width: "80vw", background: "rgb(204,187,170)" }}
         >
             <TextField
                 required
