@@ -1,5 +1,5 @@
 import { Box, Button, Modal, TextField } from "@mui/material";
-import react, { useContext, useEffect, useRef, useState } from "react";
+import { useContext, useEffect, useRef, useState } from "react";
 import { AccountContext } from "../Context";
 import NewAccount from "./Account/NewAccount";
 
