@@ -25,7 +25,7 @@ namespace TheFreckExchange.Server.Services
         Task<IEnumerable<Item>> PurchaseItem(ItemDTO item, int qty);
         Task<IEnumerable<string>> GetAvailableAttributes(string productName);
         Task UpdateProductWithImageAsync(string productId, IEnumerable<IFormFile> images);
-        Task<Product> ModifyProductAsync(Product newProduct);
+        Task<Product> ModifyProductAsync(ProductDTO newProduct);
         IEnumerable<ImageFile> GetAllImages();
         Task<IEnumerable<ImageFile>> UploadImagesAsync(IEnumerable<IFormFile> images);
         Task<IEnumerable<ImageFile>> GetAllSiteImagesAsync();
@@ -293,12 +293,12 @@ namespace TheFreckExchange.Server.Services
             else return new List<Item>();
         }
 
-        public async Task<Product> ModifyProductAsync(Product newProduct)
+        public async Task<Product> ModifyProductAsync(ProductDTO newProduct)
         {
             var product = await productRepo.GetByNameAsync(newProduct.Name);
             product.Price = newProduct.Price > 0 ? newProduct.Price : product.Price;
-            product.ProductDescription = newProduct.ProductDescription != String.Empty ? newProduct.ProductDescription : product.ProductDescription;
-            product.AvailableAttributes = newProduct.AvailableAttributes.Count() > 0 ? product.AvailableAttributes.Concat(newProduct.AvailableAttributes).ToHashSet().ToList() : product.AvailableAttributes;
+            product.ProductDescription = newProduct.Description != String.Empty ? newProduct.Description : product.ProductDescription;
+            product.AvailableAttributes = newProduct.Attributes.Count() > 0 ? product.AvailableAttributes.Where(a => a!="").Concat(newProduct.Attributes.Where(a => a!="")).ToHashSet().ToList() : product.AvailableAttributes;
             product.ImageReferences = newProduct.ImageReferences.Count() > 0 ? product.ImageReferences.Concat(newProduct.ImageReferences).ToHashSet().ToList() : product.ImageReferences;
             await productRepo.UpdateAsync(product);
             return product;

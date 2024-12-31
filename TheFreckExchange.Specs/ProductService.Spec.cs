@@ -250,13 +250,12 @@ namespace TheFreckExchange.Specs
                 AvailableAttributes = oldAttributes,
                 ImageReferences = oldImages
             };
-            newProduct = new Product
+            newProduct = new ProductDTO
             {
                 Name = product1Name,
                 Price = newPrice,
-                ProductDescription = newDescription,
-                ProductId = product1Id,
-                AvailableAttributes = newAttributes,
+                Description = newDescription,
+                Attributes = newAttributes,
                 ImageReferences = newImages
             };
             accountRepoMock.Setup(l => l.GetByUsernameAsync(account1.Username)).ReturnsAsync(account1);
@@ -273,9 +272,8 @@ namespace TheFreckExchange.Specs
         {
             outcome.Name.ShouldEqual(newProduct.Name);
             outcome.Price.ShouldEqual(newProduct.Price);
-            outcome.ProductDescription.ShouldEqual(newProduct.ProductDescription);
-            outcome.ProductId.ShouldEqual(newProduct.ProductId);
-            outcome.AvailableAttributes.ShouldContainOnly(newProduct.AvailableAttributes);
+            outcome.ProductDescription.ShouldEqual(newProduct.Description);
+            outcome.AvailableAttributes.ShouldContainOnly(newProduct.Attributes);
             outcome.ImageReferences.ShouldContainOnly(newProduct.ImageReferences);
         };
 
@@ -285,7 +283,7 @@ namespace TheFreckExchange.Specs
 
         private static IProductService storeFront;
         private static Product oldProduct;
-        private static Product newProduct;
+        private static ProductDTO newProduct;
         private static string oldDescription;
         private static string newDescription;
         private static MemoryStream oldImageStream1;
