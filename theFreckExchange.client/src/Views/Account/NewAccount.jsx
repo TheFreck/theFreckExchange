@@ -1,9 +1,8 @@
 import react, { useContext, useState } from "react";
-import { AccountContext } from "../../Context";
 import { Box, Button, Checkbox, Grid2, TextField, Typography } from "@mui/material";
+import {createAccountAsync} from "../../helpers/helpersApp";
 
 export const NewAccount = ({newAccountModal,setNewAccountModal}) => {
-    const {createAccount} = useContext(AccountContext);
     const [name, setName] = useState("");
     const [email, setEmail] = useState("");
     const [username, setUsername] = useState("");
@@ -27,6 +26,11 @@ export const NewAccount = ({newAccountModal,setNewAccountModal}) => {
         else{
             permissions.add(permissionsEnum.admin);
         }
+    }
+
+    const createAccount = (account) => {
+        const { name, email, username, password, permissions} = account;
+        createAccountAsync(account, created => {});
     }
 
     return <Box

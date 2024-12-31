@@ -33,7 +33,7 @@ export const ImageCarousel = ({
     }
 
     return <Carousel
-        sx={{ minHeight, maxHeight, height, width: "100vw", border: "solid", borderWidth: "1px" }}
+        sx={{ minHeight, maxHeight, height, width, border: "solid", borderWidth: "1px" }}
         cycleNavigation={true}
         interval={10000}
         autoPlay={isAutoPlay}

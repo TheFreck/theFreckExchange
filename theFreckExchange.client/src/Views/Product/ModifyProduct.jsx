@@ -1,47 +1,56 @@
-import { Box, Button, Card, FormControl, Grid2, InputLabel, MenuItem, Select, TextField, Typography } from "@mui/material";
-import react, { useCallback, useContext, useEffect, useState } from "react";
+import { Box, Button, Card, Chip, FormControl, Grid2, InputLabel, MenuItem, Select, Stack, TextField, Typography } from "@mui/material";
+import { useCallback, useContext, useEffect, useState } from "react";
 import { ProductContext } from "../../Context";
-import Carousel from "react-material-ui-carousel";
 import DisabledByDefaultIcon from '@mui/icons-material/DisabledByDefault';
 import CheckBoxIcon from '@mui/icons-material/CheckBox';
+import { ImageCarousel } from "../../components/ImageCarousel";
 
 export const ModifyProduct = () => {
-    const { getAvailableAttributesAsync,updateItemsAsync, products, ready, setReady } = useContext(ProductContext);
+    const { updateItemsAsync,getImagesFromReferencesAsync, getProductsAsync, ready, setReady } = useContext(ProductContext);
     const [productsArray, setProductsArray] = useState([]);
     const [selectedProduct, setSelectedProduct] = useState("");
     const [imageObjects, setImageObjects] = useState([]);
-    const [productPrice, setProductPrice] = useState(0.0);
-    const [productDescription, setProductDescription] = useState("");
+    const [name,setName] = useState("");
+    const [price, setPrice] = useState(0.0);
+    const [description, setDescription] = useState("");
+    const [attributes,setAttributes] = useState([]);
+    const [attributeInput, setAttributeInput] = useState("");
     const [isDirty, setIsDirty] = useState(false);
 
     useEffect(() => {
-        if(products.length === 0 || ready) return;
-        // console.log("initialize products: ", products);
-        var prods = [];
-        for(var prod of products.values()){
-            let ibs = [];
-            prod.imageBytes = ibs;
-            prods.push(prod);
-        }
-        setProductsArray(prods);
-        setIsDirty(!isDirty);
-        setReady(true);
+        getProductsAsync(prods => {
+            console.log("prods: ", prods);
+            if (prods.length === 0) return;
+            setProductsArray(prods);
+            setReady(true);
+            console.log("up and atom!");
+        });
     }, []);
 
+    useEffect(() => {
+        console.log("attributes: ", attributes);
+    },[attributes]);
+
+    useEffect(() => {
+        console.log("attributeInput: ", attributeInput);
+    },[attributeInput]);
+
     const selectProduct = (p) => {
-        // console.log("products: ", products);
-        setSelectedProduct(p.target.value);
-        setImageObjects(p.target.value.imageBytes);
-        setProductPrice(p.target.value.price);
-        setProductDescription(p.target.value.productDescription);
-        getAvailableAttributesAsync(p.target.value.name, att => {
-            setIsDirty(!isDirty);
+        console.log("p: ", p.target.value);
+        console.log("p.name: ", p.target.value.name);
+        getImagesFromReferencesAsync(p.target.value.imageReferences,images => {
+            setSelectedProduct(p.target.value);
+            setImageObjects(images.map(i => ({id:i.id,imageId: i.imageId,name: i.name,image: window.atob(i.image)})));
+            setName(p.target.value.name);
+            setPrice(p.target.value.price);
+            setDescription(p.target.value.productDescription);
+            setAttributes(p.target.value.availableAttributes);
         });
     }
 
     useEffect(() => {
-        // console.log("selectedProduct: ", selectedProduct);
-    },[selectedProduct]);
+        console.log("imageObjects: ", imageObjects);
+    },[imageObjects]);
 
     const removeImage = image => {
         image.delete = undefined ? true : !image.delete;
@@ -50,79 +59,85 @@ export const ModifyProduct = () => {
 
     const updateAsync = () => {
         let keepers = imageObjects.filter(o => !o.delete);
-        selectedProduct.imageBytes = keepers.map(k => k.bytes);
-        selectedProduct.description = productDescription;
-        selectedProduct.attributes = selectedProduct.availableAttributes;
-        selectedProduct.price = productPrice;
+        console.log("keepers: ", keepers);
+        selectedProduct.imageReferences = keepers.map(k => k.imageId);
+        selectedProduct.description = description;
+        selectedProduct.attributes = attributes;
+        selectedProduct.availableAttributes = attributes;
+        selectedProduct.price = price;
         selectedProduct.credentials = {
             username: localStorage.getItem("username"),
             loginToken: localStorage.getItem("loginToken"),
             adminToken: localStorage.getItem("permissions.admin"),
             userToken: localStorage.getItem("permissions.user")
         }
-        updateItemsAsync(selectedProduct,prod => {
-            // console.log("prod back from update: ", prod);
+        console.log("updating product: ", selectProduct);
+        updateItemsAsync(selectedProduct, prod => {
+            console.log("prod back from update: ", prod);
         });
     }
 
-    const ImageCardCallback = useCallback(({image,i}) => (<Card>
-        {/* {console.log("image bytes: ", image)} */}
-        {/* {console.log("image bytes atob: ", window.atob(image.bytes))} */}
-        {/* {console.log("image bytes btoa: ", window.btoa(image.bytes))} */}
-        {image.delete && 
-            <DisabledByDefaultIcon 
+    const ImageCardCallback = useCallback(({ image, i }) => (<Card>
+        {image.delete &&
+            <DisabledByDefaultIcon
                 onClick={() => {
-                    if(image.delete !== undefined)
+                    if (image.delete !== undefined)
                         image.delete = !image.delete
                     setIsDirty(!isDirty);
                 }}
-                sx={{color: "red", position: "absolute", top: 0, right: "1em",width: "5vw", height: "5vh"}}  
+                sx={{ color: "red", position: "absolute", top: 0, right: "1em", width: "5vw", height: "5vh" }}
             />
         }
         {image.delete !== undefined && !image.delete &&
             <CheckBoxIcon
                 onClick={() => {
-                    if(image.delete !== undefined)
+                    if (image.delete !== undefined)
                         image.delete = !image.delete
                     setIsDirty(!isDirty);
                 }}
-                sx={{color: "green", position: "absolute", top: 0, right: "1em", width: "5vw", height: "5vh"}}
+                sx={{ color: "green", position: "absolute", top: 0, right: "1em", width: "5vw", height: "5vh" }}
             />
         }
         <img style={{ backgroundSize: "contain", maxHeight: "20em", maxWidth: "100%" }} src={window.atob(image.bytes)} onClick={() => removeImage(image)} height={"auto"} key={i} />
-    </Card>),[isDirty,ready,selectedProduct]);
+    </Card>), [isDirty, ready, selectedProduct]);
 
     return (
         <Box
-            sx={{ width: "60vw", height: "auto" }}
+            sx={{
+                margin: "0 auto",
+                width: "80vw",
+                display: "flex",
+                flexDirection: "column",
+                maxHeight: "90vh",
+                background: "rgb(204,187,170)"
+            }}
             component="form"
         >
-            <Grid2 size={12}
-                container
-                spacing={1}
+            <Grid2
+                sx={{ width: "100%" }}
             >
-                {products.length > 0 && 
+                {productsArray.length > 0 &&
                     <FormControl fullWidth>
                         <InputLabel id="productLabel">Product</InputLabel>
                         <Select
                             id="productSelector"
                             labelId="productLabel"
                             label="Product"
-                            name="Product"
                             value={selectedProduct}
                             onChange={selectProduct}
+                            sx={{ fontSize: "2em", height: "2em", margin: 0, padding: "0 2em", display: "flex", textAlign: "left" }}
                         >
                             <MenuItem
                                 name="Select a product"
-                                value="Select a product"
+                                value=""
                                 disabled
                             >
                                 Select a product
                             </MenuItem>
-                            {products.map((p, i) => (
-                                <MenuItem 
-                                    name={p.name} 
-                                    key={i} 
+                            {productsArray.length > 0 && productsArray.map((p, i) => (
+                                <MenuItem
+                                    name={p.name}
+                                    key={i}
                                     value={p}
                                 >
                                     {p.name}
@@ -131,106 +146,90 @@ export const ModifyProduct = () => {
                         </Select>
                     </FormControl>
                 }
-                <Grid2 size={4}
-                    container
-                    spacing={1}
-                    sx={{ display: "flex", flexDirection: "column" }}
-                >
-                    <Grid2 size={12}>
-                        {selectedProduct?.imageBytes !== undefined &&
-                            <Carousel
-                                sx={{minHeight: "20em",maxHeight: "20em", height: "20em"}}
-                                cycleNavigation="false"
-                                autoPlay="false"
-                                interval="100000000"
-                                indicatorContainerProps={{
-                                    style: {
-                                        position: "absolute",
-                                        bottom: "1em"
-                                    }
-                                }}
-                            >
-                                {
-                                    imageObjects?.map((image, i) => (
-                                        <ImageCardCallback image={image} key={i} i={i} />
-                                    ))
-                                }
-                            </Carousel>
-                        }
-                    </Grid2>
-                    <Grid2 size={12}>
-                        {/* {
-                            selectedProduct && attributes.length > 0 &&
-                            <Grid2
-                                size={12}
-                                sx={{ display: "flex", flexDirection: "column" }}
-                            >
-                                {
-                                    attributes.map((type, i) => (
-                                        <TextField
-                                            key={i}
-                                            label={type}
-                                            value={attributes[i]?.value}
-                                            onChange={(a) => {
-                                                selectedProduct.attributes[i].value = a.target.value;
-                                                attributeObjects[i].value = a.target.value;
-                                                setAttributeObjects([...attributeObjects.filter(a => a.key !== type), attributeObjects[i]])
-                                            }}
-                                        />
-                                    ))
-                                }
-                            </Grid2>
-                        } */}
+            </Grid2>
+            {selectedProduct &&
+                <Grid2>
+                    <Grid2>
+                        <ImageCarousel
+                            imageObjects={imageObjects}
+                            height="40vh"
+                            width="80vw"
+                        />
                     </Grid2>
                     <Grid2
-                        size={12}
-                        sx={{ display: "flex", flexDirection: "row" }}
+                        container
+                        spacing={1}
+                        sx={{padding: "1vh 1vw 1vh 1vw"}}
                     >
-                        <Grid2 size={12}>
-                            <Button onClick={updateAsync} variant="contained">Update</Button>
+                        <Grid2
+                            size={4}
+                            sx={{
+                                display: "flex",
+                                flexDirection: "column",
+                            }}
+                        >
+                            <TextField
+                                required
+                                id="productName"
+                                label="Product Name"
+                                onChange={n => setName(n.target.value)}
+                                value={name}
+                            />
+                            <Stack direction="row" spacing={1}
+                                label="Attributes"
+                                sx={{ border: "solid", borderWidth: "1px", borderColor: "lightgray", margin: ".5vh 0", padding: ".5em" }}
+                            >
+                                {attributes && attributes.map((a, i) => (
+                                    <Chip onClick={() => setAttributes([...attributes.filter(at => at !== a)])} label={a} key={i} />
+                                ))}
+                            </Stack>
+                            <TextField
+                                label="Product Attributes"
+                                onChange={p => {
+                                    setAttributeInput(p.target.value);
+                                }}
+                                value={attributeInput}
+                                onKeyDown={k => {
+                                    if (k.code === "NumpadEnter" || k.code === "Enter") {
+                                        setAttributes([...attributes, attributeInput])
+                                        setAttributeInput("");
+                                    }
+                                }}
+                                onBlur={() => {
+                                    setAttributes([...attributes, attributeInput])
+                                    setAttributeInput("");
+                                }}
+                            />
+                            <Grid2>
+                                <TextField
+                                    sx={{width: "50%"}}
+                                    required
+                                    id="productPrice"
+                                    label="Price"
+                                    value={price}
+                                    onChange={p => setPrice(p.target.value)}
+                                />
+                                <Button
+                                    variant="contained"
+                                    sx={{height: "100%",width: "50%"}}
+                                    onClick={updateAsync}
+                                >Update Product</Button>
+                            </Grid2>
+                        </Grid2>
+                        <Grid2
+                            size={8}
+                        >
+                            <TextField
+                                sx={{width: "100%",fieldSet: {marginBottom: "-1vh"}}}
+                                multiline
+                                value={description}
+                                label="Product Description"
+                                onChange={p => setDescription(p.target.value)}
+                            />
                         </Grid2>
                     </Grid2>
                 </Grid2>
-                <Grid2 size={8}
-                    container
-                    spacing={1}
-                    sx={{ display: "flex", flexDirection: "column" }}
-                >
-                    <Grid2 size={12}
-                        sx={{display: "flex"}}
-                    >
-                        <Typography
-                            sx={{ marginLeft: ".4em", fontSize: "2em"}}
-                        >
-                            {selectedProduct.name}
-                        </Typography>
-                    </Grid2>
-                    <Grid2 size={12}
-                        sx={{display: "flex"}}
-                    >
-                        <TextField
-                            label="Price"
-                            value={productPrice}
-                            InputLabelProps={{shrink:true}}
-                            sx={{width: "100%"}}
-                            onChange={p => setProductPrice(p.target.value)}
-                        />
-                        
-                    </Grid2>
-                    <Grid2 size={12}
-                        sx={{display: "flex"}}
-                    >
-                        <TextField
-                            label="Description: "
-                            value={productDescription}
-                            InputLabelProps={{shrink:true}}
-                            multiline
-                            sx={{width: "100%"}}
-                            onChange={d => setProductDescription(d.target.value)}
-                        />
-                    </Grid2>
-                </Grid2>
-            </Grid2>
+            }
         </Box >
     )
 }

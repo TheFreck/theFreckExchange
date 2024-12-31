@@ -32,12 +32,14 @@ export const CreateProduct = ({created}) => {
                 required
                 id="productPrice"
                 label="Price"
+                value={price}
                 onChange={p => setPrice(p.target.value)}
             />
             <TextField
                 required
                 id="productDescription"
                 label="Product Description"
+                value={description}
                 onChange={d => setDescription(d.target.value)}
             />
 

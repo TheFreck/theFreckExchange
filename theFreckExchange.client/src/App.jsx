@@ -5,6 +5,10 @@ import {AccountContext, ProductContext} from './Context';
 import Welcome from './Views/Welcome';
 import Login from './Views/Login';
 import Layout from './Views/Layout';
+import {getBaseURL,
+    loginAsync,
+    logoutAsync,
+    createAccountAsync} from "./helpers/helpersApp";
 
 const homeViewEnum = {
     home: 0,
@@ -37,67 +41,46 @@ function App() {
     });
     
     useEffect(() => {
-        if(process.env.NODE_ENV === "development"){
-            setBaseUrl("https://localhost:7299");
-        }
-        else if(process.env.NODE_ENV === "production"){
-            setBaseUrl("");
-        }
+        getBaseURL(url => setBaseUrl(url));
     }, []);
 
-    const login = (userName,password) => {
-        accountApi.post(`login/`,{
-            email: userName.replace("@", "%40"),
-            password: password
+    const login = (username,password) => {
+        loginAsync(username,password,loggedIn => {
+            console.log("loggedIn: ", loggedIn);
+            setUserAcct(loggedIn);
+            setView(0);
         })
         .then(yup => {
-            setUserAcct(yup.data);
-            localStorage.setItem("username", yup.data.username)
-            localStorage.setItem("loginToken",yup.data.loginToken);
-            localStorage.setItem("configId", yup.data.siteConfigId !== "" && yup.data.siteConfig !== "00000000-0000-0000-0000-000000000000" ? yup.data.siteConfigId : "defaultConfig");
-            localStorage.setItem("siteTitle", yup.data.siteTitle);
-            let admin = yup.data.permissions.find(p => p.type === 0);
-            if(admin !== undefined){
-                localStorage.setItem("permissions.admin",admin.token);
-            }
-            let user =  yup.data.permissions.find(p => p.type === 1);
-            if(user !== undefined){
-                localStorage.setItem("permissions.user",user.token);
-            }
-            setView(0);
         })
         .catch(nope => console.error(nope));
     }
 
     const logout = () => {
-        localStorage.clear();
-        accountApi.post(`logout/${userAcct.username}`)
-        .then(yup => {
+        logoutAsync(userAcct,loggedOut => {
             setUserAcct({});
             setView(homeViewEnum.home);
-        })
-        .catch(nope => console.error(nope));
+        });
     }
 
-    const createAccount = ({ name,email,username,password,permissions }) => {
-        accountApi.post(`createAccount/${name}/${email}`,{username,password,permissions})
-            .then(yup => {
-                console.info("account created: ", yup.data);
-            })
-            .catch(nope => console.error(nope));
-    }
+    // const createAccount = ({ name,email,username,password,permissions }) => {
+    //     accountApi.post(`createAccount/${name}/${email}`,{username,password,permissions})
+    //         .then(yup => {
+    //             console.info("account created: ", yup.data);
+    //         })
+    //         .catch(nope => console.error(nope));
+    // }
 
     const AppCallback = useCallback(() => <AccountContext.Provider value={{
         login,
         userAcct,
-        createAccount,
+        createAccountAsync,
         userView,
         setUserView,
         userEnum,
         refreshConfig,
         setRefreshConfig
         }}>
-        <Layout login={() => setView(homeViewEnum.login)} logout={logout}>
+        <Layout login={() => setView(homeViewEnum.login)} logout={() => logout(userAcct)}>
             {view === homeViewEnum.login && localStorage.getItem("loginToken") === null && 
                 <Login />
             }

@@ -26,8 +26,7 @@ const configTemplate = {
 };
 
 export const Welcome = () => {
-    const {userView,setUserView,userEnum} = useContext(AccountContext);
-    const {userAcct} = useContext(AccountContext);
+    const {userView,setUserView,userEnum,userAcct} = useContext(AccountContext);
     const [products, setProducts] = useState([]);
     const [ready, setReady] = useState(false);
     const [config,setConfig] = useState(configTemplate);
@@ -176,7 +175,7 @@ export const Welcome = () => {
     const updateItemsAsync = (item, cb) => {
         productApi.put("modify/product", item)
             .then(yup => {
-                console.info("updated: ", yup.data);
+                cb(yup.data);
             })
             .catch(nope => console.error(nope));
         cb(item);
