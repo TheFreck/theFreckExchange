@@ -1,12 +1,9 @@
 import react, { useCallback, useContext, useEffect, useState } from "react";
-import { ProductContext } from "../../Context";
 import { Box, Button, FormControl, Grid2, InputLabel, MenuItem, Select, TextField, Typography } from "@mui/material";
-import ProductView from "../Product/ProductView";
-import Carousel from "react-material-ui-carousel";
 import { ImageCarousel } from "../../components/ImageCarousel";
+import { getProductsAsync, getAvailableAttributesAsync,getImagesFromReferencesAsync,createItemsAsync } from "../../helpers/helpersWelcome";
 
 export const CreateItems = ({}) => {
-    const { getProductsAsync, getAvailableAttributesAsync,getImagesFromReferencesAsync,createItemsAsync } = useContext(ProductContext);
     const [productsArray,setProductsArray] = useState([]);
     const [product, setProduct] = useState("");
     const [productImages,setProductImages] = useState([]);

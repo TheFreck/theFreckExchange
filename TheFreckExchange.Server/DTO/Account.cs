@@ -25,6 +25,7 @@ namespace TheFreckExchange.Server.DTO
         public double Balance { get; set; } = 0;
         public DateTime? DateOpened { get; set; }
         public List<AccountPermissions> Permissions { get; set; } = new List<AccountPermissions>();
+        public List<PurchaseOrder> History { get; set; }
 
         /// <summary>
         /// a token that is created when an account is checked out and destroyed when it is checked back in 
@@ -43,6 +44,7 @@ namespace TheFreckExchange.Server.DTO
             AccountId = Guid.NewGuid().ToString();
             LoginToken = Guid.Empty.ToString();
             Permissions = permissions;
+            History = new List<PurchaseOrder>();
         }
 
         public Account() 
@@ -51,6 +53,7 @@ namespace TheFreckExchange.Server.DTO
             Email = "null@null.null";
             Name = "NullName";
             AccountId = Guid.Empty.ToString();
+            History = new List<PurchaseOrder>();
         }
     }
 
@@ -69,5 +72,12 @@ namespace TheFreckExchange.Server.DTO
     public enum PermissionType
     {
         Admin,User
+    }
+
+    public class PurchaseOrder 
+    {
+        public List<Item> Items { get; set; }
+        public double TotalPrice { get; set; }
+        public DateTime TransactionDate { get; set; }
     }
 }

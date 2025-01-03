@@ -1,7 +1,7 @@
 import { Box, Button, FormControlLabel, FormGroup, Grid2, Modal, Switch, TextField, Typography } from "@mui/material";
 import axios from "axios";
 import { useContext, useEffect, useState } from "react";
-import { ProductContext } from "../Context";
+import { updateConfigurationAsync, getConfigurationAsync, getBackgroundAsync } from "../helpers/helpersWelcome";
 
 
 const activeCategoryEnum = {
@@ -30,7 +30,6 @@ const configTemplate = {
 };
 
 export const Descriptions = ({ isConfig }) => {
-    const { updateConfigurationAsync, getConfigurationAsync, getBackground } = useContext(ProductContext);
     const [open, setOpen] = useState(false);
     const [description, setDescription] = useState("");
     const [title, setTitle] = useState("");
@@ -56,8 +55,8 @@ export const Descriptions = ({ isConfig }) => {
     
     useEffect(() => {
         getConfigurationAsync(figs => {
-            getBackground(im => {
-                getBackground(async backgrnd => {
+            getBackgroundAsync(im => {
+                getBackgroundAsync(async backgrnd => {
                     if (backgrnd) {
                         let img = await fetch(window.atob(backgrnd.image));
                         let blob = await img.blob();

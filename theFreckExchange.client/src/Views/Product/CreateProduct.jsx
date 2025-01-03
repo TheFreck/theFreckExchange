@@ -1,10 +1,9 @@
 import { Box, Button, Chip, Stack, TextField } from "@mui/material";
-import react, { useContext, useEffect, useState } from "react";
-import { ProductContext } from "../../Context";
+import { useContext, useEffect, useState } from "react";
 import ImageUpload from "../Admin/ImageUpload"
+import { createProductAsync, getImages } from "../../helpers/helpersWelcome";
 
 export const CreateProduct = ({created}) => {
-    const { createProductAsync, getImages } = useContext(ProductContext);
     const [name, setName] = useState("");
     const [price, setPrice] = useState(0.0);
     const [description, setDescription] = useState("");

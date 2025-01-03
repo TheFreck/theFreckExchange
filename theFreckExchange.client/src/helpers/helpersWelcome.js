@@ -10,8 +10,8 @@ const getBaseURL = (cb) => {
     }
 };
 
-const getConfigurationAsync = async (cb) => {
-    helpersWelcome.getBaseURL(async url => {
+export const getConfigurationAsync = async (cb) => {
+    getBaseURL(async url => {
         const api = axios.create({
             baseURL: url + "/Site"
         });
@@ -26,10 +26,10 @@ const getConfigurationAsync = async (cb) => {
     })
 };
 
-const createConfigurationAsync = async (configTemplate,cb) => {
+export const createConfigurationAsync = async (configTemplate,cb) => {
     configTemplate.adminAccountId = userAcct.accountId;
     configTemplate.configId = localStorage.getItem("configId");
-    helpersWelcome.getBaseURL(async url => {
+    getBaseURL(async url => {
         const api = axios.create({
             baseURL: url + "/Site"
         });
@@ -43,9 +43,9 @@ const createConfigurationAsync = async (configTemplate,cb) => {
     })
 };
 
-const updateConfigurationAsync = async (fig,cb) => {
-    await helpersWelcome.getConfigurationAsync(async conf => {
-        helpersWelcome.getBaseURL(async url => {
+export const updateConfigurationAsync = async (fig,cb) => {
+    await getConfigurationAsync(async conf => {
+        getBaseURL(async url => {
             const api = axios.create({
                 baseURL: url + "/Site"
             })
@@ -65,8 +65,8 @@ const updateConfigurationAsync = async (fig,cb) => {
     );
 };
 
-const deleteConfigurationAsync = async (configId,cb) => {
-    helpersWelcome.getBaseURL(async url => {
+export const deleteConfigurationAsync = async (configId,cb) => {
+    getBaseURL(async url => {
         const api = axios.create({
             baseURL: url + "/Site"
         });
@@ -86,8 +86,8 @@ const deleteConfigurationAsync = async (configId,cb) => {
     });
 };
 
-const getProductsAsync = async (cb) => {
-    helpersWelcome.getBaseURL(async url => {
+export const getProductsAsync = async (cb) => {
+    getBaseURL(async url => {
         const api = axios.create({
             baseURL: url + "/Product"
         });
@@ -102,14 +102,14 @@ const getProductsAsync = async (cb) => {
     });
 };
 
-const createProductAsync = async ({name, description, attributes, price, images},setProducts) => {
-    helpersWelcome.getBaseURL(async url => {
+export const createProductAsync = async ({name, description, attributes, price, images},setProducts) => {
+    getBaseURL(async url => {
         const api = axios.create({
             baseURL: url + "/Product"
         })
         api.post(`create`, { name, description, price, attributes, credentials: getCreds(), imageReferences: images})
         .then(yup => {
-            helpersWelcome.getProductsAsync(prods => {
+            getProductsAsync(prods => {
                 setProducts(prods);
                 cb(yup.data);
             });
@@ -121,8 +121,8 @@ const createProductAsync = async ({name, description, attributes, price, images}
     })
 };
 
-const getItemsAsync = async (prod,cb) => {
-    helpersWelcome.getBaseURL(async url => {
+export const getItemsAsync = async (prod,cb) => {
+    getBaseURL(async url => {
         const api = axios.create({
             baseURL: url + "/Product"
         });
@@ -137,9 +137,9 @@ const getItemsAsync = async (prod,cb) => {
     })
 };
 
-const createItemsAsync = async ({item,quantity,attributes}) => {
-    helpersWelcome.getBaseURL(async url => {
-        item.credentials = helpersWelcome.getCreds();
+export const createItemsAsync = async ({item,quantity,attributes}) => {
+    getBaseURL(async url => {
+        item.credentials = getCreds();
         item.attributes = attributes;
         item.sku = "";
         const api = axios.create({
@@ -156,8 +156,8 @@ const createItemsAsync = async ({item,quantity,attributes}) => {
     })
 };
 
-const updateItemsAsync = async (item,cb) => {
-    helpersWelcome.getBaseURL(async url => {
+export const updateItemsAsync = async (item,cb) => {
+    getBaseURL(async url => {
         const api = axios.create({
             baseURL: url + "/Product"
         });
@@ -173,8 +173,8 @@ const updateItemsAsync = async (item,cb) => {
     })
 };
 
-const purchaseItemAsync = async (product,qty) => {
-    helpersWelcome.getBaseURL(async url => {
+export const purchaseItemAsync = async (product,qty) => {
+    getBaseURL(async url => {
         const api = axios.create({
             baseURL: url + "/Product"
         });
@@ -191,8 +191,8 @@ const purchaseItemAsync = async (product,qty) => {
     })
 };
 
-const getAvailableAttributesAsync = async (product,cb) => {
-    helpersWelcome.getBaseURL(async url => {
+export const getAvailableAttributesAsync = async (product,cb) => {
+    getBaseURL(async url => {
         const api = axios.create({
             baseURL: url + "/Product"
         });
@@ -210,25 +210,24 @@ const getAvailableAttributesAsync = async (product,cb) => {
 const getCreds = () => ({
     username: localStorage.getItem("username"),
     loginToken: localStorage.getItem("loginToken"),
-    adminToken: localStorage.getItem("permissions.admin"),
+    adminToken: localStorage.getItem("permissions.admin") ?? "notAdmin",
     userToken: localStorage.getItem("permissions.user")
 });
 
-const uploadImagesAsync = async (images,cb) => {
+export const uploadImagesAsync = async (images,cb) => {
     const blobs = images.map(im => im.blob);
-    helpersWelcome.readImagesAsync(blobs, isReady => {
+    readImagesAsync(blobs, isReady => {
         let formData = new FormData();
         for (var i = 0; i < isReady.length; i++) {
             let blobby = new Blob([isReady[i]]);
             formData.append("images",blobby,images[i].filename);
         }
-        helpersWelcome.getBaseURL(async url => {
+        getBaseURL(async url => {
             axios.create({
                 baseURL: url + "Product"
             });
             api.post("images/upload",formData)
             .then(yup => {
-                // console.log("uploaded: ", yup.data);
                 cb(yup.data);
             })
             .catch(nope => {
@@ -239,7 +238,7 @@ const uploadImagesAsync = async (images,cb) => {
     });
 };
 
-const getImages = async (e,cb) => {
+export const getImages = async (e,cb) => {
     let targetImages = [];
     for (var i = 0; i < e.target.files.length; i++) {
         e.target.files[i].filename = e.target.files[i].name;
@@ -248,8 +247,8 @@ const getImages = async (e,cb) => {
     cb(targetImages);
 };
 
-const getImagesFromReferencesAsync = (refs,cb) => {
-    helpersWelcome.getBaseURL(async url => {
+export const getImagesFromReferencesAsync = (refs,cb) => {
+    getBaseURL(async url => {
         const api = axios.create({
             baseURL: url + "/Product"
         });
@@ -261,10 +260,10 @@ const getImagesFromReferencesAsync = (refs,cb) => {
     })
 };
 
-const getBackgroundAsync = async (cb) =>{
-    helpersWelcome.getBaseURL(async url => {
+export const getBackgroundAsync = async (cb) =>{
+    getBaseURL(async url => {
         const api = axios.create({
-            baseURL: url = "/Site"
+            baseURL: url + "/Site"
         });
         await api.get(`config/background`)
         .then(yup => {
@@ -277,7 +276,7 @@ const getBackgroundAsync = async (cb) =>{
     })
 };
 
-const readImagesAsync = async (images,cb) => {
+export const readImagesAsync = async (images,cb) => {
     let base64Images = [];
     for (var image of images) {
         base64Images.push(await fetch(image)
@@ -297,12 +296,12 @@ const readImagesAsync = async (images,cb) => {
     }
 };
 
-const getAttributesAsync = async (prod, cb) => {
-    helpersWelcome.getBaseURL(async url => {
+export const getAttributesAsync = async (prod, cb) => {
+    getBaseURL(async url => {
         const api = axios.create({
             baseURL: url + "/Product"
         });
-        await productApi.get(`items/product/${prod}/attributes`)
+        await api.get(`items/product/${prod}/attributes`)
         .then(yup => {
             for(var att of yup.data){
                 att.product = prod;
@@ -315,7 +314,7 @@ const getAttributesAsync = async (prod, cb) => {
     })
 };
 
-const getAttributesFromItems = (itms,cb) => {
+export const getAttributesFromItems = (itms,cb) => {
     let availableAttributes = {};
     for(let itm of itms){
         for(let i=0; i<itm.attributes.length; i++){
@@ -330,7 +329,7 @@ const getAttributesFromItems = (itms,cb) => {
     cb(availableAttributes);
 };
 
-const narrowField = (choices,cb) => {
+export const narrowField = (choices,cb) => {
     let narrowed = Array.from(items);
     for(let i=0; i<narrowed.length; i++){
         let attArray = Object.entries(choices);
@@ -347,7 +346,7 @@ const narrowField = (choices,cb) => {
     cb(narrowed);
 };
 
-const itemContainsAttribute = (item,attribute,cb) => {
+export const itemContainsAttribute = (item,attribute,cb) => {
     if(attribute[1] === "" || item.attributes.find(a => a.type === attribute[0] && a.value === attribute[1])){
         cb(true);
     }
@@ -356,9 +355,9 @@ const itemContainsAttribute = (item,attribute,cb) => {
     }
 };
 
-const getSiteImagesAsync = (figs,cb) => {
+export const getSiteImagesAsync = (figs,cb) => {
     if(localStorage.getItem("configId") === null || figs.configId === null || localStorage.getItem("configId") === undefined || localStorage.getItem("configId") === "undefined") return cb();
-    helpersWelcome.getBaseURL(url => {
+    getBaseURL(url => {
         const api = axios.create({
             baseURL: url + "/Product"
         });

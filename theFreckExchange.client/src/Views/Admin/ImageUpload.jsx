@@ -1,10 +1,8 @@
 import { Box, Button, Typography } from "@mui/material";
-import react, { useContext, useEffect, useState } from "react";
-import axios from "axios";
-import { ProductContext } from "../../Context";
+import { useEffect, useState } from "react";
+import {updateConfigurationAsync,uploadImagesAsync} from "../../helpers/helpersWelcome";
 
 export const ImageUpload = ({getImages,type,multiple,uploadImages}) => {
-    const {updateConfigurationAsync,uploadImagesAsync} = useContext(ProductContext);
     const [images, setImages] = useState([]);
 
     return <Box
@@ -14,15 +12,11 @@ export const ImageUpload = ({getImages,type,multiple,uploadImages}) => {
             const toSet = [];
             for(let i=0; i<e.target.files.length; i++){
                 let filename = e.target.files[i].filename;
-                // if(type === "background" && !e.target.files[i].filename.includes("background")){
-                //     filename = "background-"+filename;
-                // }
                 toSet.push({filename, blob: im[i]});
             }
             setImages(toSet);
         })} />
         <br/>
-        {/* {console.log("images to view: ", images)} */}
         {
             images.length > 0 &&
             images.map((i, j) => (
@@ -34,7 +28,6 @@ export const ImageUpload = ({getImages,type,multiple,uploadImages}) => {
             sx={{width: "100%"}}
             variant="contained"
             onClick={() => uploadImagesAsync(images,async uploaded => {
-                // console.log("before updating config: ", uploaded[0].imageId);
 
                 if(type==="background"){
                     await updateConfigurationAsync({background: uploaded[0].imageId, configId: localStorage.getItem("configId")},cbck => {

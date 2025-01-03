@@ -65,8 +65,22 @@ export const createAccountAsync = async ({ name,email,username,password,permissi
     });
 }
 
+export const getAccountAsync = async (username,cb) => {
+    getBaseURL(async url => {
+        const api = axios.create({
+            baseURL: url + "/Account"
+        });
+        await api.get(username)
+        .then(yup => {
+            cb(yup.data);
+        })
+        .catch(nope => console.error(nope));
+    });
+}
+
 export default {
     loginAsync,
     logoutAsync,
-    createAccountAsync
+    createAccountAsync,
+    getAccountAsync
 }

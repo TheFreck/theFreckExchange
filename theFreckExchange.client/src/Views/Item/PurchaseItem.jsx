@@ -1,10 +1,9 @@
 import react, { useContext, useEffect, useState } from "react";
-import { ProductContext } from "../../Context";
 import { Box, Button, FormControl, Grid2, InputLabel, MenuItem, Select, TextField, Typography } from "@mui/material";
 import { ImageCarousel } from "../../components/ImageCarousel";
+import {getItemsAsync,purchaseItemAsync,getImagesFromReferencesAsync} from "../../helpers/helpersWelcome";
 
 export const PurchaseItem = ({product}) => {
-    const {getItemsAsync,purchaseItemAsync,getImagesFromReferencesAsync} = useContext(ProductContext);
     const [items,setItems] = useState([]);
     const [narrowedItems,setNarrowedItems] = useState([]);
     const [availableAttributes,setAvailableAttributes] = useState({});

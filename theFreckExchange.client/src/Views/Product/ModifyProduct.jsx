@@ -1,12 +1,11 @@
 import { Box, Button, Card, Chip, FormControl, Grid2, InputLabel, MenuItem, Select, Stack, TextField, Typography } from "@mui/material";
 import { useCallback, useContext, useEffect, useState } from "react";
-import { ProductContext } from "../../Context";
 import DisabledByDefaultIcon from '@mui/icons-material/DisabledByDefault';
 import CheckBoxIcon from '@mui/icons-material/CheckBox';
 import { ImageCarousel } from "../../components/ImageCarousel";
+import { updateItemsAsync,getImagesFromReferencesAsync, getProductsAsync } from "../../helpers/helpersWelcome";
 
 export const ModifyProduct = () => {
-    const { updateItemsAsync,getImagesFromReferencesAsync, getProductsAsync, ready, setReady } = useContext(ProductContext);
     const [productsArray, setProductsArray] = useState([]);
     const [selectedProduct, setSelectedProduct] = useState("");
     const [imageObjects, setImageObjects] = useState([]);
@@ -22,22 +21,11 @@ export const ModifyProduct = () => {
             console.log("prods: ", prods);
             if (prods.length === 0) return;
             setProductsArray(prods);
-            setReady(true);
             console.log("up and atom!");
         });
     }, []);
 
-    useEffect(() => {
-        console.log("attributes: ", attributes);
-    },[attributes]);
-
-    useEffect(() => {
-        console.log("attributeInput: ", attributeInput);
-    },[attributeInput]);
-
     const selectProduct = (p) => {
-        console.log("p: ", p.target.value);
-        console.log("p.name: ", p.target.value.name);
         getImagesFromReferencesAsync(p.target.value.imageReferences,images => {
             setSelectedProduct(p.target.value);
             setImageObjects(images.map(i => ({id:i.id,imageId: i.imageId,name: i.name,image: window.atob(i.image)})));
@@ -48,10 +36,6 @@ export const ModifyProduct = () => {
         });
     }
 
-    useEffect(() => {
-        console.log("imageObjects: ", imageObjects);
-    },[imageObjects]);
-
     const removeImage = image => {
         image.delete = undefined ? true : !image.delete;
         setIsDirty(!isDirty);
@@ -59,7 +43,6 @@ export const ModifyProduct = () => {
 
     const updateAsync = () => {
         let keepers = imageObjects.filter(o => !o.delete);
-        console.log("keepers: ", keepers);
         selectedProduct.imageReferences = keepers.map(k => k.imageId);
         selectedProduct.description = description;
         selectedProduct.attributes = attributes;
@@ -71,7 +54,6 @@ export const ModifyProduct = () => {
             adminToken: localStorage.getItem("permissions.admin"),
             userToken: localStorage.getItem("permissions.user")
         }
-        console.log("updating product: ", selectProduct);
         updateItemsAsync(selectedProduct, prod => {
             console.log("prod back from update: ", prod);
         });
@@ -99,7 +81,7 @@ export const ModifyProduct = () => {
             />
         }
         <img style={{ backgroundSize: "contain", maxHeight: "20em", maxWidth: "100%" }} src={window.atob(image.bytes)} onClick={() => removeImage(image)} height={"auto"} key={i} />
-    </Card>), [isDirty, ready, selectedProduct]);
+    </Card>), [isDirty, selectedProduct]);
 
     return (
         <Box

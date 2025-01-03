@@ -285,6 +285,12 @@ namespace TheFreckExchange.Server.Services
                         purchased.Add(itemsReturned[i]);
                     }
                     account.Balance += product.Price * qty;
+                    account.History.Add(new PurchaseOrder
+                    {
+                        Items = purchased,
+                        TotalPrice = product.Price * qty,
+                        TransactionDate = DateTime.Now
+                    });
                     accountRepo.Update(account);
                     return purchased;
                 }

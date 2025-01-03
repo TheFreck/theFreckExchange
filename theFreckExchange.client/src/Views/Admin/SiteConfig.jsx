@@ -1,7 +1,8 @@
 import { Box, Button, Grid2, Modal, TextField, Typography } from "@mui/material";
-import react, { useContext, useEffect, useState } from "react";
+import { useContext, useEffect, useState } from "react";
 import ImageUpload from "./ImageUpload";
-import { AccountContext, ProductContext } from "../../Context";
+import { AccountContext } from "../../Context";
+import { uploadImagesAsync, getImages, updateConfigurationAsync,getConfigurationAsync,createConfigurationAsync,deleteConfigurationAsync,getProductsAsync} from "../../helpers/helpersWelcome";
 
 const configTemplate = {
     background: "",
@@ -19,7 +20,6 @@ const configTemplate = {
 };
 
 export const SiteConfiguration = () => {
-    const { uploadImagesAsync, getImages, updateConfigurationAsync,getConfigurationAsync,createConfigurationAsync,deleteConfigurationAsync,getProductsAsync} = useContext(ProductContext);
     const { refreshConfig,setRefreshConfig } = useContext(AccountContext);
     const [siteTitle,setSiteTitle] = useState("");
     const [config,setConfig] = useState(configTemplate);

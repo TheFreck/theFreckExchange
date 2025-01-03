@@ -1,13 +1,14 @@
 import { Box, Button, TextField, Typography } from "@mui/material";
 import react, { useCallback, useContext, useEffect, useState } from "react";
 import { AccountContext, ProductContext } from "../Context";
-import axios from "axios";
 import StoreFront from "./StoreFront";
 import Store from "./User/Store";
 import CreateProduct from "./Product/CreateProduct";
 import ModifyProduct from "./Product/ModifyProduct";
 import CreateItems from "./Item/CreateItems";
 import SiteConfiguration from "./Admin/SiteConfig";
+import {getConfigurationAsync,getBackgroundAsync,getProductsAsync} from "../helpers/helpersWelcome";
+import AccountView from "./Account/AccountView";
 
 const configTemplate = {
     background: "",
@@ -26,23 +27,15 @@ const configTemplate = {
 };
 
 export const Welcome = () => {
-    const {userView,setUserView,userEnum,userAcct} = useContext(AccountContext);
+    const {userView,userEnum} = useContext(AccountContext);
     const [products, setProducts] = useState([]);
     const [ready, setReady] = useState(false);
     const [config,setConfig] = useState(configTemplate);
     const [background,setBackground] = useState({});
 
-    const siteApi = axios.create({
-        baseURL: `${process.env.NODE_ENV === "development" ? "https://localhost:7299/Site" : "/Site"}`
-    });
-
-    const productApi = axios.create({
-        baseURL: `${process.env.NODE_ENV === "development" ? "https://localhost:7299/Product" : "/Product"}`
-    });
-
     useEffect(() => {
         getConfigurationAsync(figs => {
-            getBackground(async backgrnd => {
+            getBackgroundAsync(async backgrnd => {
                 setConfig(figs);
                 if (backgrnd) {
                     let img = await fetch(window.atob(backgrnd.image));
@@ -64,46 +57,6 @@ export const Welcome = () => {
         });
     }, []);
 
-    // **********SITE*CONFIG************
-    const getConfigurationAsync = async (cb) => {
-        await siteApi.get(`config`)
-            .then(yup => {
-                cb(yup.data);
-            })
-            .catch(nope => {
-                console.error(nope);
-                cb(nope);
-            });
-    }
-    
-    const createConfigurationAsync = async (cb) => {
-        configTemplate.adminAccountId = userAcct.accountId;
-        configTemplate.configId = localStorage.getItem("configId");
-        await siteApi.post("config/set",configTemplate)
-            .then(yup => {
-                localStorage.setItem("configId", yup.data.configId);
-                setConfig(yup.data);
-                cb(yup.data);
-            })
-            .catch(nope => console.error(nope));
-    }
-
-    const updateConfigurationAsync = async (fig,cb) => {
-        await getConfigurationAsync(async conf => {
-            await siteApi.put(`config/update`,fig)
-                .then(yup => {
-                    setConfig(conf)
-                    if(conf.siteTitle !== null && conf.siteTitle !== undefined && conf.siteTitle !== "")
-                        localStorage.setItem("siteTitle", conf.siteTitle);
-                    cb(conf);
-                })
-                .catch(nope => {
-                    console.error(nope)
-                    cb(nope);
-                });
-            });
-    }
-
     const deleteConfigurationAsync = async (configId,cb) => {
         await siteApi.delete(`config`)
             .then(yup => {
@@ -111,18 +64,6 @@ export const Welcome = () => {
                 localStorage.setItem("configId","")
                 localStorage.setItem("siteTitle","");
                 setConfig(yup.data);
-                cb(yup.data);
-            })
-            .catch(nope => {
-                console.error(nope)
-                cb(nope);
-            });
-    }
-
-    // **********PRODUCT**************
-    const getProductsAsync = async (cb) => {
-        await productApi.get()
-            .then(yup => {
                 cb(yup.data);
             })
             .catch(nope => {
@@ -260,16 +201,16 @@ export const Welcome = () => {
         .catch(nope => console.error(nope));
     }
 
-    const getBackground = async (cb) => {
-        await siteApi.get(`config/background`)
-            .then(yup => {
-                cb(yup.data);
-            })
-            .catch(nope => {
-                console.error(nope);
-                cb(nope);
-            })
-    }
+    // const getBackground = async (cb) => {
+    //     await siteApi.get(`config/background`)
+    //         .then(yup => {
+    //             cb(yup.data);
+    //         })
+    //         .catch(nope => {
+    //             console.error(nope);
+    //             cb(nope);
+    //         })
+    // }
 
     const readImagesAsync = async (images, cb) => {
         let base64Images = [];
@@ -321,7 +262,7 @@ export const Welcome = () => {
                 {userView === userEnum.updateProduct && localStorage.getItem("permissions.admin") !== null && <ModifyProduct />}
                 {userView === userEnum.siteConfig && localStorage.getItem("permissions.admin") !== null && <SiteConfiguration />}
                 {userView === userEnum.shop && localStorage.getItem("permissions.user") !== null && <Store />}
-                {userView === userEnum.viewAccount && localStorage.getItem("permissions.user") !== null && <div>Placeholder for account view</div>}
+                {userView === userEnum.viewAccount && localStorage.getItem("permissions.user") !== null && <AccountView />}
                 
             </Box>
             )
@@ -342,13 +283,10 @@ export const Welcome = () => {
                 getAvailableAttributesAsync, 
                 updateItemsAsync, 
                 purchaseItemAsync,
-                getBackground,
                 getImages,
                 uploadImagesAsync,
                 readImagesAsync,
-                updateConfigurationAsync,
                 getConfigurationAsync,
-                createConfigurationAsync,
                 deleteConfigurationAsync,
                 getImagesFromReferencesAsync
             }}

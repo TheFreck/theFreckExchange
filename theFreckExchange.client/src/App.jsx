@@ -1,14 +1,14 @@
-import { useCallback, useEffect, useState } from 'react';
-import axios from 'axios';
 import './App.css';
-import {AccountContext, ProductContext} from './Context';
+import { useCallback, useEffect, useState } from 'react';
+import {AccountContext} from './Context';
 import Welcome from './Views/Welcome';
 import Login from './Views/Login';
 import Layout from './Views/Layout';
-import {getBaseURL,
+import {
     loginAsync,
     logoutAsync,
-    createAccountAsync} from "./helpers/helpersApp";
+    createAccountAsync
+} from "./helpers/helpersApp";
 
 const homeViewEnum = {
     home: 0,
@@ -35,24 +35,12 @@ function App() {
     const [userAcct, setUserAcct] = useState({});
     const [refreshConfig,setRefreshConfig] = useState(false);
     const [baseUrl,setBaseUrl] = useState("");
-    
-    const accountApi = axios.create({
-        baseURL: `${baseUrl}/Account`
-    });
-    
-    useEffect(() => {
-        getBaseURL(url => setBaseUrl(url));
-    }, []);
 
     const login = (username,password) => {
         loginAsync(username,password,loggedIn => {
-            console.log("loggedIn: ", loggedIn);
             setUserAcct(loggedIn);
-            setView(0);
-        })
-        .then(yup => {
-        })
-        .catch(nope => console.error(nope));
+            setView(homeViewEnum.login);
+        });
     }
 
     const logout = () => {
@@ -62,18 +50,11 @@ function App() {
         });
     }
 
-    // const createAccount = ({ name,email,username,password,permissions }) => {
-    //     accountApi.post(`createAccount/${name}/${email}`,{username,password,permissions})
-    //         .then(yup => {
-    //             console.info("account created: ", yup.data);
-    //         })
-    //         .catch(nope => console.error(nope));
-    // }
+    const getUserAcct = () =>  userAcct;
 
     const AppCallback = useCallback(() => <AccountContext.Provider value={{
         login,
-        userAcct,
-        createAccountAsync,
+        getUserAcct,
         userView,
         setUserView,
         userEnum,

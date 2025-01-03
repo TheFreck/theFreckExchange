@@ -2,10 +2,8 @@ import react, { useCallback, useContext, useEffect, useRef, useState } from "rea
 import axios from "axios";
 import { Autocomplete, Box, Grid2, Modal, TextField, Typography } from "@mui/material";
 import SearchIcon from '@mui/icons-material/Search';
-import ProductView from "../Product/ProductView";
-import { ProductContext } from "../../Context";
-import Descriptions from "../../components/Descriptions-dep";
 import PurchaseItem from "../Item/PurchaseItem";
+import {getProductsAsync,getImagesFromReferencesAsync,getItemsAsync,getAttributesAsync} from "../../helpers/helpersWelcome";
 
 export const Store = ({ }) => {
     const [products, setProducts] = useState([]);
@@ -15,17 +13,6 @@ export const Store = ({ }) => {
     const [ready,setReady] = useState(false);
     const [open,setOpen] = useState(false);
     const modalRef = useRef();
-
-    const {getProductsAsync,getImagesFromReferencesAsync} = useContext(ProductContext);
-
-    const getBaseURL = (cb) => {
-        if(process.env.NODE_ENV === "development"){
-            cb("https://localhost:7299/");
-        }
-        else if(process.env.NODE_ENV === "production"){
-            cb("/");
-        }
-    }
 
     useEffect(() => {
         if(ready) return;
@@ -57,7 +44,7 @@ export const Store = ({ }) => {
                     if(atts.length > 0 && atts[0].product === selectedProduct.name){
                         selectedProduct.attributes = atts;
                         getItemsAsync(selectedProduct.name,pItems => {
-                            prodItems.push(pItems);
+                            prodItems.push({[selectedProduct.name]:pItems});
                             setItems(prodItems);
                         });
                     }
@@ -65,37 +52,6 @@ export const Store = ({ }) => {
             })
         }
     },[selectedProduct]);
-
-    const getItemsAsync = async (item,cb) => {
-        getBaseURL(async url => {
-            let productApi = axios.create({
-                baseURL: url + "Product"
-            });
-            await productApi.get(`items/${item}`)
-            .then(yup => {
-                cb({[item]:yup.data});
-            })
-            .catch(nope => console.error(nope));
-        })
-    }
-
-    const getAttributesAsync = async (prod, cb) => {
-        getBaseURL(async url => {
-            let productApi = axios.create({
-                baseURL: url + "Product"
-            });
-            await productApi.get(`items/product/${prod}/attributes`)
-            .then(yup => {
-                for(var att of yup.data){
-                    att.product = prod;
-                    att.values = att.value;
-                    att.value = "";
-                }
-                cb(yup.data);
-            })
-            .catch(nope => console.error(nope));
-        })
-    }
 
     useEffect(() => {
         if(selectedProduct.id !== undefined) setOpen(true);
