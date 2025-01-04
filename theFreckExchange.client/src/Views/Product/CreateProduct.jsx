@@ -3,6 +3,12 @@ import { useContext, useEffect, useState } from "react";
 import ImageUpload from "../Admin/ImageUpload"
 import { createProductAsync, getImages } from "../../helpers/helpersWelcome";
 
+const styles = {
+    textField: {
+        margin: "1vh 0"
+    }
+}
+
 export const CreateProduct = ({created}) => {
     const [name, setName] = useState("");
     const [price, setPrice] = useState(0.0);
@@ -10,6 +16,7 @@ export const CreateProduct = ({created}) => {
     const [attributeInput, setAttributeInput] = useState("");
     const [attributes, setAttributes] = useState([]);
     const [images, setImages] = useState([]);
+    const [primary,setPrimary] = useState({});
 
     const uploadImages = (im) => {
         setImages(im);
@@ -18,9 +25,10 @@ export const CreateProduct = ({created}) => {
     return (
         <Box
             component="form"
-            sx={{ display: "flex", flexDirection: "column", margin: "0 auto", width: "80vw", background: "rgb(204,187,170)" }}
+            sx={{ display: "flex", flexDirection: "column", margin: "0 auto", width: "80vw" }}
         >
             <TextField
+                style={styles.textField}
                 required
                 id="productName"
                 label="Product Name"
@@ -28,6 +36,7 @@ export const CreateProduct = ({created}) => {
                 value={name}
             />
             <TextField
+                style={styles.textField}
                 required
                 id="productPrice"
                 label="Price"
@@ -35,6 +44,7 @@ export const CreateProduct = ({created}) => {
                 onChange={p => setPrice(p.target.value)}
             />
             <TextField
+                style={styles.textField}
                 required
                 id="productDescription"
                 label="Product Description"
@@ -67,13 +77,14 @@ export const CreateProduct = ({created}) => {
                     setAttributeInput("");
                 }}
             />
-            <ImageUpload getImages={getImages} type="product" multiple={true} uploadImages={uploadImages} />
+            <ImageUpload getImages={getImages} primary={primary} setPrimary={setPrimary} type="product" multiple={true} uploadImages={uploadImages} />
             <br/>
             <Button
                 id="createProductButton"
                 variant="contained"
                 onClick={() => {
-                    createProductAsync({ name, description, attributes, price, images },() => {
+                    let primaryImageReference = images.find(i => i.name === primary.filename).imageId;
+                    createProductAsync({ name, description, attributes, price, primaryImageReference, imageReferences: images.map(i=>i.imageId) },yup => {
                         created();
                     });
                 }}

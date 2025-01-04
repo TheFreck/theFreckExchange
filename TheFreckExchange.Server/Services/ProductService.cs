@@ -13,7 +13,7 @@ namespace TheFreckExchange.Server.Services
     {
         Task<Item> CreateItemAsync(string productId, Item item);
         Task<IEnumerable<Item>> CreateManyItemsAsync(string productName, int itemQuantity, IEnumerable<ItemAttribute> attributes, LoginCredentials credentials);
-        Task<Product> CreateProductAsync(string name, string description, IEnumerable<string> attributes, double price, LoginCredentials credentials, IEnumerable<string> images);
+        Task<Product> CreateProductAsync(string name, string description, IEnumerable<string> attributes, double price, LoginCredentials credentials, IEnumerable<string> images, string primaryImageReference);
         IEnumerable<Product> GetAll();
         Task<IEnumerable<GroupedAttributes>> GetAttributesAsync(string productName);
         Task<IEnumerable<Item>> GetByAttributeAsync(string productName, string type, string value);
@@ -104,7 +104,7 @@ namespace TheFreckExchange.Server.Services
             return new List<Item>();
         }
 
-        public async Task<Product> CreateProductAsync(string name, string description, IEnumerable<string> attributes, double price, LoginCredentials credentials, IEnumerable<string> images)
+        public async Task<Product> CreateProductAsync(string name, string description, IEnumerable<string> attributes, double price, LoginCredentials credentials, IEnumerable<string> images, string primaryImageReference)
         {
             var account = await accountRepo.GetByUsernameAsync(credentials.Username);
 
@@ -118,7 +118,8 @@ namespace TheFreckExchange.Server.Services
                     ProductId = Guid.NewGuid().ToString(),
                     Price = price,
                     AvailableAttributes = attributes,
-                    ImageReferences = images
+                    ImageReferences = images,
+                    PrimaryImageReference = primaryImageReference
                 };
 
                 await productRepo.CreateAsync(product);
@@ -284,7 +285,7 @@ namespace TheFreckExchange.Server.Services
                         await itemRepo.DeleteItemAsync(itemsReturned[i]);
                         purchased.Add(itemsReturned[i]);
                     }
-                    account.Balance += product.Price * qty;
+                    account.Balance -= product.Price * qty;
                     account.History.Add(new PurchaseOrder
                     {
                         Items = purchased,

@@ -20,7 +20,7 @@ const configTemplate = {
 };
 
 export const SiteConfiguration = () => {
-    const { refreshConfig,setRefreshConfig } = useContext(AccountContext);
+    const { refreshConfig,setRefreshConfig,getUserAcct } = useContext(AccountContext);
     const [siteTitle,setSiteTitle] = useState("");
     const [config,setConfig] = useState(configTemplate);
     const [categoryTitle,setCategoryTitle] = useState("");
@@ -29,6 +29,7 @@ export const SiteConfiguration = () => {
 
     useEffect(() => {
         getConfigurationAsync(cfg => {
+            console.log("cfg: ", cfg);
             setConfig(cfg);
             getProductsAsync(prods => {
                 let productPairs = [];
@@ -90,7 +91,9 @@ export const SiteConfiguration = () => {
                 }
                 {(localStorage.getItem("configId") === "00000000-0000-0000-0000-000000000000" || localStorage.getItem("configId") === "" || localStorage.getItem("configId") === null) && 
                     <Button
-                        onClick={() => createConfigurationAsync(yup => {
+                        onClick={() => createConfigurationAsync(configTemplate,getUserAcct(),yup => {
+                            let acct = getUserAcct();
+                            console.log("acct: ", acct);
                             setConfig(yup);
                             setRefreshConfig(!refreshConfig);
                         })}

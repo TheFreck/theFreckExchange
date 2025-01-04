@@ -12,7 +12,7 @@ namespace TheFreckExchange.Server.DTO
 
         public string ConfigId {  get; set; } = Guid.Empty.ToString();
 
-        public string AdminAccountId {get;set; } = Guid.Empty.ToString();
+        public HashSet<string> AdminAccountIds {get;set; } = new HashSet<string>();
 
         public string SiteTitle { get; set; } = String.Empty;
         

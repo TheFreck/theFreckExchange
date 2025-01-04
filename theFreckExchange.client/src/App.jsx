@@ -34,7 +34,6 @@ function App() {
     const [userView, setUserView] = useState(userEnum.home);
     const [userAcct, setUserAcct] = useState({});
     const [refreshConfig,setRefreshConfig] = useState(false);
-    const [baseUrl,setBaseUrl] = useState("");
 
     const login = (username,password) => {
         loginAsync(username,password,loggedIn => {
@@ -67,7 +66,7 @@ function App() {
             }
                 <Welcome />
         </Layout>
-    </AccountContext.Provider>,[userAcct,view,userView,baseUrl,refreshConfig]);
+    </AccountContext.Provider>,[userAcct,view,userView,refreshConfig]);
     return <AppCallback />
 }
 

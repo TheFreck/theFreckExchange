@@ -63,6 +63,7 @@ namespace TheFreckExchange.Specs
             product2Desc = "it is worn on your torso";
             product1Price = 25.75;
             product2Price = 74.99;
+            primaryImageReference = Guid.NewGuid().ToString();
             product1AvailableAttributes = new List<string>
             {
                 "Color","Size","Style"
@@ -81,8 +82,7 @@ namespace TheFreckExchange.Specs
             configId = Guid.NewGuid().ToString();
             config = new ConfigDTO
             {
-                AdminAccountId = account1.AccountId,
-                Background = String.Empty,
+                AdminAccountIds = new HashSet<string> { account1.AccountId,account2.AccountId },
                 CategoryTitle = "Mock category title",
                 ConfigId = configId,
                 SiteTitle = "Mock site title",
@@ -122,6 +122,7 @@ namespace TheFreckExchange.Specs
         protected static string product2Desc;
         protected static double product1Price;
         protected static double product2Price;
+        protected static string primaryImageReference;
         protected static List<string> product1AvailableAttributes;
         protected static List<string> product2AvailableAttributes;
         protected static LoginCredentials loginCreds;
@@ -159,14 +160,16 @@ namespace TheFreckExchange.Specs
                     Name = product1Name,
                     ProductDescription = product1Desc,
                     ProductId = product1Id,
-                    Price = product1Price
+                    Price = product1Price,
+                    PrimaryImageReference = primaryImageReference
                 },
                 new Product()
                 {
                     Name= product2Name,
                     ProductDescription = product2Desc,
                     ProductId = product2Id,
-                    Price = product2Price
+                    Price = product2Price,
+                    PrimaryImageReference = primaryImageReference
                 }
             };
             outcomes = new List<Product>();
@@ -176,7 +179,7 @@ namespace TheFreckExchange.Specs
         {
             for (var i = 0; i < inputs.Count; i++)
             {
-                outcomes.Add(storeFront.CreateProductAsync(inputs[i].name, inputs[i].desccription, attributes, inputs[i].price, loginCreds, images).GetAwaiter().GetResult());
+                outcomes.Add(storeFront.CreateProductAsync(inputs[i].name, inputs[i].desccription, attributes, inputs[i].price, loginCreds, images, primaryImageReference).GetAwaiter().GetResult());
             }
         };
 
@@ -188,6 +191,7 @@ namespace TheFreckExchange.Specs
                 outcomes[i].ProductId.ShouldNotEqual(Guid.Empty.ToString());
                 outcomes[i].ProductDescription.ShouldEqual(expectations[i].ProductDescription);
                 outcomes[i].Price.ShouldEqual(expectations[i].Price);
+                outcomes[i].PrimaryImageReference.ShouldEqual(primaryImageReference);
             }
         };
 
@@ -248,7 +252,8 @@ namespace TheFreckExchange.Specs
                 ProductDescription = oldDescription,
                 ProductId = product1Id,
                 AvailableAttributes = oldAttributes,
-                ImageReferences = oldImages
+                ImageReferences = oldImages,
+                PrimaryImageReference = primaryImageReference
             };
             newProduct = new ProductDTO
             {
@@ -256,7 +261,8 @@ namespace TheFreckExchange.Specs
                 Price = newPrice,
                 Description = newDescription,
                 Attributes = newAttributes,
-                ImageReferences = newImages
+                ImageReferences = newImages,
+                PrimaryImageReference = primaryImageReference
             };
             accountRepoMock.Setup(l => l.GetByUsernameAsync(account1.Username)).ReturnsAsync(account1);
             loginServiceMock.Setup(l => l.ValidatePermissionsAsync(Moq.It.IsAny<Account>(), PermissionType.Admin, Moq.It.IsAny<string>())).ReturnsAsync(true);
@@ -275,6 +281,7 @@ namespace TheFreckExchange.Specs
             outcome.ProductDescription.ShouldEqual(newProduct.Description);
             outcome.AvailableAttributes.ShouldContainOnly(newProduct.Attributes);
             outcome.ImageReferences.ShouldContainOnly(newProduct.ImageReferences);
+            outcome.PrimaryImageReference.ShouldEqual(primaryImageReference);
         };
 
         It Should_Retrieve_Product_From_Repo = () => productRepoMock.Verify(p => p.GetByNameAsync(oldProduct.Name), Times.Once);

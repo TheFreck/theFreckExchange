@@ -1,63 +1,93 @@
-import react, { useEffect, useState } from "react";
-import axios from 'axios';
-import Login from "../Login";
-import NewAccount from "../NewAccount";
+import { Accordion, AccordionDetails, AccordionSummary, Box, Grid2, Typography } from "@mui/material";
+import { useEffect, useState } from "react";
+import {getAccountAsync} from "../../helpers/helpersApp";
 
-export const AccountView = ({userAcct, setUserAcct}) => {
-    const [account, setAccount] = useState({});
-    const [payment, setPayment] = useState(0);
-    const [email, setEmail] = useState();
-    const [isNewAccount, setIsNewAccount] = useState(false);
-
-    const api = axios.create({
-        baseURL: `/Account`
-    });
+export const AccountView = () => {
+    const [account,setAccount] = useState({});
+    const [transactionHistory,setTransactionHistory] = useState([]);
 
     useEffect(() => {
-        if(userAcct?.name !== undefined){
-            setAccount(userAcct);
-        }
+        getAccountAsync(localStorage.getItem("username"), acct => {
+            setAccount(acct);
+            setTransactionHistory(acct.history.sort((a,b) => Date.parse(b.transactionDate)-Date.parse(a.transactionDate)));
+        });
     },[]);
 
-    const login = (e) => {
-        e.preventDefault();
-        const cleanEmail = email.replace("@", "%40");
-        api.get(`email/${cleanEmail}`)
-            .then(yup => {
-                setAccount(yup.data);
-                setUserAcct(yup.data);
-            })
-            .catch(nope => console.error(nope));
-    }
+    // name
+    // email
+    // current balance
+    // purchase history
+    // browsing history
+    // account permissions
+    // account history
 
-    const submitPayment = (e) => {
-        e.preventDefault();
-        const cleanEmail = account.email.replace("@", "%40");
-        api.put(`make_payment/${cleanEmail}/${payment}`)
-            .then(yup => {
-                setAccount(yup.data);
-            })
-            .catch(nope => console.error(nope));
-    }
+    const TransactionDetails = ({transaction}) => <Box>
+        <Typography>
+            Item: {transaction.items[0].name}
+        </Typography>
+        <Typography>
+            Qty: {transaction.items.length}
+        </Typography>
+        <Typography>
+            Total Cost: ${transaction.totalPrice}
+        </Typography>
+        <Grid2>
+            <Typography>
+                Attributes:
+            </Typography>
+            {transaction.items[0].attributes && transaction.items[0].attributes.map((a,i) => (
+                <Typography key={i}>{a.type}: {a.value}</Typography>
+            ))}
+        </Grid2>
+    </Box>
 
-    const createAccount = (acct) => {
-        const cleanEmail = acct.email.replace("@", "%40");
-        api.post(`createAccount/${acct.name}/${cleanEmail}/${acct.balance}`)
-            .then(yup => {
-                setAccount(yup.data);
-            })
-            .catch(nope => console.error(nope));
-    }
-
-    return <div>
-        {
-        isNewAccount ? 
-            <NewAccount setIsNewAccount={setIsNewAccount} setAccount={setAccount} createAccount={createAccount} /> : 
-            account.name === undefined ? 
-                <Login login={login} email={email} setEmail={setEmail} setNewAccount={setIsNewAccount} /> : 
-                <AccountView account={account} payment={payment} setPayment={setPayment} submit={submitPayment} />
-        }
-    </div>
+    return <Box
+            sx={{
+                width: "80vw",
+                margin: "auto",
+            }}
+    >
+        <Typography
+            variant="h3"
+        >
+            {account.name}
+        </Typography>
+        <Typography>
+            {account.email}
+        </Typography>
+        <Typography>
+            Account since: {
+                (new Date(account.dateOpened).getMonth()%12+1) + "/" + new Date(account.dateOpened).getDate() + "/" + new Date(account.dateOpened).getFullYear()
+            }
+        </Typography>
+        <Typography>
+            Current Balance: {account.balance}
+        </Typography>
+        <Accordion
+        >
+            <AccordionSummary>
+                Transaction History
+            </AccordionSummary>
+            <AccordionDetails>
+            {
+                account.history && account.history.map((h,i) => (
+                    <Accordion
+                        key={i}
+                    >
+                        <AccordionSummary>
+                            {h.items[0].name} {new Date(h.transactionDate).getMonth()%12+1}/{new Date(h.transactionDate).getDate()}/{new Date(h.transactionDate).getFullYear()}
+                        </AccordionSummary>
+                        <AccordionDetails>
+                            <TransactionDetails
+                                transaction={h}
+                            />
+                        </AccordionDetails>
+                    </Accordion>
+                ))
+            }
+            </AccordionDetails>
+        </Accordion>
+    </Box>
 }
 
 export default AccountView;

@@ -15,6 +15,7 @@ namespace TheFreckExchange.Server.DTO
         public required string ProductDescription { get; set; }
         public IEnumerable<string> AvailableAttributes { get; set; } = new List<string>();
         public required double Price { get; set; }
+        public string PrimaryImageReference { get; set; }
         public IEnumerable<string> ImageReferences { get; set; } = new List<string>();
         public string? ProductOwnerId { get; set; }
 
@@ -31,6 +32,7 @@ namespace TheFreckExchange.Server.DTO
         public required string Description { get; set; }
         public LoginCredentials? Credentials { get; set; }
         public IEnumerable<string> Attributes { get; set; } = new List<string>();
+        public string PrimaryImageReference { get; set; } = String.Empty;
         public IEnumerable<string> ImageReferences { get; set; } = new List<string>();
     }
 

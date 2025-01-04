@@ -26,17 +26,27 @@ namespace TheFreckExchange.Server.Services
 
         public async Task<ConfigDTO> CreateNewAsync(ConfigDTO config)
         {
+            var admins = await accountRepo.GetAdminsAsync();
             config.ConfigId = Guid.NewGuid().ToString();
+            foreach(var admin in admins.ToList())
+            {
+                admin.SiteConfigId = config.ConfigId;
+                accountRepo.Update(admin);
+                config.AdminAccountIds.Add(admin.AccountId);
+            }
             await configRepo.ReplaceConfigAsync(config);
-            var admin = await accountRepo.GetByAccountIdAsync(config.AdminAccountId);
-            admin.SiteConfigId = config.ConfigId;
-            accountRepo.Update(admin);
             return config;
         }
 
         public async Task<ConfigDTO> DeleteConfigAsync()
         {
             var config = await configRepo.GetConfigAsync();
+            var admins = await accountRepo.GetAdminsAsync();
+            foreach(var admin in admins)
+            {
+                admin.SiteConfigId = String.Empty;
+                accountRepo.Update(admin);
+            }
             if (config != null)
             {
                 return await configRepo.DeleteConfigAsync();
@@ -60,7 +70,7 @@ namespace TheFreckExchange.Server.Services
             config.SiteTitle = String.IsNullOrWhiteSpace(configDTO.SiteTitle) ? config == null ? String.Empty : config.SiteTitle : configDTO.SiteTitle;
             config.CategoryTitle = String.IsNullOrWhiteSpace(configDTO.CategoryTitle) ? config.CategoryTitle : configDTO.CategoryTitle;
             config.Background = String.IsNullOrWhiteSpace(configDTO?.Background) ? config.Background : configDTO.Background;
-            config.AdminAccountId = String.IsNullOrWhiteSpace(configDTO?.AdminAccountId) ? config.AdminAccountId : configDTO.AdminAccountId;
+            config.AdminAccountIds = configDTO.AdminAccountIds;
             config.Categories = configDTO?.Categories.Where(c => !String.IsNullOrWhiteSpace(c.Name)).Count() != 6 ? config.Categories : configDTO.Categories;
             config.Images = configDTO?.Images?.Count > 0 ? config.Images.Concat(configDTO.Images).ToHashSet().ToList() : config.Images;
 

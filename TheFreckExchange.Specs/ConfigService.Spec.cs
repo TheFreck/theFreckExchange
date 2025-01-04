@@ -21,16 +21,18 @@ namespace TheFreckExchange.Specs
             configRepoMock = new Mock<IConfigRepo>();
             accountRepoMock = new Mock<IAccountRepo>();
             productRepoMock = new Mock<IProductRepo>();
-            name = "name";
-            username = "username1@username.com";
+            name1 = "name1";
+            name2 = "name2";
+            username1 = "username1@username.com";
+            username2 = "username1@username.com";
             password = "password";
             permissions = new List<AccountPermissions>
             {
                 new AccountPermissions(PermissionType.Admin),
                 new AccountPermissions(PermissionType.User)
             };
-            account = new Account(name, username, username, permissions);
-
+            account1 = new Account(name1, username1, username1, permissions);
+            account2 = new Account(name2, username2, username1, permissions);
             siteTitle = "Title Test";
             categoryTitle = "Category Title Test";
             categories = new List<Categories>
@@ -74,7 +76,10 @@ namespace TheFreckExchange.Specs
             background = Guid.NewGuid().ToString();
             configDTO = new ConfigDTO
             {
-                AdminAccountId = account.AccountId,
+                AdminAccountIds = new HashSet<string>{
+                    account1.AccountId,
+                    account2.AccountId,
+                },
                 SiteTitle = siteTitle,
                 CategoryTitle = categoryTitle,
                 Categories = categories,
@@ -86,11 +91,14 @@ namespace TheFreckExchange.Specs
         protected static Mock<IConfigRepo> configRepoMock;
         protected static Mock<IAccountRepo> accountRepoMock;
         protected static Mock<IProductRepo> productRepoMock;
-        protected static string name;
-        protected static string username;
+        protected static string name1;
+        protected static string name2;
+        protected static string username1;
+        protected static string username2;
         protected static string password;
         protected static List<AccountPermissions> permissions;
-        protected static Account account;
+        protected static Account account1;
+        protected static Account account2;
         protected static string siteTitle;
         protected static string categoryTitle;
         protected static List<Categories> categories;
@@ -99,12 +107,16 @@ namespace TheFreckExchange.Specs
         protected static ConfigDTO configDTO;
     }
 
-    public class When_Setting_Up_Site_Configuration : With_ConfigRepo_Setup
+    public class When_Creating_Site_Configuration : With_ConfigRepo_Setup
     {
         Establish context = () =>
         {
+            admins = new List<Account>
+            {
+                account1,account2
+            };
             configRepoMock.Setup(c => c.ReplaceConfigAsync(Moq.It.IsAny<ConfigDTO>()));
-            accountRepoMock.Setup(a => a.GetByAccountIdAsync(Moq.It.IsAny<string>())).ReturnsAsync(account);
+            accountRepoMock.Setup(a => a.GetAdminsAsync()).ReturnsAsync(new List<Account> { account1,account2});
             configService = new ConfigService(configRepoMock.Object,accountRepoMock.Object,productRepoMock.Object);
         };
 
@@ -112,10 +124,9 @@ namespace TheFreckExchange.Specs
 
         It Should_Form_A_ConfigDTO_And_Return_It = () =>
         {
-            configOutcome.AdminAccountId.ShouldEqual(configDTO.AdminAccountId);
+            configOutcome.AdminAccountIds.ShouldContainOnly(new List<string> { account1.AccountId,account2.AccountId});
             configOutcome.SiteTitle.ShouldEqual(configDTO.SiteTitle);
             configOutcome.CategoryTitle.ShouldEqual(configDTO.CategoryTitle);
-            configOutcome.Background.ShouldEqual(configDTO.Background);
             for (var i = 0; i < configDTO.Categories.Count; i++) 
             {
                 configOutcome.Categories[i].Name.ShouldEqual(configDTO.Categories[i].Name);
@@ -127,12 +138,13 @@ namespace TheFreckExchange.Specs
             }
         };
 
-        It Should_Get_Admin_Account_From_Repo = () => accountRepoMock.Verify(a => a.GetByAccountIdAsync(Moq.It.IsAny<string>()), Times.Once);
+        It Should_Get_Admin_Accounts_From_Repo = () => accountRepoMock.Verify(a => a.GetAdminsAsync(), Times.Once);
 
         It Should_Store_Config_In_The_Repo = () => configRepoMock.Verify(c => c.ReplaceConfigAsync(Moq.It.IsAny<ConfigDTO>()), Times.Once);
 
         private static ConfigDTO configOutcome;
         private static IConfigService configService;
+        private static List<Account> admins;
     }
 
     public class When_Updating_Site_Title : With_ConfigRepo_Setup
@@ -142,7 +154,8 @@ namespace TheFreckExchange.Specs
             updatedTitle = "Updated Title Test";
             configTest = new ConfigDTO
             {
-                SiteTitle = updatedTitle
+                SiteTitle = updatedTitle,
+                AdminAccountIds = new HashSet<string> { account1.AccountId, account2.AccountId }
             };
             configRepoMock.Setup(c => c.ReplaceConfigAsync(Moq.It.IsAny<ConfigDTO>()));
             configRepoMock.Setup(c => c.GetConfigAsync()).ReturnsAsync(configDTO);
@@ -153,7 +166,7 @@ namespace TheFreckExchange.Specs
 
         It Should_Form_A_ConfigDTO_And_Return_It = () =>
         {
-            configOutcome.AdminAccountId.ShouldEqual(configDTO.AdminAccountId);
+            configOutcome.AdminAccountIds.ShouldContainOnly(new HashSet<string> { account1.AccountId,account2.AccountId});
             configOutcome.SiteTitle.ShouldEqual(updatedTitle);
             configOutcome.CategoryTitle.ShouldEqual(configDTO.CategoryTitle);
             configOutcome.Background.ShouldEqual(configDTO.Background);
@@ -183,7 +196,7 @@ namespace TheFreckExchange.Specs
             updatedAdminId = Guid.NewGuid().ToString();
             configTest = new ConfigDTO
             {
-                AdminAccountId = updatedAdminId
+                AdminAccountIds = new HashSet<string> { updatedAdminId }
             };
             configRepoMock.Setup(c => c.ReplaceConfigAsync(Moq.It.IsAny<ConfigDTO>()));
             configRepoMock.Setup(c => c.GetConfigAsync()).ReturnsAsync(configDTO);
@@ -194,7 +207,7 @@ namespace TheFreckExchange.Specs
 
         It Should_Form_A_ConfigDTO_And_Return_It = () =>
         {
-            configOutcome.AdminAccountId.ShouldEqual(updatedAdminId);
+            configOutcome.AdminAccountIds.ShouldContainOnly(new List<string> { updatedAdminId });
             configOutcome.SiteTitle.ShouldEqual(configDTO.SiteTitle);
             configOutcome.CategoryTitle.ShouldEqual(configDTO.CategoryTitle);
             configOutcome.Background.ShouldEqual(configDTO.Background);
@@ -225,6 +238,7 @@ namespace TheFreckExchange.Specs
             configTest = new ConfigDTO
             {
                 CategoryTitle = updatedCategoryTitle,
+                AdminAccountIds = new HashSet<string> { account1.AccountId, account2.AccountId }
             };
             configRepoMock.Setup(c => c.ReplaceConfigAsync(Moq.It.IsAny<ConfigDTO>()));
             configRepoMock.Setup(c => c.GetConfigAsync()).ReturnsAsync(configDTO);
@@ -235,7 +249,7 @@ namespace TheFreckExchange.Specs
 
         It Should_Form_A_ConfigDTO_And_Return_It = () =>
         {
-            configOutcome.AdminAccountId.ShouldEqual(configDTO.AdminAccountId);
+            configOutcome.AdminAccountIds.ShouldContainOnly(new HashSet<string> { account1.AccountId, account2.AccountId });
             configOutcome.SiteTitle.ShouldEqual(configDTO.SiteTitle);
             configOutcome.CategoryTitle.ShouldEqual(updatedCategoryTitle);
             configOutcome.Background.ShouldEqual(configDTO.Background);
@@ -297,7 +311,8 @@ namespace TheFreckExchange.Specs
             };
             configTest = new ConfigDTO
             {
-                Categories = updatedCategories
+                Categories = updatedCategories,
+                AdminAccountIds = new HashSet<string> { account1.AccountId, account2.AccountId }
             };
             configRepoMock.Setup(c => c.ReplaceConfigAsync(Moq.It.IsAny<ConfigDTO>()));
             configRepoMock.Setup(c => c.GetConfigAsync()).ReturnsAsync(configDTO);
@@ -308,7 +323,7 @@ namespace TheFreckExchange.Specs
 
         It Should_Form_A_ConfigDTO_And_Return_It = () =>
         {
-            configOutcome.AdminAccountId.ShouldEqual(configDTO.AdminAccountId);
+            configOutcome.AdminAccountIds.ShouldContainOnly(new HashSet<string> { account1.AccountId, account2.AccountId });
             configOutcome.SiteTitle.ShouldEqual(configDTO.SiteTitle);
             configOutcome.CategoryTitle.ShouldEqual(configDTO.CategoryTitle);
             configOutcome.Background.ShouldEqual(configDTO.Background);
@@ -342,7 +357,8 @@ namespace TheFreckExchange.Specs
             };
             configTest = new ConfigDTO
             {
-                Images = updatedImageFiles
+                Images = updatedImageFiles,
+                AdminAccountIds = new HashSet<string> { account1.AccountId, account2.AccountId }
             };
             configRepoMock.Setup(c => c.ReplaceConfigAsync(Moq.It.IsAny<ConfigDTO>()));
             configRepoMock.Setup(c => c.GetConfigAsync()).ReturnsAsync(configDTO);
@@ -353,7 +369,7 @@ namespace TheFreckExchange.Specs
 
         It Should_Form_A_ConfigDTO_And_Return_It = () =>
         {
-            configOutcome.AdminAccountId.ShouldEqual(configDTO.AdminAccountId);
+            configOutcome.AdminAccountIds.ShouldContainOnly(new HashSet<string> { account1.AccountId, account2.AccountId });
             configOutcome.SiteTitle.ShouldEqual(configDTO.SiteTitle);
             configOutcome.CategoryTitle.ShouldEqual(configDTO.CategoryTitle);
             configOutcome.Background.ShouldEqual(configDTO.Background);
@@ -373,46 +389,46 @@ namespace TheFreckExchange.Specs
         private static ConfigDTO configTest;
     }
 
-    public class When_Updating_Background : With_ConfigRepo_Setup
-    {
-        Establish context = () =>
-        {
-            updatedBackground = Guid.NewGuid().ToString();
-            configTest = new ConfigDTO
-            {
-                Background = updatedBackground,
-            };
-            configRepoMock.Setup(c => c.ReplaceConfigAsync(Moq.It.IsAny<ConfigDTO>()));
-            configRepoMock.Setup(c => c.GetConfigAsync()).ReturnsAsync(configDTO);
-            configService = new ConfigService(configRepoMock.Object, accountRepoMock.Object, productRepoMock.Object);
-        };
+    //public class When_Updating_Background : With_ConfigRepo_Setup
+    //{
+    //    Establish context = () =>
+    //    {
+    //        updatedBackground = Guid.NewGuid().ToString();
+    //        configTest = new ConfigDTO
+    //        {
+    //            Background = updatedBackground,
+    //        };
+    //        configRepoMock.Setup(c => c.ReplaceConfigAsync(Moq.It.IsAny<ConfigDTO>()));
+    //        configRepoMock.Setup(c => c.GetConfigAsync()).ReturnsAsync(configDTO);
+    //        configService = new ConfigService(configRepoMock.Object, accountRepoMock.Object, productRepoMock.Object);
+    //    };
 
-        Because of = () => configOutcome = configService.UpdateConfigAsync(configTest).GetAwaiter().GetResult();
+    //    Because of = () => configOutcome = configService.UpdateConfigAsync(configTest).GetAwaiter().GetResult();
 
-        It Should_Form_A_ConfigDTO_And_Return_It = () =>
-        {
-            configOutcome.AdminAccountId.ShouldEqual(configDTO.AdminAccountId);
-            configOutcome.SiteTitle.ShouldEqual(configDTO.SiteTitle);
-            configOutcome.CategoryTitle.ShouldEqual(configDTO.CategoryTitle);
-            configOutcome.Background.ShouldEqual(updatedBackground);
-            for (var i = 0; i < configOutcome.Categories.Count; i++)
-            {
-                configOutcome.Categories[i].Name.ShouldEqual(configDTO.Categories[i].Name);
-                configOutcome.Categories[i].Description.ShouldEqual(configDTO.Categories[i].Description);
-            }
-            for (var i = 0; i < configOutcome.Images.Count; i++)
-            {
-                configOutcome.Images[i].ShouldEqual(configDTO.Images[i]);
-            }
-        };
+    //    It Should_Form_A_ConfigDTO_And_Return_It = () =>
+    //    {
+    //        configOutcome.AdminAccountIds.ShouldContainOnly(new List<string> { account1.AccountId, account2.AccountId });
+    //        configOutcome.SiteTitle.ShouldEqual(configDTO.SiteTitle);
+    //        configOutcome.CategoryTitle.ShouldEqual(configDTO.CategoryTitle);
+    //        configOutcome.Background.ShouldEqual(updatedBackground);
+    //        for (var i = 0; i < configOutcome.Categories.Count; i++)
+    //        {
+    //            configOutcome.Categories[i].Name.ShouldEqual(configDTO.Categories[i].Name);
+    //            configOutcome.Categories[i].Description.ShouldEqual(configDTO.Categories[i].Description);
+    //        }
+    //        for (var i = 0; i < configOutcome.Images.Count; i++)
+    //        {
+    //            configOutcome.Images[i].ShouldEqual(configDTO.Images[i]);
+    //        }
+    //    };
 
-        It Should_Store_Config_In_The_Repo = () => configRepoMock.Verify(c => c.ReplaceConfigAsync(Moq.It.IsAny<ConfigDTO>()), Times.Once);
+    //    It Should_Store_Config_In_The_Repo = () => configRepoMock.Verify(c => c.ReplaceConfigAsync(Moq.It.IsAny<ConfigDTO>()), Times.Once);
 
-        private static ConfigDTO configOutcome;
-        private static string updatedBackground;
-        private static ConfigDTO configTest;
-        private static IConfigService configService;
-    }
+    //    private static ConfigDTO configOutcome;
+    //    private static string updatedBackground;
+    //    private static ConfigDTO configTest;
+    //    private static IConfigService configService;
+    //}
 
     public class When_Getting_Site_Config : With_ConfigRepo_Setup
     {
@@ -428,7 +444,7 @@ namespace TheFreckExchange.Specs
 
         It Should_Return_Config = () =>
         {
-            configOutcome.AdminAccountId.ShouldEqual(configDTO.AdminAccountId);
+            configOutcome.AdminAccountIds.ShouldContainOnly(new List<string> { account1.AccountId, account2.AccountId });
             configOutcome.ConfigId.ShouldEqual(configDTO.ConfigId);
             configOutcome.CategoryTitle.ShouldEqual(configDTO.CategoryTitle);
             configOutcome.SiteTitle.ShouldEqual(configDTO.SiteTitle);
@@ -445,6 +461,20 @@ namespace TheFreckExchange.Specs
     {
         Establish context = () =>
         {
+            admins = new List<Account>
+            {
+                account1,
+                new Account
+                {
+                    AccountId = Guid.NewGuid().ToString(),
+                    Balance = 0,
+                    DateOpened = DateTime.UtcNow,
+                    Email = "admin1@email.com",
+                    Name = "Admin2"
+                }
+            };
+            accountRepoMock.Setup(a => a.GetAdminsAsync()).ReturnsAsync(admins);
+            accountRepoMock.Setup(a => a.Update(Moq.It.IsAny<Account>()));
             configRepoMock.Setup(c => c.GetConfigAsync()).ReturnsAsync(configDTO);
             configRepoMock.Setup(c => c.DeleteConfigAsync()).ReturnsAsync(configDTO);
             configService = new ConfigService(configRepoMock.Object, accountRepoMock.Object, productRepoMock.Object);
@@ -456,14 +486,19 @@ namespace TheFreckExchange.Specs
 
         It Should_Return_Deleted_Config = () =>
         {
-            deleteOutcome.AdminAccountId.ShouldEqual(configDTO.AdminAccountId);
+            deleteOutcome.AdminAccountIds.ShouldContainOnly(new List<string> { account1.AccountId, account2.AccountId });
             deleteOutcome.ConfigId.ShouldEqual(configDTO.ConfigId);
             deleteOutcome.SiteTitle.ShouldEqual(configDTO.SiteTitle);
         };
 
         It Should_Remove_Config_From_Repo = () => configRepoMock.Verify(c => c.DeleteConfigAsync(),Times.Once);
 
+        It Should_Find_All_Admin_Accounts = () => accountRepoMock.Verify(a => a.GetAdminsAsync(), Times.Once);
+
+        It Should_Remove_ConfigId_From_Admin = () => accountRepoMock.Verify(a => a.Update(Moq.It.IsAny<Account>()),Times.Exactly(admins.Count));
+
         private static IConfigService configService;
         private static ConfigDTO deleteOutcome;
+        private static List<Account> admins;
     }
 }

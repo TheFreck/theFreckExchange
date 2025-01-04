@@ -65,11 +65,12 @@ namespace TheFreckExchange.Server.Controllers
                     ProductDescription = "Missing or incorrect credentials",
                     Price = input.Price,
                     ProductId = String.Empty,
+                    PrimaryImageReference = String.Empty,
                 };
             }
             else if (await loginService.ValidateTokenAsync(input.Credentials.Username, input.Credentials.LoginToken))
             {
-                var product = await productService.CreateProductAsync(input.Name, input.Description, input.Attributes, input.Price, input.Credentials, input.ImageReferences);
+                var product = await productService.CreateProductAsync(input.Name, input.Description, input.Attributes, input.Price, input.Credentials, input.ImageReferences, input.PrimaryImageReference);
                 return product;
             }
             else return new Product
@@ -78,6 +79,7 @@ namespace TheFreckExchange.Server.Controllers
                 Price = input.Price,
                 ProductDescription = input.Description,
                 ProductId = Guid.Empty.ToString(),
+                PrimaryImageReference = input.PrimaryImageReference
             };
         }
 
@@ -97,6 +99,7 @@ namespace TheFreckExchange.Server.Controllers
                     Price = 0,
                     ProductDescription = "Missing or incorrect credentials",
                     ProductId = Guid.Empty.ToString(),
+                    PrimaryImageReference = String.Empty
                 };
             }
             else if (await loginService.ValidateTokenAsync(input.Credentials.Username, input.Credentials.LoginToken))
@@ -109,6 +112,7 @@ namespace TheFreckExchange.Server.Controllers
                 Price = input.Price,
                 ProductDescription = input.Description,
                 ProductId = Guid.Empty.ToString(),
+                PrimaryImageReference = String.Empty
             };
         }
 
@@ -216,6 +220,7 @@ namespace TheFreckExchange.Server.Controllers
             {
                 var product = await productService.GetByNameAsync(item.Name);
                 var itemsReturnd = await productService.PurchaseItem(item, qty);
+                if (itemsReturnd.Any()) return itemsReturnd.ToList();
                 return new List<Item>{
                     new Item
                     {

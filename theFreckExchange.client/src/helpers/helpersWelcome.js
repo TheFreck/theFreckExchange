@@ -26,7 +26,7 @@ export const getConfigurationAsync = async (cb) => {
     })
 };
 
-export const createConfigurationAsync = async (configTemplate,cb) => {
+export const createConfigurationAsync = async (configTemplate,userAcct,cb) => {
     configTemplate.adminAccountId = userAcct.accountId;
     configTemplate.configId = localStorage.getItem("configId");
     getBaseURL(async url => {
@@ -36,7 +36,6 @@ export const createConfigurationAsync = async (configTemplate,cb) => {
         await api.post("config/set",configTemplate)
         .then(yup => {
             localStorage.setItem("configId", yup.data.configId);
-            setConfig(yup.data);
             cb(yup.data);
         })
         .catch(nope => console.error(nope));
@@ -72,7 +71,6 @@ export const deleteConfigurationAsync = async (configId,cb) => {
         });
         await api.delete(`config`)
             .then(yup => {
-                console.log("deleted: ", yup.data);
                 localStorage.setItem("configId","")
                 localStorage.setItem("siteTitle","");
                 setConfig(yup.data);
@@ -102,12 +100,12 @@ export const getProductsAsync = async (cb) => {
     });
 };
 
-export const createProductAsync = async ({name, description, attributes, price, images},setProducts) => {
+export const createProductAsync = async ({name, description, attributes, price, primaryImageReference, imageReferences},setProducts,cb) => {
     getBaseURL(async url => {
         const api = axios.create({
             baseURL: url + "/Product"
         })
-        api.post(`create`, { name, description, price, attributes, credentials: getCreds(), imageReferences: images})
+        api.post(`create`, { name, description, price, attributes, credentials: getCreds(), imageReferences,primaryImageReference})
         .then(yup => {
             getProductsAsync(prods => {
                 setProducts(prods);
@@ -223,8 +221,8 @@ export const uploadImagesAsync = async (images,cb) => {
             formData.append("images",blobby,images[i].filename);
         }
         getBaseURL(async url => {
-            axios.create({
-                baseURL: url + "Product"
+            const api = axios.create({
+                baseURL: url + "/Product"
             });
             api.post("images/upload",formData)
             .then(yup => {

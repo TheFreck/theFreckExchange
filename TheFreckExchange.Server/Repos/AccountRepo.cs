@@ -12,6 +12,7 @@ namespace TheFreckExchange.Server.Repos
         IEnumerable<Account> GetAllAccounts();
         Task CreateAsync(Account account);
         Task<Account> GetByUsernameAsync(string username);
+        Task<IEnumerable<Account>> GetAdminsAsync();
     }
 
     public class AccountRepo : IAccountRepo
@@ -55,6 +56,12 @@ namespace TheFreckExchange.Server.Repos
         {
             var retrieved = (await accountsCollection.FindAsync(a => a.Username == username)).FirstOrDefault();
             return retrieved;
+        }
+
+        public async Task<IEnumerable<Account>> GetAdminsAsync()
+        {
+            var admins = await accountsCollection.FindAsync(a => a.Permissions.Where(p => p.Type == PermissionType.Admin).Any());
+            return admins.ToEnumerable();
         }
     }
 }
