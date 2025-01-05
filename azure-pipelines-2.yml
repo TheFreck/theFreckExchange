@@ -36,3 +36,8 @@ steps:
   inputs:
     platform: '$(buildPlatform)'
     configuration: '$(buildConfiguration)'
+- task: FileTransform@2
+  inputs:
+    folderPath: '$(System.DefaultWorkingDirectory)/**/*.zip'
+    enableXmlTransform: false
+    jsonTargetFiles: 'appsettings.json'
