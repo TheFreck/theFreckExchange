@@ -24,7 +24,11 @@ steps:
 - task: NuGetCommand@2
   inputs:
     restoreSolution: '$(solution)'
-
+- task: FileTransform@2
+  inputs:
+    folderPath: '$(System.DefaultWorkingDirectory)/**/*.zip'
+    enableXmlTransform: false
+    jsonTargetFiles: '*appsettings.json'
 - task: VSBuild@1
   inputs:
     solution: '$(solution)'
@@ -36,8 +40,3 @@ steps:
   inputs:
     platform: '$(buildPlatform)'
     configuration: '$(buildConfiguration)'
-- task: FileTransform@2
-  inputs:
-    folderPath: '$(System.DefaultWorkingDirectory)/**/*.zip'
-    enableXmlTransform: false
-    jsonTargetFiles: '*appsettings.json'
