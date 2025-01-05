@@ -28,7 +28,7 @@ steps:
   inputs:
     folderPath: '$(System.DefaultWorkingDirectory)/**/*.zip'
     enableXmlTransform: false
-    jsonTargetFiles: '*appsettings.json'
+    jsonTargetFiles: '*/appsettings.json'
 - task: VSBuild@1
   inputs:
     solution: '$(solution)'
