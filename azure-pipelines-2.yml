@@ -40,4 +40,4 @@ steps:
   inputs:
     folderPath: '$(System.DefaultWorkingDirectory)/**/*.zip'
     enableXmlTransform: false
-    jsonTargetFiles: 'appsettings.json'
+    jsonTargetFiles: '*appsettings.json'
