@@ -12,8 +12,8 @@ namespace TheFreckExchange.Server.Repos
         Task<IEnumerable<Item>> GetByAttributeAsync(string itemName, string attributeName, string attributeValue);
         Task<Item> GetBySKUAsync(string sku);
         Task<Item> UpdateAsync(Item item);
-        Task<IEnumerable<Item>> GetByNameAsync(string name);
-        Task<IEnumerable<Item>> GetByAttributesAsync(string itemName, IEnumerable<ItemAttribute> attributes);
+        Task<Item> GetByNameAsync(string name);
+        Task<Item> GetByAttributesAsync(string itemName, IEnumerable<ItemAttribute> attributes);
     }
 
     public class ItemRepo : IItemRepo
@@ -50,10 +50,10 @@ namespace TheFreckExchange.Server.Repos
             return items.ToEnumerable();
         }
 
-        public async Task<IEnumerable<Item>> GetByNameAsync(string name)
+        public async Task<Item> GetByNameAsync(string name)
         {
             var items = await itemsCollection.FindAsync(i => i.Name == name);
-            return items.ToEnumerable();
+            return items.FirstOrDefault();
         }
 
         public async Task<Item> GetBySKUAsync(string sku)
@@ -77,10 +77,9 @@ namespace TheFreckExchange.Server.Repos
             return await itemsCollection.FindOneAndReplaceAsync(i => i.SKU==item.SKU,newItem);
         }
 
-        public async Task<IEnumerable<Item>> GetByAttributesAsync(string itemName, IEnumerable<ItemAttribute> attributes)
+        public async Task<Item> GetByAttributesAsync(string itemName, IEnumerable<ItemAttribute> attributes)
         {
             var items = (await itemsCollection.FindAsync(i => i.Name==itemName)).ToList();
-            var matchingItems = new List<Item>();
             for(var i=0; i<attributes.Count(); i++)
             {
                 var att = attributes.ToList()[i].Type;
@@ -93,7 +92,8 @@ namespace TheFreckExchange.Server.Repos
                     }
                 }
             }
-            return items;
+            if (items.Any()) return items.FirstOrDefault();
+            else throw new Exception("no items match those attributes");
         }
     }
 }

@@ -54,6 +54,7 @@ namespace TheFreckExchange.Server.Repos
 
         public async Task<Account> GetByUsernameAsync(string username)
         {
+            var accounts = accountsCollection.AsQueryable();
             var retrieved = (await accountsCollection.FindAsync(a => a.Username == username)).FirstOrDefault();
             return retrieved;
         }

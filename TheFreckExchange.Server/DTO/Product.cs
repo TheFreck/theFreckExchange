@@ -40,6 +40,7 @@ namespace TheFreckExchange.Server.DTO
     {
         [BsonElement("SKU")]
         public required string SKU { get; set; } = Guid.NewGuid().ToString();
+        public int Quantity { get; set; }
         public IEnumerable<ItemAttribute> Attributes { get; set; } = new List<ItemAttribute>();
         public LoginCredentials? Credentials { get; set; }
         public string SellerId { get; set; } = String.Empty;
@@ -48,6 +49,7 @@ namespace TheFreckExchange.Server.DTO
     public class ItemDTO
     {
         public required string Name { get; set; } = String.Empty;
+        public int Quantity { get; set; }
         public LoginCredentials? Credentials { get; set; }
         public IEnumerable<ItemAttribute> Attributes { get; set; } = new List<ItemAttribute>();
         public string SellerId { get; set; } = String.Empty;

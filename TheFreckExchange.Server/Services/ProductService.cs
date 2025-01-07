@@ -12,17 +12,17 @@ namespace TheFreckExchange.Server.Services
     public interface IProductService
     {
         Task<Item> CreateItemAsync(string productId, Item item);
-        Task<IEnumerable<Item>> CreateManyItemsAsync(string productName, int itemQuantity, IEnumerable<ItemAttribute> attributes, LoginCredentials credentials);
+        Task<Item> CreateItemsAsync(string productId, int itemQuantity, IEnumerable<ItemAttribute> attributes, LoginCredentials credentials);
         Task<Product> CreateProductAsync(string name, string description, IEnumerable<string> attributes, double price, LoginCredentials credentials, IEnumerable<string> images, string primaryImageReference);
         IEnumerable<Product> GetAll();
         Task<IEnumerable<GroupedAttributes>> GetAttributesAsync(string productName);
         Task<IEnumerable<Item>> GetByAttributeAsync(string productName, string type, string value);
         Task<Product> GetByNameAsync(string name);
-        Task<IEnumerable<Item>> GetItemsAsync(string name);
+        Task<List<Item>> GetItemsAsync(string name);
         Task<Product> ModifyDescriptionAsync(string productName, string newDescription, LoginCredentials credentials);
         Task<Product> ModifyNameAsync(string oldName, string newName, LoginCredentials credentials);
         Task<Product> ModifyPriceAsync(string productName, double price, LoginCredentials credentials);
-        Task<IEnumerable<Item>> PurchaseItem(ItemDTO item, int qty);
+        Task<Item> PurchaseItem(ItemDTO item, int qty);
         Task<IEnumerable<string>> GetAvailableAttributes(string productName);
         Task UpdateProductWithImageAsync(string productId, IEnumerable<IFormFile> images);
         Task<Product> ModifyProductAsync(ProductDTO newProduct);
@@ -78,30 +78,33 @@ namespace TheFreckExchange.Server.Services
             return item;
         }
 
-        public async Task<IEnumerable<Item>> CreateManyItemsAsync(string productName, int itemQuantity, IEnumerable<ItemAttribute> attributes, LoginCredentials credentials)
+        public async Task<Item> CreateItemsAsync(string productId, int itemQuantity, IEnumerable<ItemAttribute> attributes, LoginCredentials credentials)
         {
             var account = await accountRepo.GetByUsernameAsync(credentials.Username);
             if (await loginService.ValidatePermissionsAsync(account, PermissionType.Admin, credentials.AdminToken))
             {
-                var product = await productRepo.GetByNameAsync(productName);
-                var items = new List<Item>();
-                for (var i = 0; i < itemQuantity; i++)
+                var product = await productRepo.GetByProductIdAsync(productId);
+                var item = new Item
                 {
-                    var item = new Item
-                    {
-                        Name = product.Name,
-                        Price = product.Price,
-                        ProductDescription = product.ProductDescription,
-                        ProductId = product.ProductId,
-                        SKU = Guid.NewGuid().ToString(),
-                        Attributes = attributes
-                    };
-                    await itemRepo.CreateAsync(item);
-                    items.Add(item);
-                }
-                return items;
+                    Name = product.Name,
+                    Quantity = itemQuantity,
+                    Price = product.Price,
+                    ProductDescription = product.ProductDescription,
+                    ProductId = product.ProductId,
+                    SKU = Guid.NewGuid().ToString(),
+                    Attributes = attributes
+                };
+                return await itemRepo.CreateAsync(item);
             }
-            return new List<Item>();
+            return new Item
+            {
+                Name = "Not Authorized to Create Items",
+                Quantity = 0,
+                Price = 0,
+                ProductDescription = "Not Authorized to Create Items",
+                ProductId = Guid.Empty.ToString(),
+                SKU = Guid.Empty.ToString(),
+            };
         }
 
         public async Task<Product> CreateProductAsync(string name, string description, IEnumerable<string> attributes, double price, LoginCredentials credentials, IEnumerable<string> images, string primaryImageReference)
@@ -201,7 +204,7 @@ namespace TheFreckExchange.Server.Services
             return product;
         }
 
-        public async Task<IEnumerable<Item>> GetItemsAsync(string name)
+        public async Task<List<Item>> GetItemsAsync(string name)
         {
             var items = (await itemRepo.GetAllItemsAsync(name)).ToList();
             if (items.Any())
@@ -266,38 +269,33 @@ namespace TheFreckExchange.Server.Services
             };
         }
 
-        public async Task<IEnumerable<Item>> PurchaseItem(ItemDTO item, int qty)
+        public async Task<Item> PurchaseItem(ItemDTO item, int qty)
         {
-            if (item.Credentials == null) return new List<Item>();
+            if (item.Credentials == null) throw new Exception("invalid credentials");
             var account = await accountRepo.GetByUsernameAsync(item.Credentials.Username);
             var loggedIn = await loginService.ValidateTokenAsync(item.Credentials.Username, item.Credentials.LoginToken);
             var hasPermission = await loginService.ValidatePermissionsAsync(account, PermissionType.User, item.Credentials.UserToken);
             if (loggedIn && hasPermission)
             {
                 var product = await productRepo.GetByNameAsync(item.Name);
-                var itemsReturned = (await itemRepo.GetByAttributesAsync(item.Name, item.Attributes)).ToList();
+                var itemReturned = await itemRepo.GetByAttributesAsync(item.Name, item.Attributes);
 
-                if (itemsReturned.Count() >= qty)
+                if (itemReturned.Quantity >= qty)
                 {
-                    var purchased = new List<Item>();
-                    for (var i = 0; i < qty; i++)
-                    {
-                        await itemRepo.DeleteItemAsync(itemsReturned[i]);
-                        purchased.Add(itemsReturned[i]);
-                    }
+                    await itemRepo.DeleteItemAsync(itemReturned);
                     account.Balance -= product.Price * qty;
                     account.History.Add(new PurchaseOrder
                     {
-                        Items = purchased,
+                        Item = itemReturned,
                         TotalPrice = product.Price * qty,
                         TransactionDate = DateTime.Now
                     });
                     accountRepo.Update(account);
-                    return purchased;
+                    return itemReturned;
                 }
-                else return new List<Item>();
+                else throw new Exception("Out of Stock");
             }
-            else return new List<Item>();
+            else throw new Exception("invalid credentials");
         }
 
         public async Task<Product> ModifyProductAsync(ProductDTO newProduct)

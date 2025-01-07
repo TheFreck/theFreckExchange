@@ -123,7 +123,7 @@ namespace TheFreckExchange.Server.Controllers
         /// </summary>
         /// <returns></returns>
         [HttpGet("items/{name}")]
-        public async Task<IEnumerable<Item>> GetItemsForProduct(string name)
+        public async Task<List<Item>> GetItemsForProduct(string name)
         {
             var items = await productService.GetItemsAsync(name);
             return items;
@@ -176,18 +176,15 @@ namespace TheFreckExchange.Server.Controllers
         /// <param name="attributes"></param>
         /// <returns></returns>
         [HttpPost("items/create/{qty}")]
-        public async Task<IEnumerable<Item>> CreateItems(int qty, Item item)
+        public async Task<Item> CreateItems(int qty, Item item)
         {
             if(item.Credentials == null)
             {
                 item.Name = "Missing or incorrect credentials";
                 item.ProductDescription = "Missing or incorrect credentials";
-                return new List<Item>
-                {
-                    item
-                };
+                return item;
             }
-            var items = await productService.CreateManyItemsAsync(item.Name,qty, item.Attributes, item.Credentials);
+            var items = await productService.CreateItemsAsync(item.ProductId,qty, item.Attributes, item.Credentials);
             return items; ;
         }
 
@@ -199,19 +196,17 @@ namespace TheFreckExchange.Server.Controllers
         /// <param name="attributes"></param>
         /// <returns></returns>
         [HttpPost("item/buy/{qty}")]
-        public async Task<List<Item>> PurchaseItem([FromBody]ItemDTO item, int qty)
+        public async Task<Item> PurchaseItem([FromBody]ItemDTO item, int qty)
         {
             if(item.Credentials == null)
             {
-                return new List<Item>{
-                    new Item
-                    {
-                        Name = "Missing or incorrect credentials",
-                        ProductDescription = "Missing or incorrect credentials",
-                        Price = 0,
-                        ProductId = Guid.Empty.ToString(),
-                        SKU = "Missing or incorrect credentials"
-                    }
+                return new Item
+                {
+                    Name = "Missing or incorrect credentials",
+                    ProductDescription = "Missing or incorrect credentials",
+                    Price = 0,
+                    ProductId = Guid.Empty.ToString(),
+                    SKU = "Missing or incorrect credentials"
                 };
             }
             var account = await accountService.GetByUsernameAsync(item.Credentials.Username);
@@ -219,22 +214,27 @@ namespace TheFreckExchange.Server.Controllers
             if(await loginService.ValidateTokenAsync(item.Credentials.Username, item.Credentials.LoginToken))
             {
                 var product = await productService.GetByNameAsync(item.Name);
-                var itemsReturnd = await productService.PurchaseItem(item, qty);
-                if (itemsReturnd.Any()) return itemsReturnd.ToList();
-                return new List<Item>{
-                    new Item
-                    {
-                        Name = item.Name,
-                        ProductDescription = "Out of Stock",
-                        Price = product.Price,
-                        ProductId = product.ProductId,
-                        SKU = "Out of Stock"
-                    }
+                var itemReturned = await productService.PurchaseItem(item, qty);
+                if (itemReturned.Quantity >= qty) return itemReturned;
+                return new Item
+                {
+                    Name = item.Name,
+                    ProductDescription = "Out of Stock",
+                    Price = product.Price,
+                    ProductId = product.ProductId,
+                    SKU = "Out of Stock"
                 };
             }
             else
             {
-                return new List<Item>();
+                return new Item
+                {
+                    Name = "Missing or incorrect credentials",
+                    ProductDescription = "Missing or incorrect credentials",
+                    Price = 0,
+                    ProductId = Guid.Empty.ToString(),
+                    SKU = "Missing or incorrect credentials"
+                };
             }
         }
 

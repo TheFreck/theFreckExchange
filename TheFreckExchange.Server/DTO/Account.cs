@@ -76,7 +76,8 @@ namespace TheFreckExchange.Server.DTO
 
     public class PurchaseOrder 
     {
-        public List<Item> Items { get; set; }
+        public Item Item { get; set; }
+        public int Quantity { get; set; }
         public double TotalPrice { get; set; }
         public DateTime TransactionDate { get; set; }
     }
