@@ -9,13 +9,15 @@ import {
     logoutAsync,
     createAccountAsync
 } from "./helpers/helpersApp";
+import { ShoppingCart } from './components/ShoppingCart';
 
 const homeViewEnum = {
     home: 0,
     account: 1,
     product: 2,
     storeFront: 3,
-    login: 4
+    login: 4,
+    shoppingCart: 5
 };
 
 const userEnum = {
@@ -34,6 +36,7 @@ function App() {
     const [userView, setUserView] = useState(userEnum.home);
     const [userAcct, setUserAcct] = useState({});
     const [refreshConfig,setRefreshConfig] = useState(false);
+    const [cart,setCart] = useState([]);
 
     const login = (username,password) => {
         loginAsync(username,password,loggedIn => {
@@ -49,6 +52,20 @@ function App() {
         });
     }
 
+    const addToCart = async (item,cb) => {
+        let amendedCart = [...cart,item];
+        setCart(amendedCart);
+        cb(amendedCart);
+    }
+
+    const removeFromCart = (item,cb) => {
+        let amendedCart = cart.filter(c => c.sku !== item.sku);
+        setCart(amendedCart);
+        cb(amendedCart);
+    }
+
+    const getShoppingCart = () => cart;
+
     const getUserAcct = () =>  userAcct;
 
     const AppCallback = useCallback(() => <AccountContext.Provider value={{
@@ -58,15 +75,21 @@ function App() {
         setUserView,
         userEnum,
         refreshConfig,
-        setRefreshConfig
+        setRefreshConfig,
+        getShoppingCart,
+        addToCart,
+        removeFromCart,
         }}>
         <Layout login={() => setView(homeViewEnum.login)} logout={() => logout(userAcct)}>
             {view === homeViewEnum.login && localStorage.getItem("loginToken") === null && 
                 <Login />
             }
-                <Welcome />
+            {view === homeViewEnum.shoppingCart && cart.length > 0 && 
+                <ShoppingCart />
+            }
+            <Welcome />
         </Layout>
-    </AccountContext.Provider>,[userAcct,view,userView,refreshConfig]);
+    </AccountContext.Provider>,[userAcct,view,userView,refreshConfig,cart]);
     return <AppCallback />
 }
 

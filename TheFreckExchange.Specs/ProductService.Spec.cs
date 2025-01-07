@@ -72,6 +72,36 @@ namespace TheFreckExchange.Specs
             {
                 "Color","Style","Age"
             };
+            colors = new List<string>
+            {
+                "Red","Green","Black"
+            };
+            sizes = new List<string>
+            {
+                "S","M","L","XL"
+            };
+            styles = new List<string>
+            {
+                "Ballcap","Fedora"
+            };
+            product1 = new Product
+            {
+                Name = product1Name,
+                Price = product1Price,
+                ProductDescription = product1Desc,
+                ProductId = product1Id,
+                AvailableAttributes = product1AvailableAttributes,
+                PrimaryImageReference = primaryImageReference,
+            };
+            product2 = new Product
+            {
+                Name = product2Name,
+                Price = product2Price,
+                ProductDescription = product2Desc,
+                ProductId = product2Id,
+                AvailableAttributes = product2AvailableAttributes,
+                PrimaryImageReference = primaryImageReference,
+            };
             loginCreds = new LoginCredentials
             {
                 Username = account1.Username,
@@ -90,7 +120,6 @@ namespace TheFreckExchange.Specs
                 Images = new List<string>()
             };
         };
-
 
         protected static Mock<IProductRepo> productRepoMock;
         protected static Mock<IItemRepo> itemRepoMock;
@@ -125,6 +154,11 @@ namespace TheFreckExchange.Specs
         protected static string primaryImageReference;
         protected static List<string> product1AvailableAttributes;
         protected static List<string> product2AvailableAttributes;
+        protected static List<string> colors;
+        protected static List<string> sizes;
+        protected static List<string> styles;
+        protected static Product product1;
+        protected static Product product2;
         protected static LoginCredentials loginCreds;
         protected static string configId;
         protected static ConfigDTO config;
@@ -155,22 +189,7 @@ namespace TheFreckExchange.Specs
             };
             expectations = new List<Product>
             {
-                new Product()
-                {
-                    Name = product1Name,
-                    ProductDescription = product1Desc,
-                    ProductId = product1Id,
-                    Price = product1Price,
-                    PrimaryImageReference = primaryImageReference
-                },
-                new Product()
-                {
-                    Name= product2Name,
-                    ProductDescription = product2Desc,
-                    ProductId = product2Id,
-                    Price = product2Price,
-                    PrimaryImageReference = primaryImageReference
-                }
+                product1,product2
             };
             outcomes = new List<Product>();
         };
@@ -311,20 +330,7 @@ namespace TheFreckExchange.Specs
         {
             products = new List<Product>
             {
-                new Product
-                {
-                    Name = product1Name,
-                    Price = product1Price,
-                    ProductDescription = product1Desc,
-                    ProductId = product1Id,
-                },
-                new Product
-                {
-                    Name= product2Name,
-                    Price = product2Price,
-                    ProductDescription = product2Desc,
-                    ProductId = product2Id,
-                }
+                product1,product2
             };
             productRepoMock.Setup(p => p.GetAllProducts()).Returns(products);
             productService = new ProductService(productRepoMock.Object, itemRepoMock.Object, accountRepoMock.Object, loginServiceMock.Object, imageRepoMock.Object, configRepoMock.Object);
@@ -363,20 +369,6 @@ namespace TheFreckExchange.Specs
     {
         Establish context = () =>
         {
-            product1 = new Product
-            {
-                Name = product1Name,
-                Price = product1Price,
-                ProductDescription = product1Desc,
-                ProductId = product1Id,
-            };
-            product2 = new Product
-            {
-                Name = product2Name,
-                Price = product2Price,
-                ProductDescription = product2Desc,
-                ProductId = product2Id,
-            };
             products = new List<Product>
             {
                 product1,
@@ -393,7 +385,8 @@ namespace TheFreckExchange.Specs
         {
             for (var i = 0; i < products.Count; i++)
             {
-                outcomes.Add(productService.GetByNameAsync(products[i].Name).GetAwaiter().GetResult());
+                var prod = productService.GetByNameAsync(products[i].Name).GetAwaiter().GetResult();
+                outcomes.Add(prod);
             }
         };
 
@@ -419,143 +412,76 @@ namespace TheFreckExchange.Specs
         private static ProductService productService;
         private static List<Product> expectations;
         private static List<Product> outcomes;
-        private static Product product1;
-        private static Product product2;
         private static List<Product> products;
     }
 
-    public class When_Creating_An_Item_For_A_Product : With_ProductRepo_Setup
+    public class When_Creating_Items_For_A_Product : With_ProductRepo_Setup
     {
         Establish context = () =>
         {
-            colors = new List<string>
+            attributes = new List<ItemAttribute>
             {
-                "Red","Green","Black"
-            };
-            sizes = new List<string>
-            {
-                "S","M","L","XL"
-            };
-            hatTypes = new List<string>
-            {
-                "Ballcap","Fedora"
-            };
-            hats = new List<Item>();
-            for (var i = 0; i < 10; i++)
-            {
-                var newHat = new Item
+                new ItemAttribute
                 {
-                    Name = product1Name,
-                    Price = 19.99,
-                    ProductDescription = product1Desc,
-                    ProductId = product1Id,
-                    SKU = Guid.NewGuid().ToString(),
-                    Attributes = new List<ItemAttribute>
-                    {
-                        new ItemAttribute
-                        {
-                            Type = "Color",
-                            Value = colors.ToList()[i%3]
-                        },
-                        new ItemAttribute
-                        {
-                            Type = "Size",
-                            Value = sizes.ToList()[i%4]
-                        },
-                        new ItemAttribute
-                        {
-                            Type = "Style",
-                            Value = hatTypes.ToList()[i%2]
-                        }
-                    },
-                    Credentials = loginCreds,
-                    SellerId = account1.AccountId,
-                    ImageReferences = new List<string> { "First reference","Second reference" }
-                };
-                var stream = new MemoryStream(Encoding.ASCII.GetBytes("these are the image bytes"));
-                images = new List<FormFile>
+                    Type = "Color",
+                    Value = colors.ToList()[0]
+                },
+                new ItemAttribute
                 {
-                    new FormFile(stream,0,stream.Length,"hatImage","hatImageName")
-                };
-                hats.Add(newHat);
-            }
-            for (var i = 0; i < hats.Count(); i++)
-            {
-                itemRepoMock.Setup(r => r.CreateAsync(hats.ToList()[i])).ReturnsAsync(hats.ToList()[i]);
-            }
-            hatOutcomes = new List<Item>();
-            accountRepoMock.Setup(a => a.GetByAccountIdAsync(Moq.It.IsAny<string>())).ReturnsAsync(account1);
-            loginServiceMock.Setup(l => l.ValidatePermissionsAsync(Moq.It.IsAny<Account>(), PermissionType.Admin, Moq.It.IsAny<string>())).ReturnsAsync(true);
-            productRepoMock.Setup(p => p.GetByProductIdAsync(product1Id)).ReturnsAsync(new Product
+                    Type = "Size",
+                    Value = sizes.ToList()[0]
+                },
+                new ItemAttribute
+                {
+                    Type = "Style",
+                    Value = styles.ToList()[0]
+                }
+            };
+            hat = new Item
             {
                 Name = product1Name,
                 Price = product1Price,
                 ProductDescription = product1Desc,
                 ProductId = product1Id,
-            });
-            for (var i = 0; i < 10; i++)
-            {
-                itemRepoMock.Setup(p => p.CreateAsync(Moq.It.IsAny<Item>())).ReturnsAsync(hats.ToList()[i]);
-            }
+                SKU = Guid.NewGuid().ToString(),
+            };
+            accountRepoMock.Setup(a => a.GetByUsernameAsync(Moq.It.IsAny<string>())).ReturnsAsync(account1);
+            loginServiceMock.Setup(l => l.ValidatePermissionsAsync(Moq.It.IsAny<Account>(), PermissionType.Admin, Moq.It.IsAny<string>())).ReturnsAsync(true);
+            productRepoMock.Setup(p => p.GetByProductIdAsync(product1Id)).ReturnsAsync(product1);
+            itemRepoMock.Setup(p => p.CreateAsync(Moq.It.IsAny<Item>())).ReturnsAsync(hat);
+            itemRepoMock.Setup(p => p.CreateAsync(Moq.It.IsAny<Item>())).ReturnsAsync(hat);
             productService = new ProductService(productRepoMock.Object, itemRepoMock.Object, accountRepoMock.Object, loginServiceMock.Object, imageRepoMock.Object, configRepoMock.Object);
         };
 
-        Because of = () =>
-        {
-            for (var i = 0; i < hats.Count(); i++)
-            {
-                var hat = productService.CreateItemAsync(product1Id, hats.ToList()[i]).GetAwaiter().GetResult();
-                hatOutcomes.Add(hat);
-            }
-            hatOutcomes.OrderBy(o => o.SKU);
-            hats.OrderBy(o => o.SKU);
-        };
+        Because of = () => hatOutcome = productService.CreateItemsAsync(product1Id,1, attributes,loginCreds).GetAwaiter().GetResult();
 
         It Should_Validate_Admin_Permission = () =>
         {
-            loginServiceMock.Verify(l => l.ValidatePermissionsAsync(Moq.It.IsAny<Account>(), Moq.It.IsAny<PermissionType>(), Moq.It.IsAny<string>()), Times.Exactly(hats.Count()));
+            loginServiceMock.Verify(l => l.ValidatePermissionsAsync(Moq.It.IsAny<Account>(), Moq.It.IsAny<PermissionType>(), Moq.It.IsAny<string>()), Times.Once);
         };
 
         It Should_Return_Item = () =>
         {
-            for (var i = 0; i < hats.Count; i++)
-            {
-                hatOutcomes[i].Name.ShouldEqual(hats[i].Name);
-                hatOutcomes[i].Price.ShouldEqual(hats[i].Price);
-                hatOutcomes[i].ProductDescription.ShouldEqual(hats[i].ProductDescription);
-                hatOutcomes[i].SKU.ShouldNotEqual(Guid.Empty.ToString());
-                hatOutcomes[i].Attributes.OrderBy(o => o.Type);
-                var outAttributes = new List<ItemAttribute>();
-                outAttributes = hats.Where(h => h.SKU == hatOutcomes[i].SKU).FirstOrDefault().Attributes.OrderBy(o => o.Type).ToList();
-                for (var j = 0; j < outAttributes.Count; j++)
-                {
-                    hatOutcomes[i].Attributes.ToList()[j].Value.ShouldEqual(outAttributes[j].Value);
-                }
-            }
+            hatOutcome.Name.ShouldEqual(product1Name);
+            hatOutcome.Price.ShouldEqual(product1Price);
+            hatOutcome.ProductDescription.ShouldEqual(product1Desc);
+            hatOutcome.SKU.ShouldNotEqual(Guid.Empty.ToString());
         };
 
         It Should_Find_Product_In_Repo = () =>
         {
-            productRepoMock.Verify(r => r.GetByProductIdAsync(product1Id), Times.Exactly(hats.Count()));
+            productRepoMock.Verify(r => r.GetByProductIdAsync(product1Id), Times.Once);
         };
 
         It Should_Persist_Item_In_Repo = () =>
         {
-            itemRepoMock.Verify(r => r.CreateAsync(Moq.It.IsAny<Item>()), Times.Exactly(hats.Count()));
+            itemRepoMock.Verify(r => r.CreateAsync(Moq.It.IsAny<Item>()), Times.Once);
         };
 
         private static IProductService productService;
-        private static IEnumerable<string> colors;
-        private static IEnumerable<string> sizes;
-        private static IEnumerable<string> hatTypes;
-        private static IEnumerable<string> prod1skus;
-        private static List<Item> hats;
-        private static IEnumerable<string> shirtTypes;
-        private static IEnumerable<string> prod2Skus;
-        private static IEnumerable<Item> shirts;
-        private static List<Item> hatOutcomes;
-        private static IEnumerable<Item> shirtOutcomes;
-        private static IEnumerable<FormFile> images;
+        private static List<ItemAttribute> attributes;
+        private static Item hat;
+        private static Item hatOutcome;
     }
 
     public class When_Creating_Items_For_A_Product_Without_Image : With_ProductRepo_Setup
@@ -567,61 +493,45 @@ namespace TheFreckExchange.Specs
                 new ItemAttribute
                 {
                     Type = "Color",
-                    Value = "Red"
+                    Value = colors[0]
                 },
                 new ItemAttribute
                 {
                     Type= "Size",
-                    Value = "L"
+                    Value = sizes[0]
                 },
                 new ItemAttribute
                 {
                     Type = "Style",
-                    Value = "Fedora"
+                    Value = styles[0]
                 }
             };
             itemQuantity = 10;
-            hats = new List<Item>();
-            for (var i = 0; i < itemQuantity; i++)
+            newHat = new Item
             {
-                var newHat = new Item
-                {
-                    Name = product1Name,
-                    Price = product1Price,
-                    ProductDescription = product1Desc,
-                    ProductId = product1Id,
-                    SKU = Guid.NewGuid().ToString(),
-                    Attributes = attributes,
-                    ImageReferences = new List<string> { "Image reference" }
-                };
-                var stream = new MemoryStream(Encoding.ASCII.GetBytes("these are the image bytes"));
-                images = new List<FormFile>
-            {
-                new FormFile(stream,0,stream.Length,"hatImage","hatImageName")
+                Quantity = itemQuantity,
+                Name = product1Name,
+                Price = product1Price,
+                ProductDescription = product1Desc,
+                ProductId = product1Id,
+                SKU = Guid.NewGuid().ToString(),
+                Attributes = attributes,
+                ImageReferences = new List<string> { "Image reference" }
             };
-                hats.Add(newHat);
-            }
-            for (var i = 0; i < hats.Count; i++)
-            {
-                itemRepoMock.Setup(r => r.CreateAsync(hats[i])).ReturnsAsync(hats[i]);
-            }
-            hatOutcomes = new List<Item>();
+            itemRepoMock.Setup(r => r.CreateAsync(newHat)).ReturnsAsync(newHat);
             loginServiceMock.Setup(l => l.ValidatePermissionsAsync(Moq.It.IsAny<Account>(), PermissionType.Admin, Moq.It.IsAny<string>())).ReturnsAsync(true);
-            productRepoMock.Setup(p => p.GetByNameAsync(product1Name)).ReturnsAsync(new Product
+            productRepoMock.Setup(p => p.GetByProductIdAsync(product1Id)).ReturnsAsync(new Product
             {
                 Name = product1Name,
                 Price = product1Price,
                 ProductDescription = product1Desc,
                 ProductId = product1Id,
             });
-            for (var i = 0; i < itemQuantity; i++)
-            {
-                itemRepoMock.Setup(p => p.CreateAsync(Moq.It.IsAny<Item>())).ReturnsAsync(hats[i]);
-            }
+            itemRepoMock.Setup(p => p.CreateAsync(Moq.It.IsAny<Item>())).ReturnsAsync(newHat);
             productService = new ProductService(productRepoMock.Object, itemRepoMock.Object, accountRepoMock.Object, loginServiceMock.Object, imageRepoMock.Object, configRepoMock.Object);
         };
 
-        Because of = () => hatOutcomes = productService.CreateManyItemsAsync(product1Name, itemQuantity, attributes, loginCreds).GetAwaiter().GetResult().ToList();
+        Because of = () => hatOutcome = productService.CreateItemsAsync(product1Id, itemQuantity, attributes, loginCreds).GetAwaiter().GetResult();
 
         It Should_Validate_Admin_Permission = () =>
         {
@@ -632,39 +542,32 @@ namespace TheFreckExchange.Specs
         {
             for (var i = 0; i < itemQuantity; i++)
             {
-                hatOutcomes[i].Name.ShouldEqual(hats[i].Name);
-                hatOutcomes[i].Price.ShouldEqual(hats[i].Price);
-                hatOutcomes[i].ProductDescription.ShouldEqual(hats[i].ProductDescription);
-                hatOutcomes[i].SKU.ShouldNotEqual(Guid.Empty.ToString());
-                hatOutcomes[i].Attributes.Select(s => s.Value).ShouldContain(attributes[0].Value);
-                hatOutcomes[i].Attributes.Select(s => s.Value).ShouldContain(attributes[1].Value);
-                hatOutcomes[i].Attributes.Select(s => s.Value).ShouldContain(attributes[2].Value);
+                hatOutcome.Name.ShouldEqual(newHat.Name);
+                hatOutcome.Price.ShouldEqual(newHat.Price);
+                hatOutcome.ProductDescription.ShouldEqual(newHat.ProductDescription);
+                hatOutcome.SKU.ShouldNotEqual(Guid.Empty.ToString());
+                hatOutcome.Attributes.Select(s => s.Value).ShouldContain(attributes[0].Value);
+                hatOutcome.Attributes.Select(s => s.Value).ShouldContain(attributes[1].Value);
+                hatOutcome.Attributes.Select(s => s.Value).ShouldContain(attributes[2].Value);
             }
         };
 
         It Should_Find_Product_In_Repo = () =>
         {
-            productRepoMock.Verify(r => r.GetByNameAsync(product1Name), Times.Once);
+            productRepoMock.Verify(r => r.GetByProductIdAsync(product1Id), Times.Once);
         };
 
         It Should_Persist_Item_In_Repo = () =>
         {
-            itemRepoMock.Verify(r => r.CreateAsync(Moq.It.IsAny<Item>()), Times.Exactly(itemQuantity));
+            itemRepoMock.Verify(r => r.CreateAsync(Moq.It.IsAny<Item>()), Times.Once);
         };
 
         private static IProductService productService;
-        private static List<string> colors;
-        private static List<string> sizes;
-        private static List<string> hatTypes;
         private static List<ItemAttribute> attributes;
         private static int itemQuantity;
-        private static List<string> prod1skus;
         private static List<Item> hats;
-        private static List<string> shirtTypes;
-        private static List<string> prod2Skus;
-        private static List<Item> shirts;
-        private static List<Item> hatOutcomes;
-        private static List<Item> shirtOutcomes;
+        private static Item newHat;
+        private static Item hatOutcome;
         private static List<FormFile> images;
     }
 
@@ -677,23 +580,15 @@ namespace TheFreckExchange.Specs
                 new ItemAttribute
                 {
                     Type = "Color",
-                    Value = "Blue"
+                    Value = colors[0]
                 }
             };
-            product = new Product
+            hat = new Item
             {
                 Name = product1Name,
                 Price = product1Price,
                 ProductDescription = product1Desc,
                 ProductId = product1Id,
-                AvailableAttributes = product1AvailableAttributes
-            };
-            hat = new Item
-            {
-                Name = product.Name,
-                Price = product.Price,
-                ProductDescription = product.ProductDescription,
-                ProductId = product.Id,
                 Credentials = loginCreds,
                 Attributes = attributes,
                 SKU = "SKU",
@@ -717,7 +612,7 @@ namespace TheFreckExchange.Specs
             productService = new ProductService(productRepoMock.Object, itemRepoMock.Object, accountRepoMock.Object, loginServiceMock.Object, imageRepoMock.Object, configRepoMock.Object);
         };
 
-        Because of = () => productService.UpdateProductWithImageAsync(product.ProductId, images).GetAwaiter().GetResult();
+        Because of = () => productService.UpdateProductWithImageAsync(product1Id, images).GetAwaiter().GetResult();
 
         It Should_Find_Product_In_Repo = () => productRepoMock.Verify(p => p.GetByProductIdAsync(Moq.It.IsAny<string>()), Times.Once());
 
@@ -728,7 +623,6 @@ namespace TheFreckExchange.Specs
         private static List<ItemAttribute> attributes;
         private static Item hat;
         private static List<IFormFile> images;
-        private static Product product;
         private static IProductService productService;
     }
 
@@ -753,30 +647,31 @@ namespace TheFreckExchange.Specs
             {
                 var newHat = new Item
                 {
-                    Name = product1Name,
-                    Price = 19.99,
-                    ProductDescription = product1Desc,
-                    ProductId = product1Id,
-                    SKU = Guid.NewGuid().ToString(),
-                    Attributes = new List<ItemAttribute>
+                Name = product1Name,
+                Quantity = 10,
+                Price = 19.99,
+                ProductDescription = product1Desc,
+                ProductId = product1Id,
+                SKU = Guid.NewGuid().ToString(),
+                Attributes = new List<ItemAttribute>
+                {
+                    new ItemAttribute
                     {
-                        new ItemAttribute
-                        {
-                            Type = "Color",
-                            Value = colors[i%3]
-                        },
-                        new ItemAttribute
-                        {
-                            Type = "Size",
-                            Value = sizes[i%4]
-                        },
-                        new ItemAttribute
-                        {
-                            Type = "Style",
-                            Value = hatTypes[i%2]
-                        }
+                        Type = "Color",
+                        Value = colors[0]
+                    },
+                    new ItemAttribute
+                    {
+                        Type = "Size",
+                        Value = sizes[0]
+                    },
+                    new ItemAttribute
+                    {
+                        Type = "Style",
+                        Value = hatTypes[0]
                     }
-                };
+                }
+            };
                 hats.Add(newHat);
             }
             for (var i = 0; i < hats.Count; i++)
@@ -997,7 +892,7 @@ namespace TheFreckExchange.Specs
         private static IEnumerable<string> attributes;
     }
 
-    public class When_Geting_Items_By_Attribute : With_ProductRepo_Setup
+    public class When_Geting_Items_By_Single_Attribute : With_ProductRepo_Setup
     {
         Establish context = () =>
         {
@@ -1179,6 +1074,151 @@ namespace TheFreckExchange.Specs
         private static List<Item> ballcaps;
     }
 
+    public class When_Geting_Items_By_Multiple_Attributes : With_ProductRepo_Setup
+    {
+        Establish context = () =>
+        {
+            colors = new List<string>
+            {
+                "Red","Green","Black"
+            };
+            sizes = new List<string>
+            {
+                "S","M","L","XL"
+            };
+            hatTypes = new List<string>
+            {
+                "Ballcap","Fedora"
+            };
+            attributes = new List<string>
+            {
+                "Color",
+                "Size",
+                "Style"
+            };
+            attributeValues = new List<string>
+            {
+                "Red","Green","Black",
+                "S","M","L","XL",
+                "Ballcap","Fedora"
+            };
+            hats = new List<Item>();
+            for (var i = 0; i < 10; i++)
+            {
+                var newHat = new Item
+                {
+                    Name = product1Name,
+                    Price = 19.99,
+                    ProductDescription = product1Desc,
+                    ProductId = product1Id,
+                    SKU = Guid.NewGuid().ToString(),
+                    Attributes = new List<ItemAttribute>
+                    {
+                        new ItemAttribute
+                        {
+                            Type = "Color",
+                            Value = colors[i%3]
+                        },
+                        new ItemAttribute
+                        {
+                            Type = "Size",
+                            Value = sizes[i%4]
+                        },
+                        new ItemAttribute
+                        {
+                            Type = "Style",
+                            Value = hatTypes[i%2]
+                        }
+                    }
+                };
+                hats.Add(newHat);
+            }
+            productRepoMock.Setup(p => p.GetByNameAsync(product1Name))
+            .ReturnsAsync(new Product
+            {
+                Name = product1Name,
+                Price = product1Price,
+                ProductDescription = product1Desc,
+                ProductId = product1Id,
+            });
+            for (var i = 0; i < attributes.Count; i++)
+            {
+                for (var j = 0; j < attributeValues.Count; j++)
+                {
+                    itemRepoMock.Setup(p => p.GetByAttributeAsync(product1Name, attributes[i].ToString(), attributeValues[j]))
+                    .ReturnsAsync(hats.Where(h => h.Attributes.Where(a => a.Value == attributeValues[j]).Any()));
+                }
+            }
+            productService = new ProductService(productRepoMock.Object, itemRepoMock.Object, accountRepoMock.Object, loginServiceMock.Object, imageRepoMock.Object, configRepoMock.Object);
+            redItems = new List<Item>();
+            greenItems = new List<Item>();
+            blackItems = new List<Item>();
+            smallItems = new List<Item>();
+            mediumItems = new List<Item>();
+            largeItems = new List<Item>();
+            xlItems = new List<Item>();
+            fedoraItems = new List<Item>();
+            ballcapItems = new List<Item>();
+        };
+
+        Because of = () =>
+        {
+            redItems = productService.GetByAttributeAsync(product1Id, "Color", "Red").GetAwaiter().GetResult().ToList();
+            greenItems = productService.GetByAttributeAsync(product1Id, "Color", "Green").GetAwaiter().GetResult().ToList();
+            blackItems = productService.GetByAttributeAsync(product1Id, "Color", "Black").GetAwaiter().GetResult().ToList();
+            smallItems = productService.GetByAttributeAsync(product1Id, "Size", "S").GetAwaiter().GetResult().ToList();
+            mediumItems = productService.GetByAttributeAsync(product1Id, "Size", "M").GetAwaiter().GetResult().ToList();
+            largeItems = productService.GetByAttributeAsync(product1Id, "Size", "L").GetAwaiter().GetResult().ToList();
+            xlItems = productService.GetByAttributeAsync(product1Id, "Size", "XL").GetAwaiter().GetResult().ToList();
+            fedoraItems = productService.GetByAttributeAsync(product1Id, "Style", "Fedora").GetAwaiter().GetResult().ToList();
+            ballcapItems = productService.GetByAttributeAsync(product1Id, "Style", "Ballcap").GetAwaiter().GetResult().ToList();
+        };
+
+        It Should_Return_All_Items_Matching_Attribute = () =>
+        {
+            red = hats.Where(h => h.Attributes.Where(a => a.Value == "Red").Any()).FirstOrDefault();
+            green = hats.Where(h => h.Attributes.Where(a => a.Value == "Green").Any()).FirstOrDefault();
+            black = hats.Where(h => h.Attributes.Where(a => a.Value == "Black").Any()).FirstOrDefault();
+            small = hats.Where(h => h.Attributes.Where(a => a.Value == "S").Any()).FirstOrDefault();
+            medium = hats.Where(h => h.Attributes.Where(a => a.Value == "M").Any()).FirstOrDefault();
+            large = hats.Where(h => h.Attributes.Where(a => a.Value == "L").Any()).FirstOrDefault();
+            xl = hats.Where(h => h.Attributes.Where(a => a.Value == "XL").Any()).FirstOrDefault();
+            fedoras = hats.Where(h => h.Attributes.Where(a => a.Value == "Fedora").Any()).FirstOrDefault();
+            ballcaps = hats.Where(h => h.Attributes.Where(a => a.Value == "Ballcap").Any()).FirstOrDefault();
+        };
+
+        It Should_Get_Items_From_Repo = () => itemRepoMock.Verify(i => i.GetByAttributeAsync(Moq.It.IsAny<string>(), Moq.It.IsAny<string>(), Moq.It.IsAny<string>()), Times.Exactly(9));
+
+        private static List<string> colors;
+        private static List<string> sizes;
+        private static List<string> hatTypes;
+        private static List<string> attributeValues;
+        private static List<string> attributes;
+        private static List<Item> hats;
+        private static ProductService productService;
+        private static List<Item> redItems;
+        private static List<Item> greenItems;
+        private static List<Item> blackItems;
+        private static List<Item> sizeItems;
+        private static List<Item> smallItems;
+        private static List<Item> mediumItems;
+        private static List<Item> largeItems;
+        private static List<Item> xlItems;
+        private static List<Item> styleItems;
+        private static List<Item> fedoraItems;
+        private static List<Item> ballcapItems;
+        private static Item red;
+        private static Item green;
+        private static Item black;
+        private static Item small;
+        private static Item medium;
+        private static Item large;
+        private static Item xl;
+        private static Item fedoras;
+        private static Item ballcaps;
+    }
+
+
     public class When_Geting_Items_For_A_Product : With_ProductRepo_Setup
     {
         Establish context = () =>
@@ -1286,117 +1326,77 @@ namespace TheFreckExchange.Specs
         Establish context = () =>
         {
             qty = 3;
-            colors = new List<string>
-            {
-                "Red","Green","Black"
-            };
-            sizes = new List<string>
-            {
-                "S","M","L","XL"
-            };
-            hatTypes = new List<string>
-            {
-                "Ballcap","Fedora"
-            };
-            attributes = new List<string>
-            {
-                "Color",
-                "Size",
-                "Style"
-            };
-            attributeValues = new List<string>
-            {
-                "Red","Green","Black",
-                "S","M","L","XL",
-                "Ballcap","Fedora"
-            };
-            product = new Product
-            {
-                Name = product1Name,
-                Price = product1Price,
-                ProductDescription = product1Desc,
-                ProductId = product1Id,
-            };
             hatDTO = new ItemDTO
             {
                 Name = product1Name,
                 Attributes = new List<ItemAttribute>
+                {
+                    new ItemAttribute
                     {
-                        new ItemAttribute
-                        {
-                            Type = "Color",
-                            Value = "Black"
-                        },
-                        new ItemAttribute
-                        {
-                            Type = "Size",
-                            Value = "M"
-                        },
-                        new ItemAttribute
-                        {
-                            Type = "Style",
-                            Value = "Ballcap"
-                        }
+                        Type = "Color",
+                        Value = "Black"
                     },
+                    new ItemAttribute
+                    {
+                        Type = "Size",
+                        Value = "M"
+                    },
+                    new ItemAttribute
+                    {
+                        Type = "Style",
+                        Value = "Ballcap"
+                    }
+                },
                 Credentials = loginCreds
             };
-            selectedHats = new List<Item>();
-            for (var i = 0; i < 10; i++)
+            selectedHat = new Item
             {
-                var newHat = new Item
+                Name = product1Name,
+                Quantity = 7,
+                Price = 19.99,
+                ProductDescription = product1Desc,
+                ProductId = product1Id,
+                SKU = Guid.NewGuid().ToString(),
+                Attributes = new List<ItemAttribute>
                 {
-                    Name = product1Name,
-                    Price = 19.99,
-                    ProductDescription = product1Desc,
-                    ProductId = product1Id,
-                    SKU = Guid.NewGuid().ToString(),
-                    Attributes = new List<ItemAttribute>
+                    new ItemAttribute
                     {
-                        new ItemAttribute
-                        {
-                            Type = "Color",
-                            Value = "Black"
-                        },
-                        new ItemAttribute
-                        {
-                            Type = "Size",
-                            Value = "M"
-                        },
-                        new ItemAttribute
-                        {
-                            Type = "Style",
-                            Value = "Ballcap"
-                        }
+                        Type = "Color",
+                        Value = "Black"
                     },
-                    Credentials = loginCreds
-                };
-                selectedHats.Add(newHat);
-            }
-            productRepoMock.Setup(p => p.GetByProductIdAsync(product1Id)).ReturnsAsync(product);
-            productRepoMock.Setup(p => p.GetByNameAsync(product1Name)).ReturnsAsync(product);
+                    new ItemAttribute
+                    {
+                        Type = "Size",
+                        Value = "M"
+                    },
+                    new ItemAttribute
+                    {
+                        Type = "Style",
+                        Value = "Ballcap"
+                    }
+                },
+                Credentials = loginCreds
+            };
+            productRepoMock.Setup(p => p.GetByNameAsync(product1Name)).ReturnsAsync(product1);
+            productRepoMock.Setup(p => p.GetByNameAsync(product1Name)).ReturnsAsync(product1);
             loginServiceMock.Setup(l => l.ValidateTokenAsync(Moq.It.IsAny<string>(), Moq.It.IsAny<string>())).ReturnsAsync(true);
             loginServiceMock.Setup(l => l.ValidatePermissionsAsync(account1, PermissionType.User, Moq.It.IsAny<string>())).ReturnsAsync(true);
             accountRepoMock.Setup(a => a.GetByUsernameAsync(Moq.It.IsAny<string>())).ReturnsAsync(account1);
-            itemRepoMock.Setup(i => i.GetByAttributesAsync(Moq.It.IsAny<string>(), Moq.It.IsAny<List<ItemAttribute>>())).ReturnsAsync(selectedHats);
+            itemRepoMock.Setup(i => i.GetByAttributesAsync(Moq.It.IsAny<string>(), Moq.It.IsAny<List<ItemAttribute>>())).ReturnsAsync(selectedHat);
             productService = new ProductService(productRepoMock.Object, itemRepoMock.Object, accountRepoMock.Object, loginServiceMock.Object, imageRepoMock.Object, configRepoMock.Object);
-            items = new List<Item>();
         };
 
-        Because of = () => items = productService.PurchaseItem(hatDTO, qty).GetAwaiter().GetResult();
+        Because of = () => itemOutcome = productService.PurchaseItem(hatDTO, qty).GetAwaiter().GetResult();
 
         It Should_Return_Items_To_Purchase = () =>
         {
-            for (var i = 0; i < items.Count(); i++)
+            selectedHat.Attributes.OrderBy(o => o.Type).ToList();
+            itemOutcome.Name.ShouldEqual(product1Name);
+            itemOutcome.Attributes.OrderBy(o => o.Type).ToList();
+            for (var j = 0; j < itemOutcome.Attributes.Count(); j++)
             {
-                selectedHats.ToList()[0].Attributes.OrderBy(o => o.Type).ToList();
-                items.ToList()[i].Name.ShouldEqual(product1Name);
-                items.ToList()[i].Attributes.OrderBy(o => o.Type).ToList();
-                for (var j = 0; j < items.ToList()[i].Attributes.Count(); j++)
-                {
-                    items.ToList()[i].Attributes.ToList()[j].Type.ShouldEqual(selectedHats.ToList()[0].Attributes.ToList()[j].Type);
-                    items.ToList()[i].Attributes.ToList()[j].Value.ShouldEqual(selectedHats.ToList()[0].Attributes.ToList()[j].Value);
-                }
-
+                itemOutcome.Attributes.ToList()[j].Type.ShouldEqual(selectedHat.Attributes.ToList()[j].Type);
+                itemOutcome.Attributes.ToList()[j].Value.ShouldEqual(selectedHat.Attributes.ToList()[j].Value);
             }
         };
 
@@ -1407,7 +1407,7 @@ namespace TheFreckExchange.Specs
             loginServiceMock.Verify(l => l.ValidatePermissionsAsync(account1, PermissionType.User, Moq.It.IsAny<string>()), Times.Once);
         };
 
-        It Should_Delete_The_Item_From_Repo = () => itemRepoMock.Verify(r => r.DeleteItemAsync(Moq.It.IsAny<Item>()), Times.Exactly(qty));
+        It Should_Delete_The_Item_From_Repo = () => itemRepoMock.Verify(r => r.DeleteItemAsync(Moq.It.IsAny<Item>()), Times.Once);
 
         It Should_Get_The_Account_From_Repo = () => accountRepoMock.Verify(a => a.GetByUsernameAsync(account1.Username), Times.Once);
 
@@ -1421,9 +1421,9 @@ namespace TheFreckExchange.Specs
         private static IEnumerable<string> attributeValues;
         private static Product product;
         private static ItemDTO hatDTO;
-        private static List<Item> selectedHats;
+        private static Item selectedHat;
         private static IProductService productService;
-        private static IEnumerable<Item> items;
+        private static Item itemOutcome;
     }
 
     public class When_Getting_All_Images : With_ProductRepo_Setup

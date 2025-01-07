@@ -1,6 +1,7 @@
 import { Accordion, AccordionDetails, AccordionSummary, Box, Grid2, Typography } from "@mui/material";
 import { useEffect, useState } from "react";
 import {getAccountAsync} from "../../helpers/helpersApp";
+import TransactionDetails from "../../components/TransactionDetails";
 
 export const AccountView = () => {
     const [account,setAccount] = useState({});
@@ -20,26 +21,6 @@ export const AccountView = () => {
     // browsing history
     // account permissions
     // account history
-
-    const TransactionDetails = ({transaction}) => <Box>
-        <Typography>
-            Item: {transaction.items[0].name}
-        </Typography>
-        <Typography>
-            Qty: {transaction.items.length}
-        </Typography>
-        <Typography>
-            Total Cost: ${transaction.totalPrice}
-        </Typography>
-        <Grid2>
-            <Typography>
-                Attributes:
-            </Typography>
-            {transaction.items[0].attributes && transaction.items[0].attributes.map((a,i) => (
-                <Typography key={i}>{a.type}: {a.value}</Typography>
-            ))}
-        </Grid2>
-    </Box>
 
     return <Box
             sx={{
@@ -74,8 +55,9 @@ export const AccountView = () => {
                     <Accordion
                         key={i}
                     >
+                        {console.log("h: ", h)}
                         <AccordionSummary>
-                            {h.items[0].name} {new Date(h.transactionDate).getMonth()%12+1}/{new Date(h.transactionDate).getDate()}/{new Date(h.transactionDate).getFullYear()}
+                            {h.item.name} {new Date(h.transactionDate).getMonth()%12+1}/{new Date(h.transactionDate).getDate()}/{new Date(h.transactionDate).getFullYear()}
                         </AccordionSummary>
                         <AccordionDetails>
                             <TransactionDetails

@@ -36,26 +36,22 @@ export const Store = ({ }) => {
     },[]);
 
     useEffect(() => {
+        if(selectedProduct.id !== undefined) setOpen(true);
         if(selectedProduct.name !== undefined){
             let prodItems = [];
             getImagesFromReferencesAsync(selectedProduct.imageReferences,bytes => {
                 selectedProduct.imageBytes = bytes.map(b => b.image);
-                getAttributesAsync(selectedProduct.name,atts => {
-                    if(atts.length > 0 && atts[0].product === selectedProduct.name){
-                        selectedProduct.attributes = atts;
-                        getItemsAsync(selectedProduct.name,pItems => {
-                            prodItems.push({[selectedProduct.name]:pItems});
-                            setItems(prodItems);
-                        });
-                    }
+                getItemsAsync(selectedProduct.name,pItems => {
+                    prodItems.push({[selectedProduct.name]:pItems});
+                    setItems(prodItems);
                 });
             })
         }
     },[selectedProduct]);
 
     useEffect(() => {
-        if(selectedProduct.id !== undefined) setOpen(true);
-    },[selectedProduct]);
+        console.log("items: ", items);
+    },[items]);
 
     const PurchaseItemCallback = useCallback(() => <PurchaseItem product={selectedProduct} />,[selectedProduct]);
 
@@ -71,7 +67,7 @@ export const Store = ({ }) => {
                     sx={{display:"flex"}}
                 >
                     <Autocomplete
-                        sx={{width: "100%", background: "#ccbbaa"}}
+                        sx={{width: "100%"}}
                         options={productNames}
                         onChange={c => {
                             let product = products.find(p => p.name === c.target.innerHTML);
@@ -81,7 +77,7 @@ export const Store = ({ }) => {
                         renderInput={(params) => <TextField {...params} label="Product Search" />}
                     />
                     <SearchIcon 
-                        sx={{width:"auto", height: "2.25em",border: "solid",borderWidth: "1px", background: "#ccbbaa"}}
+                        sx={{width:"auto", height: "2.25em",border: "solid",borderWidth: "1px"}}
                     />
                 </Grid2>
                 <Grid2>

@@ -2,8 +2,10 @@ import react, { useContext, useEffect, useState } from "react";
 import { Box, Button, FormControl, Grid2, InputLabel, MenuItem, Select, TextField, Typography } from "@mui/material";
 import { ImageCarousel } from "../../components/ImageCarousel";
 import {getItemsAsync,purchaseItemAsync,getImagesFromReferencesAsync} from "../../helpers/helpersWelcome";
+import { AccountContext } from "../../Context";
 
 export const PurchaseItem = ({product}) => {
+    const {addToCart} = useContext(AccountContext);
     const [items,setItems] = useState([]);
     const [narrowedItems,setNarrowedItems] = useState([]);
     const [availableAttributes,setAvailableAttributes] = useState({});
@@ -23,7 +25,6 @@ export const PurchaseItem = ({product}) => {
             getItemsAsync(product.name,itms => {
                 setItems(itms);
                 setNarrowedItems(itms);
-                setMaxQty(itms.length);
                 getAttributesFromItems(itms,availables => {
                     let attChoicesObj = {};
                     Object.keys(availables).forEach(type => {
@@ -58,6 +59,25 @@ export const PurchaseItem = ({product}) => {
 
     const soldOutMessage = (qty,max) => `You have selected more items ${qty} than are in stock ${max}`
 
+    const handleSelection = (choice,type) => {
+        let choices = {};
+        if(choice === "attribute"){
+            choices = {...attributeChoices,[type]: ""};
+        }
+        else{
+            choices = {...attributeChoices,[type]:choice}
+        }
+        narrowField(choices,narrowedItems => {
+            setAttributeChoices(choices);
+            if(Object.values(choices).filter(a => a === "").length === 0){
+                setMaxQty(narrowedItems[0].quantity);
+            }
+            getAttributesFromItems(narrowedItems,narrowedAttributes => {
+                setAvailableAttributes(narrowedAttributes);
+            })
+        })
+    }
+    
     const narrowField = (choices,cb) => {
         let narrowed = Array.from(items);
         for(let i=0; i<narrowed.length; i++){
@@ -82,23 +102,6 @@ export const PurchaseItem = ({product}) => {
         else{
             cb(false);
         }
-    }
-
-    const handleSelection = (choice,type) => {
-        let choices = {};
-        if(choice === "attribute"){
-            choices = {...attributeChoices,[type]: ""};
-        }
-        else{
-            choices = {...attributeChoices,[type]:choice}
-        }
-        narrowField(choices,narrowedItems => {
-            setMaxQty(narrowedItems.length);
-            setAttributeChoices(choices);
-            getAttributesFromItems(narrowedItems,narrowedAttributes => {
-                setAvailableAttributes(narrowedAttributes);
-            })
-        })
     }
     
     return (
@@ -174,6 +177,7 @@ export const PurchaseItem = ({product}) => {
                             <TextField 
                                 label="Quantity"
                                 type="number"
+                                disabled={Object.values(attributeChoices).filter(a => a === "").length > 0}
                                 error={qtyError}
                                 onChange={(q) => {
                                     if(parseInt(q.target.value) > maxQty){
@@ -213,11 +217,17 @@ export const PurchaseItem = ({product}) => {
                                     for(let att of Object.entries(attributeChoices)){
                                         attArray.push({type:att[0],value: att[1]});
                                     }
-                                    purchaseItemAsync({name: product.name,attributes: attArray},quantity)
+                                    addToCart({
+                                        item: narrowedItems[0],
+                                        quantity,
+                                        totalPrice: narrowedItems[0].price * quantity
+                                    },() => {
+                                        console.log("added to cart");
+                                    });
                                 }
                                 }
                             >
-                                Purchase
+                                Add to Cart
                             </Button>
                         </Box>
                     </Grid2>
