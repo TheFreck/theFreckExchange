@@ -77,31 +77,19 @@ export const PurchaseItem = ({product}) => {
             })
         })
     }
-    
+
     const narrowField = (choices,cb) => {
-        let narrowed = Array.from(items);
-        for(let i=0; i<narrowed.length; i++){
-            let attArray = Object.entries(choices);
-            let attarraylen = attArray.length;
-            for(let j=0; j<attarraylen; j++){
-                itemContainsAttribute(narrowed[i],attArray[j], doesContain => {
-                    if(!doesContain){
-                        narrowed.splice(i--,1);
-                        attarraylen--;
+        let narrowed = [];
+        for(let itm of items){
+            for(let at of itm.attributes){
+                for(let choice of Object.entries(choices).filter(c => c[1] !== "")){
+                    if(Object.values(at)[0] === choice[0] && Object.values(at)[1] === choice[1]){
+                        narrowed.push(itm);
                     }
-                })
+                }
             }
         }
         cb(narrowed);
-    }
-    
-    const itemContainsAttribute = (item,attribute,cb) => {
-        if(attribute[1] === "" || item.attributes.find(a => a.type === attribute[0] && a.value === attribute[1])){
-            cb(true);
-        }
-        else{
-            cb(false);
-        }
     }
     
     return (
@@ -196,7 +184,7 @@ export const PurchaseItem = ({product}) => {
                             sx={{width: "auto", display: "flex", flexDirection: "row", justifyContent: "space-around"}}
                         >
                             <Button
-                                sx={{width: "30%"}}
+                                sx={{width: "40%"}}
                                 onClick={() => {
                                     getAttributesFromItems(items,availables => {
                                         let attChoicesObj = {};
@@ -210,7 +198,7 @@ export const PurchaseItem = ({product}) => {
                                 Reset Attributes
                             </Button>
                             <Button
-                                sx={{width: "30%", padding: "0 4vw"}}
+                                sx={{width: "40%"}}
                                 variant="contained"
                                 onClick={() => {
                                     let attArray = [];

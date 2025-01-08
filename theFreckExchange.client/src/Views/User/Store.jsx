@@ -49,10 +49,6 @@ export const Store = ({ }) => {
         }
     },[selectedProduct]);
 
-    useEffect(() => {
-        console.log("items: ", items);
-    },[items]);
-
     const PurchaseItemCallback = useCallback(() => <PurchaseItem product={selectedProduct} />,[selectedProduct]);
 
     return <Box

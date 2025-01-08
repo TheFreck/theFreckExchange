@@ -1,5 +1,5 @@
 import { Box, Button, Chip, Stack, TextField } from "@mui/material";
-import { useContext, useEffect, useState } from "react";
+import { useCallback, useContext, useEffect, useState } from "react";
 import ImageUpload from "../Admin/ImageUpload"
 import { createProductAsync, getImages } from "../../helpers/helpersWelcome";
 
@@ -9,7 +9,7 @@ const styles = {
     }
 }
 
-export const CreateProduct = ({created}) => {
+export const CreateProduct = () => {
     const [name, setName] = useState("");
     const [price, setPrice] = useState(0.0);
     const [description, setDescription] = useState("");
@@ -17,10 +17,32 @@ export const CreateProduct = ({created}) => {
     const [attributes, setAttributes] = useState([]);
     const [images, setImages] = useState([]);
     const [primary,setPrimary] = useState({});
+    const [resetImages,setResetImages] = useState(false);
 
     const uploadImages = (im) => {
         setImages(im);
     }
+
+    const reset = () => {
+        setName("");
+        setPrice(0.0);
+        setDescription("");
+        setAttributeInput("");
+        setAttributes([]);
+        setImages([]);
+        setPrimary({});
+        setResetImages(true);
+    }
+
+    const ImageUploadCallback = useCallback(() => <ImageUpload 
+            getImages={getImages} 
+            primary={primary} 
+            setPrimary={setPrimary} 
+            type="product" 
+            multiple={true} 
+            uploadImages={uploadImages} 
+        />
+    ,[resetImages]);
 
     return (
         <Box
@@ -77,7 +99,7 @@ export const CreateProduct = ({created}) => {
                     setAttributeInput("");
                 }}
             />
-            <ImageUpload getImages={getImages} primary={primary} setPrimary={setPrimary} type="product" multiple={true} uploadImages={uploadImages} />
+            <ImageUploadCallback />
             <br/>
             <Button
                 id="createProductButton"
@@ -85,7 +107,7 @@ export const CreateProduct = ({created}) => {
                 onClick={() => {
                     let primaryImageReference = images.find(i => i.name === primary.filename).imageId;
                     createProductAsync({ name, description, attributes, price, primaryImageReference, imageReferences: images.map(i=>i.imageId) },yup => {
-                        created();
+                        reset();
                     });
                 }}
             >

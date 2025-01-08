@@ -53,13 +53,22 @@ function App() {
     }
 
     const addToCart = async (item,cb) => {
-        let amendedCart = [...cart,item];
+        let amendedCart = [];
+        for(let it of cart){
+            if(it.item.sku === item.item.sku){
+                it.quantity += item.quantity;
+                setCart(cart);
+                cb(cart);
+                return;
+            }
+        }
+        amendedCart = [...cart,item];
         setCart(amendedCart);
         cb(amendedCart);
     }
 
     const removeFromCart = (item,cb) => {
-        let amendedCart = cart.filter(c => c.sku !== item.sku);
+        let amendedCart = cart.filter(c => c.item.sku !== item.item.sku);
         setCart(amendedCart);
         cb(amendedCart);
     }

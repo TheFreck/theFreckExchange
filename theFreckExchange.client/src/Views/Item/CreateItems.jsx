@@ -60,7 +60,6 @@ export const CreateItems = ({}) => {
                 display: "flex",
                 flexDirection: "column",
                 maxHeight: "90vh",
-                background: "rgb(204,187,170)"
             }}
         >
             <Grid2 

@@ -1,18 +1,23 @@
-import { AppBar, Box, Button, Divider, IconButton, Menu, MenuItem, MenuList, Modal, Select, Toolbar, Typography } from "@mui/material";
+import { AppBar, Box, Button, Divider, Grid2, IconButton, Menu, MenuItem, MenuList, Modal, Paper, Select, Toolbar, Typography } from "@mui/material";
 import { useContext, useRef, useState } from "react";
 import MenuIcon from '@mui/icons-material/Menu';
 import { Dropdown } from "@mui/base";
 import { AccountContext } from "../Context";
 import ShoppingCartIcon from '@mui/icons-material/ShoppingCart';
 import { ShoppingCart } from "../components/ShoppingCart";
+import CloseIcon from '@mui/icons-material/Close';
+import Checkout from "../components/Checkout";
 
 export const Layout = (props) => {
     const {setUserView,userEnum,getShoppingCart} = useContext(AccountContext);
     const {login,logout} = props;
     const [menuOpen, setMenuOpen] = useState(false);
     const [cartOpen,setCartOpen] = useState(false);
+    const [checkoutOpen,setCheckoutOpen] = useState(false);
     const anchorEl = useRef();
     const cartRef = useRef();
+    const checkouRef = useRef();
+
 
     return <Box sx={{ 
             width: "100%", 
@@ -97,15 +102,54 @@ export const Layout = (props) => {
             </Typography>
             {getShoppingCart().length > 0 && 
             <Box>
-                <Button onClick={() => setCartOpen(!cartOpen)} ><ShoppingCartIcon sx={{color: "#d4ccb6"}} /></Button>
+                <Button onClick={() => {
+                    setCheckoutOpen(false);
+                    setCartOpen(!cartOpen);
+                }}
+                >
+                    <ShoppingCartIcon sx={{color: "#d4ccb6"}} />
+                </Button>
                 <Modal
                     open={cartOpen}
-                    onClose={() => setCartOpen(false)}
+                    onClose={() => {
+                        setCheckoutOpen(false);
+                        setCartOpen(false);
+                    }}
                     ref={cartRef}
                 >
-                    <Box>
-                        <ShoppingCart />
-                    </Box>
+                    <Paper
+                        sx={{width: "80vw", margin: "10vh auto", padding: "1em", maxHeight: "80vh"}}
+                        elevation={10}
+                    >
+                        <Grid2 container
+                        >
+                            <Grid2 size={11}>
+                                <Typography
+                                    variant="h4"
+                                >
+                                    Shopping Cart
+                                </Typography>
+                            </Grid2>
+                            <Grid2 size={1}
+                                sx={{display: "flex",flexDirection: "row-reverse"}}
+                            >
+                                <Button
+                                    onClick={() => {
+                                        setCheckoutOpen(false);
+                                        setCartOpen(false);
+                                    }}
+                                >
+                                    <CloseIcon fontSize="large"/>
+                                </Button>
+                            </Grid2>
+                        </Grid2>
+                        {!checkoutOpen &&
+                            <ShoppingCart setCheckoutOpen={setCheckoutOpen} />
+                        }
+                        {checkoutOpen &&
+                            <Checkout />
+                        }
+                    </Paper>
                 </Modal>
                 </Box>
             }

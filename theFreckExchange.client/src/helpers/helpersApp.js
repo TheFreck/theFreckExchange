@@ -78,9 +78,18 @@ export const getAccountAsync = async (username,cb) => {
     });
 }
 
+export const calcOrderTotal = (order,cb) => {
+    let total = 0;
+    for(let itm of order){
+        total += itm.item.price * itm.quantity;
+    }
+    cb(total);
+}
+
 export default {
     loginAsync,
     logoutAsync,
     createAccountAsync,
-    getAccountAsync
+    getAccountAsync,
+    calcOrderTotal
 }
