@@ -45,8 +45,8 @@ namespace TheFreckExchange.Server.Controllers
         {
             try
             {
-                var account = await accountService.CreateAccountAsync(name, email,request.Username,request.Password, request.Permissions);
-                return Created("account",account);
+                var account = await accountService.CreateAccountAsync(name, email, request.Username, request.Password, request.Permissions);
+                return Created("account", account);
             }
             catch (Exception)
             {
@@ -81,9 +81,9 @@ namespace TheFreckExchange.Server.Controllers
             try
             {
                 var account = await loginService.LoginAsync(loginRequest.Email, loginRequest.Password);
-                if(account.Name != "NullName" 
-                    && account.Username != "NullAccount" 
-                    && account.Email != "null@null.null" 
+                if (account.Name != "NullName"
+                    && account.Username != "NullAccount"
+                    && account.Email != "null@null.null"
                     && account.AccountId != Guid.Empty.ToString()
                     && account.LoginToken != Guid.Empty.ToString())
                 {

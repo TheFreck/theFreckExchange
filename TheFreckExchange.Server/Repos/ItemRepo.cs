@@ -35,7 +35,7 @@ namespace TheFreckExchange.Server.Repos
 
         public async Task<DeleteResult> DeleteItemAsync(Item item)
         {
-            return await itemsCollection.DeleteOneAsync(i => i.SKU == item.SKU,CancellationToken.None);
+            return await itemsCollection.DeleteOneAsync(i => i.SKU == item.SKU, CancellationToken.None);
         }
 
         public async Task<IEnumerable<Item>> GetAllItemsAsync(string name)
@@ -74,17 +74,17 @@ namespace TheFreckExchange.Server.Repos
                 ProductDescription = item.ProductDescription,
                 ProductId = item.ProductId,
             };
-            return await itemsCollection.FindOneAndReplaceAsync(i => i.SKU==item.SKU,newItem);
+            return await itemsCollection.FindOneAndReplaceAsync(i => i.SKU == item.SKU, newItem);
         }
 
         public async Task<Item> GetByAttributesAsync(string itemName, IEnumerable<ItemAttribute> attributes)
         {
-            var items = (await itemsCollection.FindAsync(i => i.Name==itemName)).ToList();
-            for(var i=0; i<attributes.Count(); i++)
+            var items = (await itemsCollection.FindAsync(i => i.Name == itemName)).ToList();
+            for (var i = 0; i < attributes.Count(); i++)
             {
                 var att = attributes.ToList()[i].Type;
                 var val = attributes.ToList()[i].Value;
-                for(var j=0; j < items.Count; j++)
+                for (var j = 0; j < items.Count; j++)
                 {
                     if (items[j].Attributes?.Where(a => a.Type == att)?.FirstOrDefault()?.Value != val)
                     {

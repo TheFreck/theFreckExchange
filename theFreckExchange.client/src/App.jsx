@@ -52,6 +52,10 @@ function App() {
         });
     }
 
+    const completed = () => {
+        setCart([]);
+    }
+
     const addToCart = async (item,cb) => {
         let amendedCart = [];
         for(let it of cart){
@@ -88,6 +92,7 @@ function App() {
         getShoppingCart,
         addToCart,
         removeFromCart,
+        completed
         }}>
         <Layout login={() => setView(homeViewEnum.login)} logout={() => logout(userAcct)}>
             {view === homeViewEnum.login && localStorage.getItem("loginToken") === null && 

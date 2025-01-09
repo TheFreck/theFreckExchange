@@ -1,8 +1,5 @@
-﻿using MongoDB.Bson.Serialization.Attributes;
-using MongoDB.Bson;
-using System.ComponentModel.DataAnnotations;
-using System.Security.Cryptography;
-using Microsoft.AspNetCore.Cryptography.KeyDerivation;
+﻿using MongoDB.Bson;
+using MongoDB.Bson.Serialization.Attributes;
 
 namespace TheFreckExchange.Server.DTO
 {
@@ -31,7 +28,7 @@ namespace TheFreckExchange.Server.DTO
         /// a token that is created when an account is checked out and destroyed when it is checked back in 
         /// </summary>
         public string? LoginToken { get; set; } = Guid.Empty.ToString();
-        public byte[]? PasswordSalt {  get; set; } = new byte[0];
+        public byte[]? PasswordSalt { get; set; } = new byte[0];
         public byte[]? TokenSalt = new byte[0];
 
 
@@ -47,7 +44,7 @@ namespace TheFreckExchange.Server.DTO
             History = new List<PurchaseOrder>();
         }
 
-        public Account() 
+        public Account()
         {
             Username = "NullAccount";
             Email = "null@null.null";
@@ -71,10 +68,10 @@ namespace TheFreckExchange.Server.DTO
 
     public enum PermissionType
     {
-        Admin,User
+        Admin, User
     }
 
-    public class PurchaseOrder 
+    public class PurchaseOrder
     {
         public Item Item { get; set; }
         public int Quantity { get; set; }

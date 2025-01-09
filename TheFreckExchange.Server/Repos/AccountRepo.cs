@@ -1,6 +1,6 @@
-﻿using TheFreckExchange.Server.DTO;
+﻿using Microsoft.Extensions.Options;
 using MongoDB.Driver;
-using Microsoft.Extensions.Options;
+using TheFreckExchange.Server.DTO;
 
 namespace TheFreckExchange.Server.Repos
 {

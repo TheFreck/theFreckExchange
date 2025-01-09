@@ -1,53 +1,99 @@
-import { Box, Grid2, Typography } from "@mui/material";
+import { Box, Button, Grid2, Typography } from "@mui/material";
 import {useContext, useEffect, useState} from "react";
 import { AccountContext } from "../Context";
 import TransactionDetails from "./TransactionDetails";
-import { calcOrderTotal } from "../helpers/helpersApp";
+import { calcOrderTotal,currencyFormat } from "../helpers/helpersApp";
+import { purchaseItemsAsync } from "../helpers/helpersWelcome";
 
-export const Checkout = () => {
-    const [account,setAccount] = useState({});
+export const Checkout = ({completed}) => {
     const [cart,setCart] = useState({});
     const [orderTotal,setOrderTotal] = useState(0.0);
-    const {getShoppingCart} = useContext(AccountContext);
+    const [salesTax,setSalesTax] = useState(.05);
+    const [paid,setPaid] = useState(false);
+    const {getShoppingCart,resetCart} = useContext(AccountContext);
 
     useEffect(() => {
-        setCart(getShoppingCart());
-        calcOrderTotal(cart,total => setOrderTotal(total));
+        let shoppingCart = getShoppingCart();
+        setCart(shoppingCart);
+        calcOrderTotal(shoppingCart,total => setOrderTotal(total));
     },[]);
 
-    useEffect(() => {
-        console.log("cart: ", cart);
-    },[cart]);
-
-    return <Box>
+    return <Grid2
+        sx={{display: "flex", flexDirection: "column"}}
+    >
         <Grid2>
             {
-                // cart
                 cart.length && cart.map((c,i) => (
                     <TransactionDetails
-                        key={i}
-                        transaction={c}
-                        isCheckout={true}
+                    key={i}
+                    transaction={c}
+                    isCheckout={true}
                     />
                 ))
             }
-            {
-                // subtotal
+        </Grid2>
+        <Grid2 container
+            sx={{marginLeft: "5vw"}}
+            >
+            <Grid2 size={1}>
                 <Typography>
-                    Subtotal: ${orderTotal}
+                    Subtotal: 
                 </Typography>
-            }
-            {
-                // tax
-            }
-            {
-                // handle payment
-            }
-            {
-                // submit button
+            </Grid2>
+            <Grid2 >
+                <Typography>
+                    {currencyFormat.format(orderTotal)}
+                </Typography>
+            </Grid2>
+        </Grid2>
+        <Grid2 container
+            sx={{marginLeft: "5vw"}}
+            >
+            <Grid2 size={1}>
+                <Typography>
+                    Tax rate: 
+                </Typography>
+            </Grid2>
+            <Grid2 >
+                <Typography>
+                    {salesTax*100}%
+                </Typography>
+            </Grid2>
+        </Grid2>
+        <Grid2 container
+            sx={{marginLeft: "5vw"}}
+            >
+            <Grid2 size={1}>
+                <Typography>
+                    Order Total: 
+                </Typography>
+            </Grid2>
+            <Grid2 >
+                <Typography>
+                    {currencyFormat.format(orderTotal*(1+salesTax))}
+                </Typography>
+            </Grid2>
+        </Grid2>
+        <Grid2 container
+            sx={{marginLeft: "5vw"}}
+        >
+            {!paid && 
+                <Button
+                    onClick={() => setPaid(!paid)}
+                >
+                    Submit Payment
+                </Button>}
+            {paid &&
+                <Button
+                    onClick={() => purchaseItemsAsync(cart,() => {
+                        completed();
+                    })}
+                >
+                    Confirm Purchase
+                </Button>
             }
         </Grid2>
-    </Box>
+    </Grid2>
 }
 
 export default Checkout;

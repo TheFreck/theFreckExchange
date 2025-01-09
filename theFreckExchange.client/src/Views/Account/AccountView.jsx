@@ -41,9 +41,6 @@ export const AccountView = () => {
                 (new Date(account.dateOpened).getMonth()%12+1) + "/" + new Date(account.dateOpened).getDate() + "/" + new Date(account.dateOpened).getFullYear()
             }
         </Typography>
-        <Typography>
-            Current Balance: {account.balance}
-        </Typography>
         <Accordion
         >
             <AccordionSummary>

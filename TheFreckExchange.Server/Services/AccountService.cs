@@ -1,8 +1,6 @@
 ﻿
 using TheFreckExchange.Server.DTO;
 using TheFreckExchange.Server.Repos;
-using System;
-using System.Threading.Tasks;
 
 namespace TheFreckExchange.Server.Services
 {
@@ -45,10 +43,11 @@ namespace TheFreckExchange.Server.Services
         {
             var account = new Account(name, username, email, permissions);
 
-            var (passwordHash,passwordSalt) = loginService.CreateLogin(password);
+            var (passwordHash, passwordSalt) = loginService.CreateLogin(password);
             account.Password = passwordHash;
             account.PasswordSalt = passwordSalt;
-            permissions.ForEach(p => {
+            permissions.ForEach(p =>
+            {
                 p.Token = loginService.MakeHash(p.Type.ToString(), out var salt);
                 p.TokenSalt = salt;
             });

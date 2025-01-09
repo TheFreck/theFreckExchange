@@ -86,10 +86,17 @@ export const calcOrderTotal = (order,cb) => {
     cb(total);
 }
 
+export const currencyFormat = new Intl.NumberFormat("en-US",{
+    style: "currency",
+    currency: "USD",
+    minimumFractionDigits: 2
+});
+
 export default {
     loginAsync,
     logoutAsync,
     createAccountAsync,
     getAccountAsync,
-    calcOrderTotal
-}
+    calcOrderTotal,
+    currencyFormat
+};

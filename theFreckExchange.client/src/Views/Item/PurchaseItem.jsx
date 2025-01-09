@@ -79,15 +79,22 @@ export const PurchaseItem = ({product}) => {
     }
 
     const narrowField = (choices,cb) => {
+        let valid = Object.entries(choices).filter(c => c[1] !== "");
         let narrowed = [];
-        for(let itm of items){
-            for(let at of itm.attributes){
-                for(let choice of Object.entries(choices).filter(c => c[1] !== "")){
-                    if(Object.values(at)[0] === choice[0] && Object.values(at)[1] === choice[1]){
-                        narrowed.push(itm);
+        for(let itm in items){
+            let matches = true;
+            for(let at of items[itm].attributes){
+                let allItmAtts = Object.entries(at);
+                let attributes = [allItmAtts[0][1],allItmAtts[1][1]];
+                for(let choice of valid){
+                    if(choice[0]===attributes[0] && choice[1] !== attributes[1]){
+                        matches = false;
+                        break;
                     }
                 }
+                if(!matches) break;
             }
+            if(matches) narrowed.push(items[itm]);
         }
         cb(narrowed);
     }

@@ -1,6 +1,7 @@
 import { Box, Button, Grid2, Snackbar, TextField, Tooltip, Typography } from "@mui/material";
 import { useEffect, useState } from "react";
 import CloseIcon from '@mui/icons-material/Close';
+import { currencyFormat } from "../helpers/helpersApp";
 
 
 export const TransactionDetails = ({transaction,updateQty,removeFromCart,isCheckout}) => {
@@ -73,7 +74,7 @@ export const TransactionDetails = ({transaction,updateQty,removeFromCart,isCheck
                     }
                     <Typography sx={{padding: "1em"}}>=</Typography>
                     <Typography>
-                        ${transaction.item.price * qty}
+                        {currencyFormat.format(transaction.item.price * qty)}
                     </Typography>
                     {isDirty &&
                         <Button

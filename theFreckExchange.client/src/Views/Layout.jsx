@@ -9,7 +9,7 @@ import CloseIcon from '@mui/icons-material/Close';
 import Checkout from "../components/Checkout";
 
 export const Layout = (props) => {
-    const {setUserView,userEnum,getShoppingCart} = useContext(AccountContext);
+    const {setUserView,userEnum,getShoppingCart,completed} = useContext(AccountContext);
     const {login,logout} = props;
     const [menuOpen, setMenuOpen] = useState(false);
     const [cartOpen,setCartOpen] = useState(false);
@@ -18,6 +18,11 @@ export const Layout = (props) => {
     const cartRef = useRef();
     const checkouRef = useRef();
 
+    const finished = () => {
+        setCheckoutOpen(false);
+        setCartOpen(false);
+        completed();
+    }
 
     return <Box sx={{ 
             width: "100%", 
@@ -121,33 +126,25 @@ export const Layout = (props) => {
                         sx={{width: "80vw", margin: "10vh auto", padding: "1em", maxHeight: "80vh"}}
                         elevation={10}
                     >
-                        <Grid2 container
+                        <Box
+                            sx={{width: "100%", display: "flex", flexDirection: "row-reverse"}}
                         >
-                            <Grid2 size={11}>
-                                <Typography
-                                    variant="h4"
-                                >
-                                    Shopping Cart
-                                </Typography>
-                            </Grid2>
-                            <Grid2 size={1}
-                                sx={{display: "flex",flexDirection: "row-reverse"}}
+                            <Button
+                                sx={{}}
+                                onClick={() => {
+                                    setCheckoutOpen(false);
+                                    setCartOpen(false);
+                                }}
                             >
-                                <Button
-                                    onClick={() => {
-                                        setCheckoutOpen(false);
-                                        setCartOpen(false);
-                                    }}
-                                >
-                                    <CloseIcon fontSize="large"/>
-                                </Button>
-                            </Grid2>
-                        </Grid2>
+                                <CloseIcon fontSize="large"/>
+                            </Button>
+
+                        </Box>
                         {!checkoutOpen &&
                             <ShoppingCart setCheckoutOpen={setCheckoutOpen} />
                         }
                         {checkoutOpen &&
-                            <Checkout />
+                            <Checkout completed={finished} />
                         }
                     </Paper>
                 </Modal>

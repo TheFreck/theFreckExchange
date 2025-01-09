@@ -1,8 +1,8 @@
 import { useContext, useEffect, useState } from "react";
 import { AccountContext } from "../Context";
-import { Box, Button, Typography } from "@mui/material";
+import { Box, Button, Grid2, Typography } from "@mui/material";
 import TransactionDetails from "./TransactionDetails";
-import { calcOrderTotal } from "../helpers/helpersApp";
+import { calcOrderTotal, currencyFormat } from "../helpers/helpersApp";
 
 export const ShoppingCart = ({setCheckoutOpen}) => {
     const {getShoppingCart,removeFromCart} = useContext(AccountContext);
@@ -16,7 +16,7 @@ export const ShoppingCart = ({setCheckoutOpen}) => {
             if(a.item.sku<b.item.sku) return -1;
             return 0;
         });
-        calcOrderTotal(cart, total => setOrderTotal(total));
+        calcOrderTotal(cart, total => setOrderTotal(currencyFormat.format(total)));
         setItems(cart);
     },[]);
 
@@ -33,7 +33,7 @@ export const ShoppingCart = ({setCheckoutOpen}) => {
         let cartItem = items.find(i => i.item.sku === transaction.item.sku);
         cartItem.quantity = qty;
         let toSet = [...items.filter(i => i.item.sku !== transaction.item.sku),cartItem];
-        calcOrderTotal(toSet, total => setOrderTotal(total));
+        calcOrderTotal(toSet, total => setOrderTotal(currencyFormat.format(total)));
         sortCart(toSet);
     }
     
@@ -48,8 +48,15 @@ export const ShoppingCart = ({setCheckoutOpen}) => {
         }}
     >
         <Box
-            sx={{maxHseight: "50vh",overflowY: "auto", marginBottom: "5vh"}}
+            sx={{maxHeight: "50vh",overflowY: "auto", marginBottom: "5vh"}}
         >
+            <Grid2 size={11}>
+                <Typography
+                    variant="h4"
+                >
+                    Shopping Cart
+                </Typography>
+            </Grid2>
             {items.length && items.map((i,j) => (
                 <TransactionDetails
                     key={j}
@@ -64,7 +71,7 @@ export const ShoppingCart = ({setCheckoutOpen}) => {
             variant="h6"
             sx={{marginLeft: "8vw"}}
         >
-            Order Total: ${orderTotal}
+            Order Total: {orderTotal}
         </Typography>
         <Button
             sx={{marginLeft: "8vw"}}

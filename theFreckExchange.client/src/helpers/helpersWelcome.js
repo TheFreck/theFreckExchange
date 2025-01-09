@@ -171,7 +171,17 @@ export const updateItemsAsync = async (item,cb) => {
     })
 };
 
-export const purchaseItemAsync = async (product,qty) => {
+export const purchaseItemsAsync = async (cart,cb) => {
+    let purchases = [];
+    for(let item of cart){
+        purchaseItemAsync(item.item,item.quantity,() => {
+            purchases.push(item);
+            if(purchases.length===cart.length) cb();
+        });
+    }
+}
+
+export const purchaseItemAsync = async (product,qty,cb) => {
     getBaseURL(async url => {
         const api = axios.create({
             baseURL: url + "/Product"
@@ -184,6 +194,7 @@ export const purchaseItemAsync = async (product,qty) => {
         })
         .then(yup => {
             console.info("purchased: ", yup.data);
+            cb();
         })
         .catch(nope => console.error(nope));
     })

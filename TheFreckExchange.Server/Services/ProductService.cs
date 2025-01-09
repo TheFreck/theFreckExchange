@@ -1,11 +1,6 @@
-﻿using MongoDB.Bson;
-using MongoDB.Driver.Linq;
+﻿using MongoDB.Driver.Linq;
 using TheFreckExchange.Server.DTO;
 using TheFreckExchange.Server.Repos;
-using System.Reflection;
-using System.Text.RegularExpressions;
-using System.Threading.Tasks;
-using static TheFreckExchange.Server.Services.ProductService;
 
 namespace TheFreckExchange.Server.Services
 {
@@ -303,7 +298,7 @@ namespace TheFreckExchange.Server.Services
             var product = await productRepo.GetByNameAsync(newProduct.Name);
             product.Price = newProduct.Price > 0 ? newProduct.Price : product.Price;
             product.ProductDescription = newProduct.Description != String.Empty ? newProduct.Description : product.ProductDescription;
-            product.AvailableAttributes = newProduct.Attributes.Count() > 0 ? product.AvailableAttributes.Where(a => a!="").Concat(newProduct.Attributes.Where(a => a!="")).ToHashSet().ToList() : product.AvailableAttributes;
+            product.AvailableAttributes = newProduct.Attributes.Count() > 0 ? product.AvailableAttributes.Where(a => a != "").Concat(newProduct.Attributes.Where(a => a != "")).ToHashSet().ToList() : product.AvailableAttributes;
             product.ImageReferences = newProduct.ImageReferences.Count() > 0 ? product.ImageReferences.Concat(newProduct.ImageReferences).ToHashSet().ToList() : product.ImageReferences;
             await productRepo.UpdateAsync(product);
             return product;
@@ -353,7 +348,7 @@ namespace TheFreckExchange.Server.Services
         public async Task<ImageFile> GetBackgroundImageAsync()
         {
             var config = await configRepo.GetConfigAsync();
-            if (config == null || config.Background == null) return new ImageFile { Image = new byte[64],Name = "no background found" };
+            if (config == null || config.Background == null) return new ImageFile { Image = new byte[64], Name = "no background found" };
             return await imageRepo.GetBackgroundImageAsync(config.Background);
         }
 

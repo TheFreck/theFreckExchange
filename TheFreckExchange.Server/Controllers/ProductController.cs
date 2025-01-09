@@ -1,9 +1,6 @@
 ﻿using Microsoft.AspNetCore.Mvc;
 using TheFreckExchange.Server.DTO;
 using TheFreckExchange.Server.Services;
-using System.Linq;
-using System.Net;
-using System.Xml.Linq;
 
 namespace TheFreckExchange.Server.Controllers
 {
@@ -57,7 +54,7 @@ namespace TheFreckExchange.Server.Controllers
         [HttpPost("create")]
         public async Task<Product> CreateProduct(ProductDTO input)
         {
-            if(input.Credentials == null)
+            if (input.Credentials == null)
             {
                 return new Product
                 {
@@ -91,7 +88,7 @@ namespace TheFreckExchange.Server.Controllers
         [HttpPut("modify/product")]
         public async Task<Product> ModifyProduct([FromBody] ProductDTO input)
         {
-            if(input.Credentials == null)
+            if (input.Credentials == null)
             {
                 return new Product
                 {
@@ -107,7 +104,7 @@ namespace TheFreckExchange.Server.Controllers
                 return await productService.ModifyProductAsync(input);
             }
             return new Product
-            { 
+            {
                 Name = "Couldn't modify the product",
                 Price = input.Price,
                 ProductDescription = input.Description,
@@ -178,13 +175,13 @@ namespace TheFreckExchange.Server.Controllers
         [HttpPost("items/create/{qty}")]
         public async Task<Item> CreateItems(int qty, Item item)
         {
-            if(item.Credentials == null)
+            if (item.Credentials == null)
             {
                 item.Name = "Missing or incorrect credentials";
                 item.ProductDescription = "Missing or incorrect credentials";
                 return item;
             }
-            var items = await productService.CreateItemsAsync(item.ProductId,qty, item.Attributes, item.Credentials);
+            var items = await productService.CreateItemsAsync(item.ProductId, qty, item.Attributes, item.Credentials);
             return items; ;
         }
 
@@ -196,9 +193,9 @@ namespace TheFreckExchange.Server.Controllers
         /// <param name="attributes"></param>
         /// <returns></returns>
         [HttpPost("item/buy/{qty}")]
-        public async Task<Item> PurchaseItem([FromBody]ItemDTO item, int qty)
+        public async Task<Item> PurchaseItem([FromBody] ItemDTO item, int qty)
         {
-            if(item.Credentials == null)
+            if (item.Credentials == null)
             {
                 return new Item
                 {
@@ -211,7 +208,7 @@ namespace TheFreckExchange.Server.Controllers
             }
             var account = await accountService.GetByUsernameAsync(item.Credentials.Username);
 
-            if(await loginService.ValidateTokenAsync(item.Credentials.Username, item.Credentials.LoginToken))
+            if (await loginService.ValidateTokenAsync(item.Credentials.Username, item.Credentials.LoginToken))
             {
                 var product = await productService.GetByNameAsync(item.Name);
                 var itemReturned = await productService.PurchaseItem(item, qty);
@@ -239,7 +236,7 @@ namespace TheFreckExchange.Server.Controllers
         }
 
         [HttpPost("image/uploadImage/{productId}")]
-        public async Task<IActionResult> UploadImagesForProductsAsync([FromForm]List<IFormFile> images, string productId)
+        public async Task<IActionResult> UploadImagesForProductsAsync([FromForm] List<IFormFile> images, string productId)
         {
             await productService.UpdateProductWithImageAsync(productId, images);
             return Ok();
@@ -266,7 +263,7 @@ namespace TheFreckExchange.Server.Controllers
         }
 
         [HttpPost("images/upload")]
-        public async Task<IActionResult> UploadImages([FromForm]List<IFormFile> images)
+        public async Task<IActionResult> UploadImages([FromForm] List<IFormFile> images)
         {
             var imagesUploaded = await productService.UploadImagesAsync(images);
             return Ok(imagesUploaded);
