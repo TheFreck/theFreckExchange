@@ -38,7 +38,7 @@ export const Welcome = () => {
         if (ready) return (
             <Box
                 sx={{
-                    height: "100vh",
+                    height: "90vh",
                     color: "black",
                     paddingTop: "10vh"
                 }}

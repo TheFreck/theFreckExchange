@@ -12,14 +12,17 @@ namespace TheFreckExchange.Server.Services
     public class DataGatheringService : IDataGatheringService
     {
         private readonly AngleSharp.IConfiguration config;
+        private readonly ILogger<DataGatheringService> logger;
 
-        public DataGatheringService()
+        public DataGatheringService(ILogger<DataGatheringService> logger)
         {
             config = Configuration.Default;
+            this.logger = logger;
         }
 
         public async Task<string> GetDataAsync(Categories category)
         {
+            logger.LogInformation($"Getting data by category, Service");
             if(category.URL != null && category.URL != string.Empty)
             {
                 using (HttpClient client = new HttpClient()) 

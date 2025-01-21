@@ -365,12 +365,16 @@ export const itemContainsAttribute = (item,attribute,cb) => {
 };
 
 export const getSiteImagesAsync = (figs,cb) => {
-    if(localStorage.getItem("configId") === null || figs.configId === null || localStorage.getItem("configId") === undefined || localStorage.getItem("configId") === "undefined") return cb();
+    if(localStorage.getItem("configId") === null 
+        || figs.configId === null 
+        || localStorage.getItem("configId") === undefined 
+        || localStorage.getItem("configId") === "undefined"
+    ) return cb();
     getBaseURL(url => {
         const api = axios.create({
             baseURL: url + "/Product"
         });
-        api.get(`images/site`)
+        api.get(`images`)
         .then(async yup => {
             let yupReturn = [];
             for (var im of yup.data) {

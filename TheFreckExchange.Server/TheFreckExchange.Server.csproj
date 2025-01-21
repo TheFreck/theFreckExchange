@@ -8,12 +8,14 @@
     <SpaProxyLaunchCommand>npm run dev</SpaProxyLaunchCommand>
     <SpaProxyServerUrl>https://localhost:5173</SpaProxyServerUrl>
     <UserSecretsId>f78937ec-00eb-4bb8-a9fb-2d0d070c5fb5</UserSecretsId>
+    <ApplicationInsightsResourceId>/subscriptions/d7cebdb8-153f-4e5c-af4f-c2dcc2f05d9c/resourceGroups/rg-freckexchange/providers/microsoft.insights/components/theFreckExchange</ApplicationInsightsResourceId>
   </PropertyGroup>
 
   <ItemGroup>
     <PackageReference Include="AngleSharp" Version="1.1.2" />
     <PackageReference Include="Azure.Extensions.AspNetCore.Configuration.Secrets" Version="1.3.2" />
     <PackageReference Include="Azure.Identity" Version="1.13.0" />
+    <PackageReference Include="Microsoft.ApplicationInsights.AspNetCore" Version="2.22.0" />
     <PackageReference Include="Microsoft.AspNetCore.SpaProxy">
       <Version>8.0.11</Version>
     </PackageReference>

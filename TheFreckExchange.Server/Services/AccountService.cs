@@ -19,15 +19,18 @@ namespace TheFreckExchange.Server.Services
     {
         private readonly IAccountRepo accountRepo;
         private readonly ILoginService loginService;
+        private readonly ILogger<AccountService> logger;
 
-        public AccountService(IAccountRepo accountRepo, ILoginService loginService)
+        public AccountService(IAccountRepo accountRepo, ILoginService loginService, ILogger<AccountService> logger)
         {
             this.accountRepo = accountRepo;
             this.loginService = loginService;
+            this.logger = logger;
         }
 
         public async Task<Account> AddToBalanceAsync(string username, string token, double balanceIncrease)
         {
+            logger.LogInformation($"Add {balanceIncrease} to balance for {username}; Service");
             var acct = await accountRepo.GetByUsernameAsync(username);
             acct.Balance += balanceIncrease;
             accountRepo.Update(acct);
@@ -41,6 +44,7 @@ namespace TheFreckExchange.Server.Services
 
         public async Task<Account> CreateAccountAsync(string name, string email, string username, string password, List<AccountPermissions> permissions)
         {
+            logger.LogInformation($"Create account: {name}, {email}, {username}; Service");
             var account = new Account(name, username, email, permissions);
 
             var (passwordHash, passwordSalt) = loginService.CreateLogin(password);
@@ -66,6 +70,7 @@ namespace TheFreckExchange.Server.Services
 
         public async Task<Account> GetByAccountIdAsync(string accountId)
         {
+            logger.LogInformation($"Get account by id: {accountId}; Service");
             var account = await accountRepo.GetByAccountIdAsync(accountId);
             account.Username = string.Empty;
             account.Password = string.Empty;
@@ -78,6 +83,7 @@ namespace TheFreckExchange.Server.Services
 
         public async Task<Account> GetByEmailAsync(string email)
         {
+            logger.LogInformation($"Get account by email: {email}; Service");
             var account = await accountRepo.GetByEmailAsync(email);
 
             account.Username = string.Empty;
@@ -92,6 +98,7 @@ namespace TheFreckExchange.Server.Services
 
         public IEnumerable<Account> GetAllAccounts()
         {
+            logger.LogInformation("Get all accounts; Service");
             var accounts = accountRepo.GetAllAccounts().ToList();
             accounts.ForEach(a =>
             {
@@ -107,6 +114,7 @@ namespace TheFreckExchange.Server.Services
 
         public async Task<Account> MakePaymentAsync(string email, double payment)
         {
+            logger.LogInformation($"Make {payment} payment to account: {email}; Service");
             var account = await accountRepo.GetByEmailAsync(email);
             account.Balance -= payment;
             accountRepo.Update(account);
@@ -121,6 +129,7 @@ namespace TheFreckExchange.Server.Services
 
         public async Task<Account> GetByUsernameAsync(string username)
         {
+            logger.LogInformation($"Get account by username: {username}; Service");
             var account = await accountRepo.GetByUsernameAsync(username);
 
             account.Username = string.Empty;

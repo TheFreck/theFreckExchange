@@ -23,19 +23,23 @@ namespace TheFreckExchange.Server.Services
     public class LoginService : ILoginService
     {
         private readonly IAccountRepo accountRepo;
-        public LoginService(IAccountRepo accountRepo)
+        private readonly ILogger<LoginService> logger;
+        public LoginService(IAccountRepo accountRepo, ILogger<LoginService> logger)
         {
             this.accountRepo = accountRepo;
+            this.logger = logger;
         }
 
         public (string hash, byte[] salt) CreateLogin(string request)
         {
+            logger.LogInformation($"Create login for {request}, Service");
             var passwordHash = MakeHash(request, out var passwordSalt);
             return (passwordHash, passwordSalt);
         }
 
         public async Task<Account> LoginAsync(string username, string password)
         {
+            logger.LogInformation($"Login {username}, Service");
             var account = await accountRepo.GetByUsernameAsync(username);
             if(account != null && account.PasswordSalt != null)
             {
@@ -55,6 +59,7 @@ namespace TheFreckExchange.Server.Services
         {
             try
             {
+                logger.LogInformation($"Log out {username}, Service");
                 if (username == null || username == "undefined") return true;
                 var account = await accountRepo.GetByUsernameAsync(username);
                 account.LoginToken = Guid.Empty.ToString();
@@ -70,6 +75,7 @@ namespace TheFreckExchange.Server.Services
 
         public string MakeHash(string preHash, out byte[] salt)
         {
+            logger.LogInformation("Make hash, Service");
             const int keySize = 64;
             const int iterations = 350000;
             salt = RandomNumberGenerator.GetBytes(keySize);
@@ -84,6 +90,7 @@ namespace TheFreckExchange.Server.Services
 
         public async Task<bool> ValidatePermissionsAsync(Account account, PermissionType permission, string token)
         {
+            logger.LogInformation($"Validate Permission for: {account.Name}, Service");
             var gotten = await accountRepo.GetByUsernameAsync(account.Username);
             if (token == String.Empty || account.LoginToken == string.Empty) return false;
 
@@ -93,6 +100,7 @@ namespace TheFreckExchange.Server.Services
 
         public async Task<bool> ValidateTokenAsync(string username, string token)
         {
+            logger.LogInformation($"Validate token for: {username}, Service");
             var account = await accountRepo.GetByUsernameAsync(username);
             var isValid = account != null && account.LoginToken == token;
             return isValid;
@@ -100,6 +108,7 @@ namespace TheFreckExchange.Server.Services
 
         public bool VerifyHash(string password, string hashword, byte[] salt)
         {
+            logger.LogInformation($"Verify hash, Service");
             const int keySize = 64;
             const int iterations = 350000;
             var hash = Rfc2898DeriveBytes.Pbkdf2(

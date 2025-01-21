@@ -16,16 +16,19 @@ namespace TheFreckExchange.Server.Services
         private readonly IConfigRepo configRepo;
         private readonly IAccountRepo accountRepo;
         private readonly IProductRepo productRepo;
+        private readonly ILogger<ConfigService> logger;
 
-        public ConfigService(IConfigRepo configRepo, IAccountRepo accountRepo, IProductRepo productRepo)
+        public ConfigService(IConfigRepo configRepo, IAccountRepo accountRepo, IProductRepo productRepo, ILogger<ConfigService> logger)
         {
             this.configRepo = configRepo;
             this.accountRepo = accountRepo;
             this.productRepo = productRepo;
+            this.logger = logger;
         }
 
         public async Task<ConfigDTO> CreateNewAsync(ConfigDTO config)
         {
+            logger.LogInformation($"Create config: {config.Id}, Service");
             var admins = await accountRepo.GetAdminsAsync();
             config.ConfigId = Guid.NewGuid().ToString();
             foreach(var admin in admins.ToList())
@@ -40,6 +43,7 @@ namespace TheFreckExchange.Server.Services
 
         public async Task<ConfigDTO> DeleteConfigAsync()
         {
+            logger.LogInformation("Delete config, Service");
             var config = await configRepo.GetConfigAsync();
             var admins = await accountRepo.GetAdminsAsync();
             foreach(var admin in admins)
@@ -59,12 +63,14 @@ namespace TheFreckExchange.Server.Services
 
         public async Task<ConfigDTO> GetConfigAsync()
         {
+            logger.LogInformation("Get config");
             var config = await configRepo.GetConfigAsync();
             return config;
         }
 
         public async Task<ConfigDTO> UpdateConfigAsync(ConfigDTO configDTO)
         {
+            logger.LogInformation($"Update config: {configDTO.Id}");
             var config = await configRepo.GetConfigAsync();
             if(configDTO.Images != null && configDTO.Images.Count > 0) config.Images.AddRange(configDTO.Images);
             config.SiteTitle = String.IsNullOrWhiteSpace(configDTO.SiteTitle) ? config == null ? String.Empty : config.SiteTitle : configDTO.SiteTitle;

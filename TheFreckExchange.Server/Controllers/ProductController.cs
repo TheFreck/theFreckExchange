@@ -30,6 +30,7 @@ namespace TheFreckExchange.Server.Controllers
         [HttpGet]
         public IEnumerable<Product> GetAll()
         {
+            logger.LogInformation("Get all products, Controller");
             var products = productService.GetAll();
             return products;
         }
@@ -42,6 +43,7 @@ namespace TheFreckExchange.Server.Controllers
         [HttpGet("name/{name}")]
         public async Task<Product> GetByName(string name)
         {
+            logger.LogInformation($"Get product by name: {name}, Controller");
             var product = await productService.GetByNameAsync(name);
             return product;
         }
@@ -54,6 +56,7 @@ namespace TheFreckExchange.Server.Controllers
         [HttpPost("create")]
         public async Task<Product> CreateProduct(ProductDTO input)
         {
+            logger.LogInformation($"Create product: {input.Name}, Controller");
             if (input.Credentials == null)
             {
                 return new Product
@@ -88,6 +91,7 @@ namespace TheFreckExchange.Server.Controllers
         [HttpPut("modify/product")]
         public async Task<Product> ModifyProduct([FromBody] ProductDTO input)
         {
+            logger.LogInformation($"Modify product: {input.Name}, Controller");
             if (input.Credentials == null)
             {
                 return new Product
@@ -122,6 +126,7 @@ namespace TheFreckExchange.Server.Controllers
         [HttpGet("items/{name}")]
         public async Task<List<Item>> GetItemsForProduct(string name)
         {
+            logger.LogInformation($"Get items for {name}, Controller");
             var items = await productService.GetItemsAsync(name);
             return items;
         }
@@ -136,6 +141,7 @@ namespace TheFreckExchange.Server.Controllers
         [HttpGet("items/product/{productName}/attribute/{attribute}/{value}")]
         public async Task<IEnumerable<Item>> GetItemsByAttribute(string productName, string attribute, string value)
         {
+            logger.LogInformation($"Get items for {productName} by attribute: {attribute} - {value}, Controller");
             var items = await productService.GetByAttributeAsync(productName, attribute, value);
             return items;
         }
@@ -148,6 +154,7 @@ namespace TheFreckExchange.Server.Controllers
         [HttpGet("items/product/{productName}/attributes")]
         public async Task<IEnumerable<GroupedAttributes>> GetAttributesAsync(string productName)
         {
+            logger.LogInformation($"Get attributes for: {productName}, Controller");
             var groups = await productService.GetAttributesAsync(productName);
             return groups;
         }
@@ -160,6 +167,7 @@ namespace TheFreckExchange.Server.Controllers
         [HttpGet("items/availableAttributes/{productName}")]
         public async Task<IEnumerable<string>> GetAvailableAttributes(string productName)
         {
+            logger.LogInformation($"Get available attributes for {productName}, Controller");
             var attributes = await productService.GetAvailableAttributes(productName);
             return attributes;
         }
@@ -175,6 +183,7 @@ namespace TheFreckExchange.Server.Controllers
         [HttpPost("items/create/{qty}")]
         public async Task<Item> CreateItems(int qty, Item item)
         {
+            logger.LogInformation($"Create {qty} {item.Name}'s, Controller");
             if (item.Credentials == null)
             {
                 item.Name = "Missing or incorrect credentials";
@@ -195,6 +204,7 @@ namespace TheFreckExchange.Server.Controllers
         [HttpPost("item/buy/{qty}")]
         public async Task<Item> PurchaseItem([FromBody] ItemDTO item, int qty)
         {
+            logger.LogInformation($"Purchase {qty} of {item.Name}, Controller");
             if (item.Credentials == null)
             {
                 return new Item
@@ -238,6 +248,7 @@ namespace TheFreckExchange.Server.Controllers
         [HttpPost("image/uploadImage/{productId}")]
         public async Task<IActionResult> UploadImagesForProductsAsync([FromForm] List<IFormFile> images, string productId)
         {
+            logger.LogInformation($"Upload iamges for product: {productId}, Controller");
             await productService.UpdateProductWithImageAsync(productId, images);
             return Ok();
         }
@@ -245,12 +256,14 @@ namespace TheFreckExchange.Server.Controllers
         [HttpPost("imageItems")]
         public async Task<IEnumerable<ImageFile>> GetProductImages(IEnumerable<string> imageIds)
         {
+            logger.LogInformation($"Get product images, Controller");
             return await productService.GetImagesAsync(imageIds);
         }
 
         [HttpGet("images")]
         public IEnumerable<ImageFile> GetAllImages()
         {
+            logger.LogInformation("Get all images, Controller");
             var images = productService.GetAllImages().ToList();
             return images;
         }
@@ -258,6 +271,7 @@ namespace TheFreckExchange.Server.Controllers
         [HttpGet("images/site")]
         public async Task<IEnumerable<ImageFile>> GetSiteImages()
         {
+            logger.LogInformation("Get site images, Controller");
             var images = await productService.GetAllSiteImagesAsync();
             return images;
         }
@@ -265,6 +279,7 @@ namespace TheFreckExchange.Server.Controllers
         [HttpPost("images/upload")]
         public async Task<IActionResult> UploadImages([FromForm] List<IFormFile> images)
         {
+            logger.LogInformation("Upload images, Controller");
             var imagesUploaded = await productService.UploadImagesAsync(images);
             return Ok(imagesUploaded);
         }

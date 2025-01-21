@@ -35,7 +35,8 @@ namespace TheFreckExchange.Server.Services
         private readonly ILoginService loginService;
         private readonly IImageRepo imageRepo;
         private readonly IConfigRepo configRepo;
-        public ProductService(IProductRepo productRepo, IItemRepo itemRepo, IAccountRepo accountRepo, ILoginService loginService, IImageRepo imageRepo, IConfigRepo configRepo)
+        private readonly ILogger<ProductService> logger;
+        public ProductService(IProductRepo productRepo, IItemRepo itemRepo, IAccountRepo accountRepo, ILoginService loginService, IImageRepo imageRepo, IConfigRepo configRepo, ILogger<ProductService> logger)
         {
             this.productRepo = productRepo;
             this.itemRepo = itemRepo;
@@ -43,10 +44,12 @@ namespace TheFreckExchange.Server.Services
             this.loginService = loginService;
             this.imageRepo = imageRepo;
             this.configRepo = configRepo;
+            this.logger = logger;
         }
 
         public async Task<Item> CreateItemAsync(string productId, Item item)
         {
+            logger.LogInformation($"Create item {item.Name}, Service");
             if (item.Credentials == null)
             {
                 item.Name = "Missing or incorrect credentials";
@@ -75,6 +78,7 @@ namespace TheFreckExchange.Server.Services
 
         public async Task<Item> CreateItemsAsync(string productId, int itemQuantity, IEnumerable<ItemAttribute> attributes, LoginCredentials credentials)
         {
+            logger.LogInformation($"Create Items: {productId}, Service");
             var account = await accountRepo.GetByUsernameAsync(credentials.Username);
             if (await loginService.ValidatePermissionsAsync(account, PermissionType.Admin, credentials.AdminToken))
             {
@@ -104,6 +108,7 @@ namespace TheFreckExchange.Server.Services
 
         public async Task<Product> CreateProductAsync(string name, string description, IEnumerable<string> attributes, double price, LoginCredentials credentials, IEnumerable<string> images, string primaryImageReference)
         {
+            logger.LogInformation($"Create Product {name}, Service");
             var account = await accountRepo.GetByUsernameAsync(credentials.Username);
 
             if (await loginService.ValidatePermissionsAsync(account, PermissionType.Admin, credentials.AdminToken))
@@ -134,6 +139,7 @@ namespace TheFreckExchange.Server.Services
 
         public async Task UpdateProductWithImageAsync(string productId, IEnumerable<IFormFile> images)
         {
+            logger.LogInformation($"Update product {productId} with image");
             var product = await productRepo.GetByProductIdAsync(productId);
             long size = images.Sum(f => f.Length);
             var count = 0;
@@ -162,6 +168,7 @@ namespace TheFreckExchange.Server.Services
 
         public IEnumerable<Product> GetAll()
         {
+            logger.LogInformation("Get all products, Service");
             var products = productRepo.GetAllProducts();
             if (products.ToList().Count > 0)
                 return products;
@@ -170,6 +177,7 @@ namespace TheFreckExchange.Server.Services
 
         public async Task<IEnumerable<GroupedAttributes>> GetAttributesAsync(string productName)
         {
+            logger.LogInformation($"Get attributes of {productName} product, Service");
             var items = await itemRepo.GetAllItemsAsync(productName);
             var selected = items.SelectMany(i => i.Attributes).ToHashSet();
             var groups = selected.GroupBy(attribute => attribute.Type, attribute => attribute.Value, (type, value) =>
@@ -183,24 +191,28 @@ namespace TheFreckExchange.Server.Services
 
         public async Task<IEnumerable<string>> GetAvailableAttributes(string productName)
         {
+            logger.LogInformation($"Get available attributes for {productName}, Service");
             var product = await productRepo.GetByNameAsync(productName);
             return product.AvailableAttributes;
         }
 
         public async Task<IEnumerable<Item>> GetByAttributeAsync(string productName, string type, string value)
         {
+            logger.LogInformation($"Get {productName} items by attribute: {type} - {value}, Service");
             var items = await itemRepo.GetByAttributeAsync(productName, type, value);
             return items;
         }
 
         public async Task<Product> GetByNameAsync(string name)
         {
+            logger.LogInformation($"Get product by name: {name}, Service");
             var product = await productRepo.GetByNameAsync(name);
             return product;
         }
 
         public async Task<List<Item>> GetItemsAsync(string name)
         {
+            logger.LogInformation($"Get {name} items, Servicec");
             var items = (await itemRepo.GetAllItemsAsync(name)).ToList();
             if (items.Any())
                 return items;
@@ -209,6 +221,7 @@ namespace TheFreckExchange.Server.Services
 
         public async Task<Product> ModifyDescriptionAsync(string productName, string newDescription, LoginCredentials credentials)
         {
+            logger.LogInformation($"Modify {productName} description, Service");
             var account = await accountRepo.GetByUsernameAsync(credentials.Username);
             if (await loginService.ValidatePermissionsAsync(account, PermissionType.Admin, credentials.AdminToken))
             {
@@ -228,6 +241,7 @@ namespace TheFreckExchange.Server.Services
 
         public async Task<Product> ModifyNameAsync(string oldName, string newName, LoginCredentials credentials)
         {
+            logger.LogInformation($"Modify product name from {oldName} to {newName}, Service");
             var account = await accountRepo.GetByUsernameAsync(credentials.Username);
             if (await loginService.ValidatePermissionsAsync(account, PermissionType.Admin, credentials.AdminToken))
             {
@@ -247,6 +261,7 @@ namespace TheFreckExchange.Server.Services
 
         public async Task<Product> ModifyPriceAsync(string productName, double price, LoginCredentials credentials)
         {
+            logger.LogInformation($"Modify {productName} price to: {price}, Service");
             var account = await accountRepo.GetByUsernameAsync(credentials.Username);
             if (await loginService.ValidatePermissionsAsync(account, PermissionType.Admin, credentials.AdminToken))
             {
@@ -266,6 +281,7 @@ namespace TheFreckExchange.Server.Services
 
         public async Task<Item> PurchaseItem(ItemDTO item, int qty)
         {
+            logger.LogInformation($"Purchase {qty} of {item.Name}, Service");
             if (item.Credentials == null) throw new Exception("invalid credentials");
             var account = await accountRepo.GetByUsernameAsync(item.Credentials.Username);
             var loggedIn = await loginService.ValidateTokenAsync(item.Credentials.Username, item.Credentials.LoginToken);
@@ -295,6 +311,7 @@ namespace TheFreckExchange.Server.Services
 
         public async Task<Product> ModifyProductAsync(ProductDTO newProduct)
         {
+            logger.LogInformation($"Modify product - {newProduct.Name}, Service");
             var product = await productRepo.GetByNameAsync(newProduct.Name);
             product.Price = newProduct.Price > 0 ? newProduct.Price : product.Price;
             product.ProductDescription = newProduct.Description != String.Empty ? newProduct.Description : product.ProductDescription;
@@ -306,11 +323,13 @@ namespace TheFreckExchange.Server.Services
 
         public IEnumerable<ImageFile> GetAllImages()
         {
+            logger.LogInformation("Get all images, Service");
             return imageRepo.GetAll();
         }
 
         public async Task<IEnumerable<ImageFile>> UploadImagesAsync(IEnumerable<IFormFile> images)
         {
+            logger.LogInformation("Upload images, Service");
             long size = images.Sum(f => f.Length);
             var imageList = new List<ImageFile>();
             foreach (FormFile formFile in images)
@@ -338,6 +357,7 @@ namespace TheFreckExchange.Server.Services
 
         public async Task<IEnumerable<ImageFile>> GetAllSiteImagesAsync()
         {
+            logger.LogInformation("Get all site images, Service");
             var config = await configRepo.GetConfigAsync();
             if (config == null) return new List<ImageFile>();
             var images = imageRepo.GetAll();
@@ -347,6 +367,7 @@ namespace TheFreckExchange.Server.Services
 
         public async Task<ImageFile> GetBackgroundImageAsync()
         {
+            logger.LogInformation("Get background images, Service");
             var config = await configRepo.GetConfigAsync();
             if (config == null || config.Background == null) return new ImageFile { Image = new byte[64], Name = "no background found" };
             return await imageRepo.GetBackgroundImageAsync(config.Background);
@@ -354,6 +375,7 @@ namespace TheFreckExchange.Server.Services
 
         public async Task<IEnumerable<ImageFile>> GetImagesAsync(IEnumerable<string> imageIds)
         {
+            logger.LogInformation("Get images, Service");
             return await imageRepo.GetImageFilesAsync(imageIds);
         }
     }

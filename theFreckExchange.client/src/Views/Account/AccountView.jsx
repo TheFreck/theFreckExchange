@@ -13,15 +13,7 @@ export const AccountView = () => {
             setTransactionHistory(acct.history.sort((a,b) => Date.parse(b.transactionDate)-Date.parse(a.transactionDate)));
         });
     },[]);
-
-    // name
-    // email
-    // current balance
-    // purchase history
-    // browsing history
-    // account permissions
-    // account history
-
+    
     return <Box
             sx={{
                 width: "80vw",
@@ -52,7 +44,6 @@ export const AccountView = () => {
                     <Accordion
                         key={i}
                     >
-                        {console.log("h: ", h)}
                         <AccordionSummary>
                             {h.item.name} {new Date(h.transactionDate).getMonth()%12+1}/{new Date(h.transactionDate).getDate()}/{new Date(h.transactionDate).getFullYear()}
                         </AccordionSummary>

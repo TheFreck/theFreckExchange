@@ -102,7 +102,10 @@ export const PurchaseItem = ({product}) => {
     return (
         <Grid2
             container
-            sx={{width: "80vw",border: "solid"}}
+            sx={{
+                width: "80vw",
+                padding: "1vw"
+            }}
         >
             <Grid2
                 container
@@ -120,121 +123,124 @@ export const PurchaseItem = ({product}) => {
             <Grid2
                 sx={{marginTop: "1vh", width: "100%", display:"flex", flexDirection: "row"}}
             >
-                <Grid2
-                    sx={{width: "30vw",  height: "20vh"}}
-                >
-                    {
-                        Object.entries(attributeChoices).length && orderedAttributes && Object.entries(orderedAttributes).length && 
-                        Object.entries(orderedAttributes).map((a,i) => 
-                            <FormControl 
-                                key={i}
-                                sx={{width: "100%", marginBottom: "1vh",  visibility: `${i === 0 || (i > 0 && Object.entries(attributeChoices)[i-1][1] !== "") ? "visible" : "hidden"}` }}
-                            >
-                                <InputLabel>
-                                    {a[0]}
-                                </InputLabel>
-                                <Select
-                                    label={a[0]}
-                                    onChange={(e) => handleSelection(e.target.value,a[0])}
-                                    value={attributeChoices[a[0]]}
-                                >
-                                    <MenuItem
-                                        disabled={Object.entries(attributeChoices)[i][1] === ""}
-                                        name="attribute"
-                                        value="attribute"
-                                    >
-                                        {Object.entries(attributeChoices)[i][1] === "" ?
-                                        `Choose a ${a[0]}` : "Clear Selection"}
-                                    </MenuItem>
-                                    {
-                                        a && a[1] && Object.values(Array.from(a[1])).map((t,j) => (
-                                            <MenuItem
-                                                key={j}
-                                                id={a[0]}
-                                                name={a[0]}
-                                                value={t}
-                                            >
-                                                {t}
-                                            </MenuItem>
-                                                
-                                        ))
-                                    }
-                                </Select>
-                            </FormControl>
-                        )
-                    }
+                {
+                    localStorage.getItem("loginToken") &&
                     <Grid2
-                        sx={{width: "100%", display: "flex", flexDirection: "row", justifyContent: "space-between"}}
+                        sx={{width: "30vw",  height: "20vh"}}
                     >
-                        <FormControl
-                            sx={{width: "30%"}}
+                        {
+                            Object.entries(attributeChoices).length && orderedAttributes && Object.entries(orderedAttributes).length && 
+                            Object.entries(orderedAttributes).map((a,i) => 
+                                <FormControl 
+                                    key={i}
+                                    sx={{width: "100%", marginBottom: "1vh",  visibility: `${i === 0 || (i > 0 && Object.entries(attributeChoices)[i-1][1] !== "") ? "visible" : "hidden"}` }}
+                                >
+                                    <InputLabel>
+                                        {a[0]}
+                                    </InputLabel>
+                                    <Select
+                                        label={a[0]}
+                                        onChange={(e) => handleSelection(e.target.value,a[0])}
+                                        value={attributeChoices[a[0]]}
+                                    >
+                                        <MenuItem
+                                            disabled={Object.entries(attributeChoices)[i][1] === ""}
+                                            name="attribute"
+                                            value="attribute"
+                                        >
+                                            {Object.entries(attributeChoices)[i][1] === "" ?
+                                            `Choose a ${a[0]}` : "Clear Selection"}
+                                        </MenuItem>
+                                        {
+                                            a && a[1] && Object.values(Array.from(a[1])).map((t,j) => (
+                                                <MenuItem
+                                                    key={j}
+                                                    id={a[0]}
+                                                    name={a[0]}
+                                                    value={t}
+                                                >
+                                                    {t}
+                                                </MenuItem>
+                                                    
+                                            ))
+                                        }
+                                    </Select>
+                                </FormControl>
+                            )
+                        }
+                        <Grid2
+                            sx={{width: "100%", display: "flex", flexDirection: "row", justifyContent: "space-between"}}
                         >
-                            <TextField 
-                                label="Quantity"
-                                type="number"
-                                disabled={Object.values(attributeChoices).filter(a => a === "").length > 0}
-                                error={qtyError}
-                                onChange={(q) => {
-                                    if(parseInt(q.target.value) > maxQty){
-                                        setQtyError(true);
+                            <FormControl
+                                sx={{width: "30%"}}
+                            >
+                                <TextField 
+                                    label="Quantity"
+                                    type="number"
+                                    disabled={Object.values(attributeChoices).filter(a => a === "").length > 0}
+                                    error={qtyError}
+                                    onChange={(q) => {
+                                        if(parseInt(q.target.value) > maxQty){
+                                            setQtyError(true);
+                                        }
+                                        else{
+                                            setQtyError(false);
+                                        }
+                                        setQuantity(parseInt(q.target.value))
                                     }
-                                    else{
-                                        setQtyError(false);
-                                    }
-                                    setQuantity(parseInt(q.target.value))
                                 }
-                            }
-                                value={quantity}
-                            />
-                        </FormControl>
-                        <Box 
-                            sx={{width: "auto", display: "flex", flexDirection: "row", justifyContent: "space-around"}}
-                        >
-                            <Button
-                                sx={{width: "40%"}}
-                                onClick={() => {
-                                    getAttributesFromItems(items,availables => {
-                                        let attChoicesObj = {};
-                                        Object.keys(availables).forEach(type => {
-                                            attChoicesObj[type] = "";
+                                    value={quantity}
+                                />
+                            </FormControl>
+                            <Box 
+                                sx={{width: "auto", display: "flex", flexDirection: "row", justifyContent: "space-around"}}
+                            >
+                                <Button
+                                    sx={{width: "40%"}}
+                                    onClick={() => {
+                                        getAttributesFromItems(items,availables => {
+                                            let attChoicesObj = {};
+                                            Object.keys(availables).forEach(type => {
+                                                attChoicesObj[type] = "";
+                                            });
+                                            setAttributeChoices(attChoicesObj);
+                                            setAvailableAttributes(availables);
+                                        })}}
+                                >
+                                    Reset Attributes
+                                </Button>
+                                <Button
+                                    sx={{width: "40%"}}
+                                    variant="contained"
+                                    onClick={() => {
+                                        let attArray = [];
+                                        for(let att of Object.entries(attributeChoices)){
+                                            attArray.push({type:att[0],value: att[1]});
+                                        }
+                                        addToCart({
+                                            item: narrowedItems[0],
+                                            quantity,
+                                            totalPrice: narrowedItems[0].price * quantity
+                                        },() => {
+                                            console.log("added to cart");
                                         });
-                                        setAttributeChoices(attChoicesObj);
-                                        setAvailableAttributes(availables);
-                                    })}}
-                            >
-                                Reset Attributes
-                            </Button>
-                            <Button
-                                sx={{width: "40%"}}
-                                variant="contained"
-                                onClick={() => {
-                                    let attArray = [];
-                                    for(let att of Object.entries(attributeChoices)){
-                                        attArray.push({type:att[0],value: att[1]});
                                     }
-                                    addToCart({
-                                        item: narrowedItems[0],
-                                        quantity,
-                                        totalPrice: narrowedItems[0].price * quantity
-                                    },() => {
-                                        console.log("added to cart");
-                                    });
-                                }
-                                }
+                                    }
+                                >
+                                    Add to Cart
+                                </Button>
+                            </Box>
+                        </Grid2>
+                        {
+                            qtyError &&
+                            <Typography
+                                color="error"
                             >
-                                Add to Cart
-                            </Button>
-                        </Box>
+                                {soldOutMessage(quantity,maxQty)}
+                            </Typography>
+                        }
                     </Grid2>
-                    {
-                        qtyError &&
-                        <Typography
-                            color="error"
-                        >
-                            {soldOutMessage(quantity,maxQty)}
-                        </Typography>
-                    }
-                </Grid2>
+                }
                 <Grid2
                     width={8}
                     sx={{height: "auto", width: "50vw", textAlign: "justify"}}

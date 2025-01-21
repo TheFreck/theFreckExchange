@@ -21,12 +21,10 @@ namespace TheFreckExchange.Server.Controllers
             this.logger = logger;
         }
 
-        [HttpGet("anything")]
-        public IActionResult Get() { return Ok("you made it here"); }
-
         [HttpPost("resource")]
         public async Task<string> GetResourceAsync([FromBody]Categories resource)
         {
+            logger.LogInformation($"Get resource, Controller");
             var desc = await data.GetDataAsync(resource);
             return desc;
         }
@@ -34,6 +32,7 @@ namespace TheFreckExchange.Server.Controllers
         [HttpGet("config")]
         public async Task<ConfigDTO> GetSiteConfig()
         {
+            logger.LogInformation($"Get site config, Controller");
             var config = await configService.GetConfigAsync();
             return config;
         }
@@ -41,24 +40,28 @@ namespace TheFreckExchange.Server.Controllers
         [HttpGet("config/background")]
         public async Task<ImageFile> GetBackgroundImageAsync()
         {
+            logger.LogInformation("Get background images, Controller");
             return await productService.GetBackgroundImageAsync();
         }
 
         [HttpPost("config/set")]
         public async Task<ConfigDTO> SetConfigAsync([FromBody]ConfigDTO config)
         {
+            logger.LogInformation($"Set config: {config.ConfigId}, Controller");
             return await configService.CreateNewAsync(config);
         }
 
         [HttpPut("config/update")]
         public async Task<ConfigDTO> UpdateConfigAsync(ConfigDTO config)
         {
+            logger.LogInformation("Update config, Controller");
             return await configService.UpdateConfigAsync(config);
         }
 
         [HttpDelete("config")]
         public async Task<ConfigDTO> DeleteCurrentConfig()
         {
+            logger.LogInformation("Delete config");
             return await configService.DeleteConfigAsync();
         }
     }

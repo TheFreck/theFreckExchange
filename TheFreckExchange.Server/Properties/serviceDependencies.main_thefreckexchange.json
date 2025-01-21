@@ -1,0 +1,10 @@
+{
+  "dependencies": {
+    "mongodb1": {
+      "ignored": "true",
+      "type": "mongodb",
+      "connectionId": "ConnectionStrings:DatabaseConnection",
+      "dynamicId": null
+    }
+  }
+}

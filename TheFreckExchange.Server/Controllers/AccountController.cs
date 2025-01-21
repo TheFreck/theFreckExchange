@@ -9,13 +9,13 @@ namespace TheFreckExchange.Server.Controllers
     [Route("[controller]")]
     public class AccountController : ControllerBase
     {
-        private readonly ILogger<AccountController> _logger;
+        private readonly ILogger<AccountController> logger;
         private readonly IAccountService accountService;
         private readonly ILoginService loginService;
 
         public AccountController(ILogger<AccountController> logger, IAccountService accountService, ILoginService loginService)
         {
-            _logger = logger;
+            this.logger = logger;
             this.accountService = accountService;
             this.loginService = loginService;
         }
@@ -23,6 +23,7 @@ namespace TheFreckExchange.Server.Controllers
         [HttpGet]
         public IEnumerable<Account> GetAllAsync()
         {
+            logger.LogInformation("Get all accounts, Controller");
             var accounts = accountService.GetAllAccounts().ToList();
             return accounts;
         }
@@ -30,6 +31,7 @@ namespace TheFreckExchange.Server.Controllers
         [HttpGet("email/{email}")]
         public async Task<Account> GetByEmail(string email)
         {
+            logger.LogInformation($"Get account by email: {email}, Controller");
             var account = await accountService.GetByEmailAsync(email);
             return account;
         }
@@ -37,12 +39,14 @@ namespace TheFreckExchange.Server.Controllers
         [HttpGet("{username}")]
         public async Task<Account> GetAccount(string username)
         {
+            logger.LogInformation($"Get account by username: {username}, Controller");
             return await accountService.GetByUsernameAsync(username);
         }
 
         [HttpPost("createAccount/{name}/{email}")]
         public async Task<IActionResult> CreateAccount(string name, string email, NewAccountRequest request)
         {
+            logger.LogInformation($"Create account {name}, {email}, Controller");
             try
             {
                 var account = await accountService.CreateAccountAsync(name, email, request.Username, request.Password, request.Permissions);
@@ -64,6 +68,7 @@ namespace TheFreckExchange.Server.Controllers
         [HttpPut("make_payment/{email}/{pmt}")]
         public async Task<IActionResult> MakePayment(string email, double pmt)
         {
+            logger.LogInformation($"Make payment of {pmt} on {email}, Controller");
             try
             {
                 return Ok(await accountService.MakePaymentAsync(email, pmt));
@@ -78,6 +83,7 @@ namespace TheFreckExchange.Server.Controllers
         [HttpPost("login")]
         public async Task<IActionResult> Login([FromBody] LoginRequest loginRequest)
         {
+            logger.LogInformation($"Login, Controller");
             try
             {
                 var account = await loginService.LoginAsync(loginRequest.Email, loginRequest.Password);
@@ -104,6 +110,7 @@ namespace TheFreckExchange.Server.Controllers
         [HttpPost("logout/{username}")]
         public async Task<IActionResult> Logout(string username)
         {
+            logger.LogInformation("Logout, Controller");
             return Ok(await loginService.LogOutAsync(username));
         }
     }
