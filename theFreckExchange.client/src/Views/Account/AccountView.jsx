@@ -57,6 +57,9 @@ export const AccountView = () => {
             }
             </AccordionDetails>
         </Accordion>
+        <Typography>
+            Transaction History is still being worked on
+        </Typography>
     </Box>
 }
 

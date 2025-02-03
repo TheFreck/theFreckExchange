@@ -40,6 +40,7 @@ export const Descriptions = ({products}) => {
                     key={i}
                     variant="h4"
                     onClick={() => selectProduct(l)}
+                    sx={{cursor: "pointer"}}
                 >
                     {l.name}
                 </Typography>
@@ -62,6 +63,7 @@ export const Descriptions = ({products}) => {
                     key={i}
                     variant="h4"
                     onClick={() => selectProduct(l)}
+                    sx={{ cursor: "pointer" }}
                 >
                     {l.name}
                 </Typography>

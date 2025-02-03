@@ -21,7 +21,12 @@ export const Checkout = ({completed}) => {
     return <Grid2
         sx={{display: "flex", flexDirection: "column"}}
     >
-        <Grid2>
+        <Grid2
+            sx={{
+                height: "60vh",
+                overflowY: "scroll"
+            }}
+        >
             {
                 cart.length && cart.map((c,i) => (
                     <TransactionDetails
@@ -33,8 +38,14 @@ export const Checkout = ({completed}) => {
             }
         </Grid2>
         <Grid2 container
-            sx={{marginLeft: "5vw"}}
-            >
+            sx={{
+                marginLeft: "5vw",
+                borderTop: "solid",
+                borderWidth: "1px",
+                marginTop: "1vh",
+                paddingTop: "1vh"
+            }}
+        >
             <Grid2 size={1}>
                 <Typography>
                     Subtotal: 
@@ -48,7 +59,7 @@ export const Checkout = ({completed}) => {
         </Grid2>
         <Grid2 container
             sx={{marginLeft: "5vw"}}
-            >
+        >
             <Grid2 size={1}>
                 <Typography>
                     Tax rate: 
