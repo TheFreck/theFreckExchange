@@ -1,11 +1,12 @@
 import react, { useContext, useEffect, useState } from "react";
 import { Box, Button, FormControl, Grid2, InputLabel, MenuItem, Select, TextField, Typography } from "@mui/material";
 import { ImageCarousel } from "../../components/ImageCarousel";
-import {getItemsAsync,purchaseItemAsync,getImagesFromReferencesAsync} from "../../helpers/helpersWelcome";
-import { AccountContext } from "../../Context";
+import {getItemsAsync,purchaseItemAsync,getImagesFromReferencesAsync} from "../../helpers/helpers";
+import { AuthContext } from "../../Context";
+import { useNavigate } from "react-router";
 
-export const PurchaseItem = ({product}) => {
-    const {addToCart} = useContext(AccountContext);
+export const PurchaseItem = ({product,setProductOpen}) => {
+    const {addToCart,isMobile,setSelectedProductName} = useContext(AuthContext);
     const [items,setItems] = useState([]);
     const [narrowedItems,setNarrowedItems] = useState([]);
     const [availableAttributes,setAvailableAttributes] = useState({});
@@ -15,6 +16,8 @@ export const PurchaseItem = ({product}) => {
     const [quantity, setQuantity] = useState(0);
     const [maxQty,setMaxQty] = useState(0);
     const [qtyError,setQtyError] = useState(false);
+
+    const navigate = useNavigate();
 
     useEffect(() => {
         getImagesFromReferencesAsync(product.imageReferences,imgs => {
@@ -103,7 +106,7 @@ export const PurchaseItem = ({product}) => {
         <Grid2
             container
             sx={{
-                width: "80vw",
+                width: `${isMobile ? "100vw" : "80vw"}`,
                 padding: "1vw"
             }}
         >
@@ -115,64 +118,84 @@ export const PurchaseItem = ({product}) => {
                     minHeight={"20vh"}
                     maxHeight={"60vh"}
                     height={"30vh"}
-                    width={"33vw"}
+                    width={"100vw"}
                     isGrouped={false}
                     isAutoPlay={false}
                 />
             </Grid2>
             <Grid2
-                sx={{marginTop: "1vh", width: "100%", display:"flex", flexDirection: "row"}}
+                sx={{
+                    marginTop: "1vh", 
+                    width: "98vw", 
+                    display:"flex", 
+                    flexDirection: `${isMobile ? "column" : "row"}`
+                }}
             >
                 {
                     localStorage.getItem("loginToken") &&
                     <Grid2
-                        sx={{width: "30vw",  height: "20vh"}}
+                        sx={{
+                            width: `${isMobile ? "98vw" : "33vw"}`,  
+                            height: "20vh", 
+                            marginBottom: "10vh"
+                        }}
                     >
                         {
-                            Object.entries(attributeChoices).length && orderedAttributes && Object.entries(orderedAttributes).length && 
+                            !!orderedAttributes && 
+                            Object.entries(attributeChoices).length && 
+                            Object.entries(orderedAttributes).length && 
                             Object.entries(orderedAttributes).map((a,i) => 
-                                <FormControl 
-                                    key={i}
-                                    sx={{width: "100%", marginBottom: "1vh",  visibility: `${i === 0 || (i > 0 && Object.entries(attributeChoices)[i-1][1] !== "") ? "visible" : "hidden"}` }}
+                            <FormControl 
+                                key={i}
+                                sx={{
+                                    width: `${isMobile ? "98vw" : "30vw"}`, 
+                                    marginBottom: "1vh",  
+                                    visibility: `${i === 0 || (i > 0 && Object.entries(attributeChoices)[i-1][1] !== "") ? "visible" : "hidden"}` 
+                                }}
+                            >
+                                <InputLabel>
+                                    {a[0]}
+                                </InputLabel>
+                                <Select
+                                    label={a[0]}
+                                    onChange={(e) => handleSelection(e.target.value,a[0])}
+                                    value={attributeChoices[a[0]]}
                                 >
-                                    <InputLabel>
-                                        {a[0]}
-                                    </InputLabel>
-                                    <Select
-                                        label={a[0]}
-                                        onChange={(e) => handleSelection(e.target.value,a[0])}
-                                        value={attributeChoices[a[0]]}
+                                    <MenuItem
+                                        disabled={Object.entries(attributeChoices)[i][1] === ""}
+                                        name="attribute"
+                                        value="attribute"
                                     >
-                                        <MenuItem
-                                            disabled={Object.entries(attributeChoices)[i][1] === ""}
-                                            name="attribute"
-                                            value="attribute"
-                                        >
-                                            {Object.entries(attributeChoices)[i][1] === "" ?
-                                            `Choose a ${a[0]}` : "Clear Selection"}
-                                        </MenuItem>
-                                        {
-                                            a && a[1] && Object.values(Array.from(a[1])).map((t,j) => (
-                                                <MenuItem
-                                                    key={j}
-                                                    id={a[0]}
-                                                    name={a[0]}
-                                                    value={t}
-                                                >
-                                                    {t}
-                                                </MenuItem>
-                                                    
-                                            ))
-                                        }
-                                    </Select>
-                                </FormControl>
+                                        {Object.entries(attributeChoices)[i][1] === "" ?
+                                        `Choose a ${a[0]}` : "Clear Selection"}
+                                    </MenuItem>
+                                    {
+                                        a && a[1] && Object.values(Array.from(a[1])).map((t,j) => (
+                                            <MenuItem
+                                                key={j}
+                                                id={a[0]}
+                                                name={a[0]}
+                                                value={t}
+                                            >
+                                                {t}
+                                            </MenuItem>
+                                                
+                                        ))
+                                    }
+                                </Select>
+                            </FormControl>
                             )
                         }
                         <Grid2
-                            sx={{width: "100%", display: "flex", flexDirection: "row", justifyContent: "space-between"}}
+                            sx={{
+                                width: "98%", 
+                                display: "flex", 
+                                flexDirection: `${isMobile ? "column" : "row"}`, 
+                                justifyContent: "space-between"
+                            }}
                         >
                             <FormControl
-                                sx={{width: "30%"}}
+                                sx={{width: `${isMobile ? "98vw" : "15vw"}`}}
                             >
                                 <TextField 
                                     label="Quantity"
@@ -222,7 +245,9 @@ export const PurchaseItem = ({product}) => {
                                             quantity,
                                             totalPrice: narrowedItems[0].price * quantity
                                         },() => {
-                                            console.log("added to cart");
+                                            setProductOpen(false);
+                                            setSelectedProductName("");
+                                            navigate("/Home");
                                         });
                                     }
                                     }
@@ -243,7 +268,7 @@ export const PurchaseItem = ({product}) => {
                 }
                 <Grid2
                     width={8}
-                    sx={{height: "auto", width: "50vw", textAlign: "justify"}}
+                    sx={{height: "auto", width: `${isMobile ? "98vw" : "50vw"}`, textAlign: "justify"}}
                 >
                     <TextField
                         label="Description"

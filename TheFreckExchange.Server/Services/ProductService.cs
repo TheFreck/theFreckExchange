@@ -26,6 +26,7 @@ namespace TheFreckExchange.Server.Services
         Task<IEnumerable<ImageFile>> GetAllSiteImagesAsync();
         Task<ImageFile> GetBackgroundImageAsync();
         Task<IEnumerable<ImageFile>> GetImagesAsync(IEnumerable<string> imageIds);
+        Task<IEnumerable<ImageFile>> GetImagesAsync(string productId);
     }
     public class ProductService : IProductService
     {
@@ -375,8 +376,15 @@ namespace TheFreckExchange.Server.Services
 
         public async Task<IEnumerable<ImageFile>> GetImagesAsync(IEnumerable<string> imageIds)
         {
-            logger.LogInformation("Get images, Service");
+            logger.LogInformation("Get images from imageIds, Service");
             return await imageRepo.GetImageFilesAsync(imageIds);
+        }
+
+        public async Task<IEnumerable<ImageFile>> GetImagesAsync(string productId)
+        {
+            logger.LogInformation("Get images from productId, Service");
+            var product = await productRepo.GetByProductIdAsync(productId);
+            return await imageRepo.GetImageFilesAsync(product.ImageReferences);
         }
     }
 }

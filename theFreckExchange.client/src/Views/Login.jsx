@@ -1,22 +1,46 @@
-import { Box, Button, Modal, TextField } from "@mui/material";
+import { Box, Button, Modal, TextField, Typography } from "@mui/material";
 import { useContext, useEffect, useRef, useState } from "react";
-import { AccountContext } from "../Context";
+import { AuthContext } from "../Context";
+import { useNavigate } from "react-router";
 import NewAccount from "./Account/NewAccount";
 
 
-export const Login = () => {
+export const Login = (props) => {
+    const {login,isMobile} = useContext(AuthContext);
     const [username, setUsername] = useState("");
     const [password, setPassword] = useState("");
     const [newAccountModal,setNewAccountModal] = useState(false);
-    const {login} = useContext(AccountContext);
     const modalRef = useRef();
+    const navigate = useNavigate();
 
-    return <div>
+    const handleLogin = () => {
+        login(username,password);
+        navigate("/Home")
+    }
+
+    return <Box
+        sx={{
+            width: `${isMobile ? "100vw" : "80vw"}`,
+            height: "80vh",
+            marginLeft: `${isMobile ? 0 : "10vw"}`,
+            marginRight: `${isMobile ? 0 : "10vw"}`,
+            display: "flex",
+            flexDirection: "column",
+            alignItems: "center"
+        }}
+    >
         <Box
             component="form"
             noValidate
             autoComplete="off"
-            sx={{ border: "solid", paddingTop: "10vh", paddingBottom: "5vh" }}
+            sx={{ 
+                border: `${isMobile ? "" : "solid"}`,
+                width: `${isMobile ? "90vw" : "60vw"}`,
+                display: "flex",
+                flexDirection: "column",
+                alignItems: "center",
+                padding: `${isMobile ? 0 : "5vh"}`
+            }}
         >
             <TextField
                 label="User Name"
@@ -31,9 +55,11 @@ export const Login = () => {
             />
             <br />
             <br />
-            <Button onClick={() => login(username,password)} variant="contained">Login</Button>
+            <Button onClick={handleLogin} variant="contained">Login</Button>
+            <br />
+            <Typography>No Account?</Typography>
+            <Button onClick={() => setNewAccountModal(true)} variant="text">Create Account</Button>
         </Box>
-        <Button onClick={() => setNewAccountModal(true)} variant="text">Create Account</Button>
         <Modal
             open={newAccountModal}
             onClose={() => setNewAccountModal(false)}
@@ -43,7 +69,7 @@ export const Login = () => {
                 <NewAccount  newAccountModal={newAccountModal} setNewAccountModal={setNewAccountModal} />
             </Box>
         </Modal>
-    </div>
+    </Box>
 }
 
 export default Login;

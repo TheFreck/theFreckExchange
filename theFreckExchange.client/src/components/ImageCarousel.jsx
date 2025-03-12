@@ -14,13 +14,6 @@ export const ImageCarousel = ({
         isGrouped
     }) => {
 
-    useEffect(() => {
-        if(imageObjects.length === 0) return;
-        console.log("imageObjects: ", imageObjects);
-    },[]);
-
-
-
     const ImageGroups = () => {
         return <Box
             sx={{display: "flex", flexDirection: "row"}}

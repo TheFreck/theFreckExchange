@@ -1,59 +1,77 @@
-import './App.css';
-import { useCallback, useEffect, useState } from 'react';
-import {AccountContext} from './Context';
-import Welcome from './Views/Welcome';
+import { useCallback, useEffect, useRef, useState } from 'react';
+import { BrowserRouter, Navigate, NavLink, Route, Routes, useNavigate } from 'react-router';
+import {AuthContext} from './Context';
 import Login from './Views/Login';
 import Layout from './Views/Layout';
-import {
+import StoreFront from './Views/StoreFront';
+import SiteConfiguration from './Views/Admin/SiteConfig';
+import CreateProduct from './Views/Product/CreateProduct';
+import ModifyProduct from './Views/Product/ModifyProduct';
+import CreateItems from './Views/Item/CreateItems';
+import AccountView from './Views/Account/AccountView';
+import { 
     loginAsync,
     logoutAsync,
-    createAccountAsync
-} from "./helpers/helpersApp";
-import { ShoppingCart } from './components/ShoppingCart';
-
-const homeViewEnum = {
-    home: 0,
-    account: 1,
-    product: 2,
-    storeFront: 3,
-    login: 4,
-    shoppingCart: 5
-};
-
-const userEnum = {
-    home: 0,
-    createProduct: 1,
-    createItems: 2,
-    updateProduct: 3,
-    siteConfig: 4,
-    shop: 5,
-    viewAccount: 6
-};
-
+    getConfigurationAsync
+} from './helpers/helpers';
+import Store from './Views/User/Store';
+import Checkout from './components/Checkout';
 
 function App() {
-    const [view, setView] = useState(homeViewEnum.home);
-    const [userView, setUserView] = useState(userEnum.home);
     const [userAcct, setUserAcct] = useState({});
+    const [isLoggedIn, setIsLoggedIn] = useState(false);
+    const [isAdmin,setIsAdmin] = useState(false);
+    const [isUser,setIsUser] = useState(false);
     const [refreshConfig,setRefreshConfig] = useState(false);
+    const [config,setConfig] = useState({});
     const [cart,setCart] = useState([]);
+    const [selectedProductName,setSelectedProductName] = useState("");
+    const [ready,setReady] = useState(false);
+    const [isMobile,setIsMobile] = useState(false);
+
+    useEffect(() => {
+        setIsMobile(navigator.maxTouchPoints > 0);
+        setIsLoggedIn(localStorage.getItem("loginToken") !== null);
+        setIsAdmin(localStorage.getItem("permissions.admin") !== null);
+        setIsUser(localStorage.getItem("permissions.user") !== null);
+        getConfigurationAsync(figs => {
+            setConfig(figs);
+            setReady(true);
+        });
+    },[]);
 
     const login = (username,password) => {
         loginAsync(username,password,loggedIn => {
+            if(loggedIn.loginToken){
+                setIsLoggedIn(true);
+                getConfigurationAsync(figs => {
+                    setConfig(figs);
+                    setReady(true);
+                });
+            }
+            if(loggedIn.permissions.find(p => p.type === 0 && p.token)){
+                setIsAdmin(true);
+            }
+            if(loggedIn.permissions.find(p => p.type === 1 && p.token)){
+                setIsUser(true);
+            }
             setUserAcct(loggedIn);
-            setView(homeViewEnum.login);
         });
     }
 
     const logout = () => {
         logoutAsync(userAcct,loggedOut => {
+            setSelectedProductName("");
             setUserAcct({});
-            setView(homeViewEnum.home);
+            setIsAdmin(false);
+            setIsUser(false);
+            setIsLoggedIn(false);
         });
     }
 
     const completed = () => {
         setCart([]);
+        setSelectedProductName("");
     }
 
     const addToCart = async (item,cb) => {
@@ -81,30 +99,70 @@ function App() {
 
     const getUserAcct = () =>  userAcct;
 
-    const AppCallback = useCallback(() => <AccountContext.Provider value={{
-        login,
-        getUserAcct,
-        userView,
-        setUserView,
-        userEnum,
-        refreshConfig,
-        setRefreshConfig,
-        getShoppingCart,
-        addToCart,
-        removeFromCart,
-        completed
-        }}>
-        <Layout login={() => setView(homeViewEnum.login)} logout={() => logout(userAcct)}>
-            {view === homeViewEnum.login && localStorage.getItem("loginToken") === null && 
-                <Login />
+    const getConfig = () => config;
+    
+    const LogButtonCallback = useCallback(() => (
+        isLoggedIn ? 
+        <NavLink style={{color: "black"}} to="/Home" onClick={logout} color="inherit">Logout</NavLink> : 
+        <NavLink style={{color: "black"}} to="/Home/Login" end>Login</NavLink>
+    ),[isLoggedIn]);
+
+    const HomeRouter = () => <Routes>
+        <Route path="/Login" element={<Login />} />
+        <Route path="/" element={<StoreFront />} />
+    </Routes>
+
+    const AdminRouter = () => <Routes>
+        <Route path="/Config" element={<SiteConfiguration />} />
+        <Route path="/Products/Create" element={<CreateProduct />} />
+        <Route path="/Products/Modify" element={<ModifyProduct />} />
+        <Route path="/Items/Create" element={<CreateItems />} />
+    </Routes>
+
+    const UserRouter = () => <Routes>
+        <Route path="/Account" element={<AccountView />} />
+        <Route exact path="/Shopping" element={<Store />} />
+        <Route exact path="/Shopping/Checkout" element={<Checkout completed={completed} />} />
+    </Routes>
+
+    const LayoutCallback = useCallback(() => <Layout
+        LoginButton={LogButtonCallback}
+    >
+        <Routes>
+            <Route path="/Home/*" element={<HomeRouter />} />
+            <Route path="/Admin/*" element={isAdmin ? <AdminRouter /> : <Navigate to="/Home/" replace />} />
+            <Route path="/User/*" element={isUser ? <UserRouter /> : <Navigate to="/Home/" replace />} />
+            <Route path="/*" element={<Navigate to="/Home" replace />} />
+        </Routes>
+    </Layout>,[isLoggedIn,isAdmin,isUser,config]);
+
+    return (
+        <>
+            <BrowserRouter>
+            {
+                ready && 
+                <AuthContext.Provider
+                    value={{
+                        refreshConfig,
+                        setRefreshConfig,
+                        getConfig,
+                        getUserAcct,
+                        login,
+                        logout,
+                        addToCart,
+                        selectedProductName,
+                        setSelectedProductName,
+                        getShoppingCart,
+                        isMobile,
+                        removeFromCart
+                    }}
+                >
+                    <LayoutCallback />
+                </AuthContext.Provider>
             }
-            {view === homeViewEnum.shoppingCart && cart.length > 0 && 
-                <ShoppingCart />
-            }
-            <Welcome />
-        </Layout>
-    </AccountContext.Provider>,[userAcct,view,userView,refreshConfig,cart]);
-    return <AppCallback />
+            </BrowserRouter>
+        </>
+    )
 }
 
 export default App;

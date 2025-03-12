@@ -1,16 +1,19 @@
 import { Box, Button, Grid2, Typography } from "@mui/material";
 import {useContext, useEffect, useState} from "react";
-import { AccountContext } from "../Context";
+import { AuthContext } from "../Context";
 import TransactionDetails from "./TransactionDetails";
-import { calcOrderTotal,currencyFormat } from "../helpers/helpersApp";
-import { purchaseItemsAsync } from "../helpers/helpersWelcome";
+import { calcOrderTotal,currencyFormat,purchaseItemsAsync } from "../helpers/helpers";
+import { useNavigate } from "react-router";
 
 export const Checkout = ({completed}) => {
+    const {isMobile} = useContext(AuthContext);
     const [cart,setCart] = useState({});
     const [orderTotal,setOrderTotal] = useState(0.0);
     const [salesTax,setSalesTax] = useState(.05);
     const [paid,setPaid] = useState(false);
-    const {getShoppingCart,resetCart} = useContext(AccountContext);
+    const {getShoppingCart,resetCart} = useContext(AuthContext);
+
+    const navigate = useNavigate();
 
     useEffect(() => {
         let shoppingCart = getShoppingCart();
@@ -19,20 +22,32 @@ export const Checkout = ({completed}) => {
     },[]);
 
     return <Grid2
-        sx={{display: "flex", flexDirection: "column"}}
+        sx={{
+            display: "flex", 
+            flexDirection: "column", 
+            marginTop: "10vh",
+            width: "100vw",
+            padding: "5vw"
+        }}
     >
+        <Typography
+            variant="h4"
+        >
+            Checkout
+            <hr/>
+        </Typography>
         <Grid2
             sx={{
-                height: "60vh",
-                overflowY: "scroll"
+                maxHeight: "60vh",
+                overflowY: "scroll",
             }}
         >
             {
                 cart.length && cart.map((c,i) => (
                     <TransactionDetails
-                    key={i}
-                    transaction={c}
-                    isCheckout={true}
+                        key={i}
+                        transaction={c}
+                        isCheckout={true}
                     />
                 ))
             }
@@ -43,10 +58,11 @@ export const Checkout = ({completed}) => {
                 borderTop: "solid",
                 borderWidth: "1px",
                 marginTop: "1vh",
-                paddingTop: "1vh"
+                paddingTop: "1vh",
+                width: `${isMobile ? "90vw" : "auto"}`
             }}
         >
-            <Grid2 size={1}>
+            <Grid2 size={isMobile ? 5 : 1}>
                 <Typography>
                     Subtotal: 
                 </Typography>
@@ -60,7 +76,7 @@ export const Checkout = ({completed}) => {
         <Grid2 container
             sx={{marginLeft: "5vw"}}
         >
-            <Grid2 size={1}>
+            <Grid2 size={isMobile ? 5 : 1}>
                 <Typography>
                     Tax rate: 
                 </Typography>
@@ -74,7 +90,7 @@ export const Checkout = ({completed}) => {
         <Grid2 container
             sx={{marginLeft: "5vw"}}
             >
-            <Grid2 size={1}>
+            <Grid2 size={isMobile ? 5 : 1}>
                 <Typography>
                     Order Total: 
                 </Typography>
@@ -98,6 +114,7 @@ export const Checkout = ({completed}) => {
                 <Button
                     onClick={() => purchaseItemsAsync(cart,() => {
                         completed();
+                        navigate("/Home");
                     })}
                 >
                     Confirm Purchase

@@ -1,7 +1,6 @@
 import { Box, Grid2, ImageList, ImageListItem, Modal, Typography } from "@mui/material";
 import { useCallback, useContext, useEffect, useState } from "react";
-import { ImageCarousel } from "../components/ImageCarousel";
-import { getConfigurationAsync, getProductsAsync, getSiteImagesAsync } from "../helpers/helpersWelcome";
+import { getConfigurationAsync, getProductsAsync, getSiteImagesAsync } from "../helpers/helpers";
 import Descriptions from "../components/Descriptions";
 import bowlerImg from "../assets/images/bowler.jpg";
 import bowler2Img from "../assets/images/bowler-2.jpg";
@@ -11,10 +10,14 @@ import newsieImg from "../assets/images/newsie.jpg";
 import writingCapImg from "../assets/images/writingCap.jpg";
 import porkpieImg from "../assets/images/porkpie-2.jpg";
 import trilbyImg from "../assets/images/trilby-side.jpg";
+import Store from "./User/Store";
+import { AuthContext } from "../Context";
 
 export const StoreFront = () => {
+    const {isMobile} = useContext(AuthContext);
     const [images, setImages] = useState([]);
     const [products, setProducts] = useState([]);
+    const [ready,setReady] = useState(false);
 
     useEffect(() => {
         setImages([
@@ -28,9 +31,10 @@ export const StoreFront = () => {
             writingCapImg
         ])
         getConfigurationAsync(figs => {
-            if(localStorage.getItem("configId") === null || figs.configId === null || localStorage.getItem("configId") === undefined || localStorage.getItem("configId") === "undefined") return;
+            if(!figs.configId) return;
             getProductsAsync(prods => {
                 setProducts(prods);
+                setReady(true);
             });
         })
     }, []);
@@ -39,7 +43,7 @@ export const StoreFront = () => {
         <ImageList
             variant="masonry"
             rows={4}
-            cols={4}
+            cols={isMobile ? 1 : 4}
             gap={1}
         >
             {
@@ -53,11 +57,11 @@ export const StoreFront = () => {
                 ))
             }
         </ImageList>
-        , [images]);
+        , [images,ready]);
 
-    return <Box
+    const StorefrontCallback = useCallback(() => <Box
         sx={{
-            height: "60vh",
+            minHeight: "90vh",
             width: "100vw",
             margin: 0,
             padding: 0,
@@ -67,15 +71,23 @@ export const StoreFront = () => {
         <Box
             sx={{
                 overflowY: "scroll",
-                height: "60vh"
+                height: `${isMobile ? "40vh" : "60vh"}`
             }}
         >
             <ImagesCallback />
         </Box>
+        <Box
+            sx={{marginTop: "-10vh"}}
+        >
+            <Store />
+        </Box>
             
         <br/>
         <Descriptions products={products} />
-    </Box>
+    </Box>,
+    [ready]);
+
+    return <StorefrontCallback />
 }
 
 export default StoreFront;

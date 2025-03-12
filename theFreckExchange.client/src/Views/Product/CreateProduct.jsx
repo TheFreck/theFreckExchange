@@ -1,7 +1,9 @@
-import { Box, Button, Chip, Stack, TextField } from "@mui/material";
+import { Box, Button, Chip, Stack, TextField, Typography } from "@mui/material";
 import { useCallback, useContext, useEffect, useState } from "react";
 import ImageUpload from "../Admin/ImageUpload"
-import { createProductAsync, getImages } from "../../helpers/helpersWelcome";
+import { createProductAsync, getImages } from "../../helpers/helpers";
+import { AuthContext } from "../../Context";
+import { useNavigate } from "react-router";
 
 const styles = {
     textField: {
@@ -10,6 +12,7 @@ const styles = {
 }
 
 export const CreateProduct = () => {
+    const {isMobile} = useContext(AuthContext);
     const [name, setName] = useState("");
     const [price, setPrice] = useState(0.0);
     const [description, setDescription] = useState("");
@@ -18,6 +21,8 @@ export const CreateProduct = () => {
     const [images, setImages] = useState([]);
     const [primary,setPrimary] = useState({});
     const [resetImages,setResetImages] = useState(false);
+    
+    const navigate = useNavigate();
 
     const uploadImages = (im) => {
         setImages(im);
@@ -47,8 +52,21 @@ export const CreateProduct = () => {
     return (
         <Box
             component="form"
-            sx={{ display: "flex", flexDirection: "column", margin: "0 auto", width: "80vw" }}
+            sx={{ 
+                display: "flex", 
+                flexDirection: "column", 
+                margin: "0 auto", 
+                padding: "0 5vw",
+                width: "90vw",
+                height: "80vh"
+            }}
         >
+            <Typography
+                variant="h4"
+            >
+                New Product
+                <hr/>
+            </Typography>
             <TextField
                 style={styles.textField}
                 required
@@ -106,8 +124,9 @@ export const CreateProduct = () => {
                 variant="contained"
                 onClick={() => {
                     let primaryImageReference = images.find(i => i.name === primary.filename).imageId;
-                    createProductAsync({ name, description, attributes, price, primaryImageReference, imageReferences: images.map(i=>i.imageId) },yup => {
+                    createProductAsync({ name, description, attributes, price, primaryImageReference, imageReferences: images.map(i=>i.imageId) }, () => {},yup => {
                         reset();
+                        navigate("/Home");
                     });
                 }}
             >

@@ -1,6 +1,6 @@
 import react, { useContext, useState } from "react";
 import { Box, Button, Checkbox, Grid2, TextField, Typography } from "@mui/material";
-import {createAccountAsync} from "../../helpers/helpersApp";
+import {createAccountAsync} from "../../helpers/helpers";
 
 export const NewAccount = ({newAccountModal,setNewAccountModal}) => {
     const [name, setName] = useState("");

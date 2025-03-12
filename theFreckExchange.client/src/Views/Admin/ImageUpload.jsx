@@ -1,6 +1,6 @@
 import { Box, Button, ImageListItem, Typography } from "@mui/material";
 import { useEffect, useState } from "react";
-import {updateConfigurationAsync,uploadImagesAsync} from "../../helpers/helpersWelcome";
+import {updateConfigurationAsync,uploadImagesAsync} from "../../helpers/helpers";
 import CheckIcon from '@mui/icons-material/Check';
 
 export const ImageUpload = ({getImages,type,multiple,uploadImages,primary,setPrimary}) => {
@@ -50,8 +50,6 @@ export const ImageUpload = ({getImages,type,multiple,uploadImages,primary,setPri
             sx={{width: "100%"}}
             variant="contained"
             onClick={() => uploadImagesAsync(images,async uploaded => {
-                console.log("uploaded: ", uploaded);
-
                 if(type==="background"){
                     await updateConfigurationAsync({background: uploaded[0].imageId, configId: localStorage.getItem("configId")},cbck => {
                         console.info("updated site background: ", cbck);

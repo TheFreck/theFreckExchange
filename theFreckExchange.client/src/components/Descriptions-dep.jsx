@@ -1,7 +1,7 @@
 import { Box, Button, FormControlLabel, FormGroup, Grid2, Modal, Switch, TextField, Typography } from "@mui/material";
 import axios from "axios";
 import { useContext, useEffect, useState } from "react";
-import { updateConfigurationAsync, getConfigurationAsync, getBackgroundAsync } from "../helpers/helpersWelcome";
+import { updateConfigurationAsync, getConfigurationAsync, getBackgroundAsync } from "../helpers/helpers";
 
 
 const activeCategoryEnum = {

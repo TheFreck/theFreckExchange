@@ -1,17 +1,17 @@
 import { Box, Button, TextField, Typography } from "@mui/material";
 import react, { useCallback, useContext, useEffect, useState } from "react";
-import { AccountContext } from "../Context";
+import { AuthContext } from "../Context";
 import StoreFront from "./StoreFront";
 import Store from "./User/Store";
 import CreateProduct from "./Product/CreateProduct";
 import ModifyProduct from "./Product/ModifyProduct";
 import CreateItems from "./Item/CreateItems";
 import SiteConfiguration from "./Admin/SiteConfig";
-import {getConfigurationAsync,getProductsAsync} from "../helpers/helpersWelcome";
+import {getConfigurationAsync,getProductsAsync} from "../helpers/helpers";
 import AccountView from "./Account/AccountView";
 
 export const Welcome = () => {
-    const {userView,userEnum} = useContext(AccountContext);
+    const {userView,userEnum} = useContext(AuthContext);
     const [products, setProducts] = useState([]);
     const [ready, setReady] = useState(false);
 

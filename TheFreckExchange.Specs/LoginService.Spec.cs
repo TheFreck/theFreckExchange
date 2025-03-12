@@ -11,6 +11,8 @@ using System.Text;
 using System.Threading.Tasks;
 using It = Machine.Specifications.It;
 using Microsoft.AspNetCore.Mvc;
+using Castle.Core.Logging;
+using Microsoft.Extensions.Logging.Abstractions;
 
 namespace TheFreckExchange.Specs
 {
@@ -49,7 +51,7 @@ namespace TheFreckExchange.Specs
         { 
             accountRepoMock.Setup(r => r.GetByUsernameAsync(username)).ReturnsAsync(account);
             outSalt = Encoding.ASCII.GetBytes("GotOut");
-            loginService = new LoginService(accountRepoMock.Object);
+            loginService = new LoginService(accountRepoMock.Object,NullLogger<LoginService>.Instance);
             password = "password";
         };
 
@@ -74,7 +76,7 @@ namespace TheFreckExchange.Specs
     {
         Establish context = () =>
         {
-            loginService = new LoginService(accountRepoMock.Object);
+            loginService = new LoginService(accountRepoMock.Object,NullLogger<LoginService>.Instance);
             hash = loginService.MakeHash(password,out salt);
         };
 
@@ -93,7 +95,7 @@ namespace TheFreckExchange.Specs
         Establish context = () =>
         {
             accountRepoMock.Setup(a => a.GetByUsernameAsync(username)).ReturnsAsync(account);
-            loginService = new LoginService(accountRepoMock.Object);
+            loginService = new LoginService(accountRepoMock.Object, NullLogger<LoginService>.Instance);
             account.Password = loginService.MakeHash(password, out var salt);
             account.PasswordSalt = salt;
         };
@@ -122,7 +124,7 @@ namespace TheFreckExchange.Specs
         Establish context = () =>
         {
             accountRepoMock.Setup(a => a.GetByUsernameAsync(username)).ReturnsAsync(account);
-            loginService = new LoginService(accountRepoMock.Object);
+            loginService = new LoginService(accountRepoMock.Object, NullLogger<LoginService>.Instance);
             account.Password = loginService.MakeHash(password, out var salt);
             account.PasswordSalt = salt;
         };
@@ -152,7 +154,7 @@ namespace TheFreckExchange.Specs
         {
             accountRepoMock.Setup(a => a.GetByUsernameAsync(username)).ReturnsAsync(account);
             accountRepoMock.Setup(a => a.Update(account));
-            loginService = new LoginService(accountRepoMock.Object);
+            loginService = new LoginService(accountRepoMock.Object, NullLogger<LoginService>.Instance);
         };
 
         Because of = () => loggedOut = loginService.LogOutAsync(username).GetAwaiter().GetResult();
@@ -176,7 +178,7 @@ namespace TheFreckExchange.Specs
         Establish context = () =>
         {
             accountRepoMock.Setup(a => a.GetByUsernameAsync(username)).ReturnsAsync(account);
-            loginService = new LoginService(accountRepoMock.Object);
+            loginService = new LoginService(accountRepoMock.Object, NullLogger<LoginService>.Instance);
             account.Permissions.Where(p => p.Type == PermissionType.Admin).FirstOrDefault().Token = loginService.MakeHash(PermissionType.Admin.ToString(), out var salt);
             account.Permissions.Where(p => p.Type == PermissionType.Admin).FirstOrDefault().TokenSalt = salt;
         };
@@ -197,7 +199,7 @@ namespace TheFreckExchange.Specs
         Establish context = () =>
         {
             accountRepoMock.Setup(a => a.GetByUsernameAsync(username)).ReturnsAsync(account);
-            loginService = new LoginService(accountRepoMock.Object);
+            loginService = new LoginService(accountRepoMock.Object, NullLogger<LoginService>.Instance);
             account.Permissions.Where(p => p.Type == PermissionType.User).FirstOrDefault().Token = loginService.MakeHash(PermissionType.User.ToString(), out var salt);
             account.Permissions.Where(p => p.Type == PermissionType.User).FirstOrDefault().TokenSalt = salt;
         };

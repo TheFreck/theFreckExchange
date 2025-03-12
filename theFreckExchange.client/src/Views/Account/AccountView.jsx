@@ -1,6 +1,6 @@
 import { Accordion, AccordionDetails, AccordionSummary, Box, Grid2, Typography } from "@mui/material";
 import { useEffect, useState } from "react";
-import {getAccountAsync} from "../../helpers/helpersApp";
+import {getAccountAsync} from "../../helpers/helpers";
 import TransactionDetails from "../../components/TransactionDetails";
 
 export const AccountView = () => {

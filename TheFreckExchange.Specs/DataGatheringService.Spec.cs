@@ -8,6 +8,8 @@ using System.Threading.Tasks;
 using TheFreckExchange.Server.DTO;
 using Moq;
 using It = Machine.Specifications.It;
+using Castle.Core.Logging;
+using Microsoft.Extensions.Logging.Abstractions;
 
 namespace TheFreckExchange.Specs
 {
@@ -29,7 +31,7 @@ namespace TheFreckExchange.Specs
                     URL = "https://en.wikipedia.org/wiki/Bowler_hat"
                 }
             };
-            dataGatheringService = new DataGatheringService();
+            dataGatheringService = new DataGatheringService(NullLogger<DataGatheringService>.Instance);
             outcomes = new List<string>();
         };
 

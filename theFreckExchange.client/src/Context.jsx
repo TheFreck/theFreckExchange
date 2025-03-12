@@ -1,5 +1,5 @@
 import {createContext} from "react";
 
-export const AccountContext = createContext();
+export const AuthContext = createContext();
 
-export default {AccountContext};
+export default {AccountContext: AuthContext};

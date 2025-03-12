@@ -11,6 +11,7 @@ using System.IO;
 using System.Text;
 using static System.Net.Mime.MediaTypeNames;
 using It = Machine.Specifications.It;
+using Microsoft.Extensions.Logging.Abstractions;
 
 namespace TheFreckExchange.Specs
 {
@@ -24,7 +25,7 @@ namespace TheFreckExchange.Specs
             imageRepoMock = new Mock<IImageRepo>();
             loginServiceMock = new Mock<ILoginService>();
             configRepoMock = new Mock<IConfigRepo>();
-            loginService = new LoginService(accountRepoMock.Object);
+            loginService = new LoginService(accountRepoMock.Object,NullLogger<LoginService>.Instance);
             account1Id = Guid.NewGuid().ToString();
             account2Id = Guid.NewGuid().ToString();
             name1 = "Carl";
@@ -182,7 +183,7 @@ namespace TheFreckExchange.Specs
                 new (product1Name,product1Id,product1Desc,product1Price),
                 new (product2Name,product2Id,product2Desc,product2Price)
             };
-            storeFront = new ProductService(productRepoMock.Object, itemRepoMock.Object, accountRepoMock.Object, loginServiceMock.Object, imageRepoMock.Object,configRepoMock.Object);
+            storeFront = new ProductService(productRepoMock.Object, itemRepoMock.Object, accountRepoMock.Object, loginServiceMock.Object, imageRepoMock.Object,configRepoMock.Object, NullLogger<ProductService>.Instance);
             attributes = new List<string>
             {
                 "Color","Size","Style"
@@ -286,7 +287,7 @@ namespace TheFreckExchange.Specs
             accountRepoMock.Setup(l => l.GetByUsernameAsync(account1.Username)).ReturnsAsync(account1);
             loginServiceMock.Setup(l => l.ValidatePermissionsAsync(Moq.It.IsAny<Account>(), PermissionType.Admin, Moq.It.IsAny<string>())).ReturnsAsync(true);
             productRepoMock.Setup(p => p.GetByNameAsync(Moq.It.IsAny<string>())).ReturnsAsync(oldProduct);
-            storeFront = new ProductService(productRepoMock.Object, itemRepoMock.Object, accountRepoMock.Object, loginServiceMock.Object, imageRepoMock.Object, configRepoMock.Object);
+            storeFront = new ProductService(productRepoMock.Object, itemRepoMock.Object, accountRepoMock.Object, loginServiceMock.Object, imageRepoMock.Object, configRepoMock.Object, NullLogger<ProductService>.Instance);
         };
 
         Because of = () => outcome = storeFront.ModifyProductAsync(newProduct).GetAwaiter().GetResult();
@@ -333,7 +334,7 @@ namespace TheFreckExchange.Specs
                 product1,product2
             };
             productRepoMock.Setup(p => p.GetAllProducts()).Returns(products);
-            productService = new ProductService(productRepoMock.Object, itemRepoMock.Object, accountRepoMock.Object, loginServiceMock.Object, imageRepoMock.Object, configRepoMock.Object);
+            productService = new ProductService(productRepoMock.Object, itemRepoMock.Object, accountRepoMock.Object, loginServiceMock.Object, imageRepoMock.Object, configRepoMock.Object, NullLogger<ProductService>.Instance);
             expectations = products;
             outcomes = new List<Product>();
         };
@@ -376,7 +377,7 @@ namespace TheFreckExchange.Specs
             };
             productRepoMock.Setup(p => p.GetByNameAsync(product1Name)).ReturnsAsync(product1);
             productRepoMock.Setup(p => p.GetByNameAsync(product2Name)).ReturnsAsync(product2);
-            productService = new ProductService(productRepoMock.Object, itemRepoMock.Object, accountRepoMock.Object, loginServiceMock.Object, imageRepoMock.Object, configRepoMock.Object);
+            productService = new ProductService(productRepoMock.Object, itemRepoMock.Object, accountRepoMock.Object, loginServiceMock.Object, imageRepoMock.Object, configRepoMock.Object, NullLogger<ProductService>.Instance);
             expectations = products;
             outcomes = new List<Product>();
         };
@@ -450,7 +451,7 @@ namespace TheFreckExchange.Specs
             productRepoMock.Setup(p => p.GetByProductIdAsync(product1Id)).ReturnsAsync(product1);
             itemRepoMock.Setup(p => p.CreateAsync(Moq.It.IsAny<Item>())).ReturnsAsync(hat);
             itemRepoMock.Setup(p => p.CreateAsync(Moq.It.IsAny<Item>())).ReturnsAsync(hat);
-            productService = new ProductService(productRepoMock.Object, itemRepoMock.Object, accountRepoMock.Object, loginServiceMock.Object, imageRepoMock.Object, configRepoMock.Object);
+            productService = new ProductService(productRepoMock.Object, itemRepoMock.Object, accountRepoMock.Object, loginServiceMock.Object, imageRepoMock.Object, configRepoMock.Object, NullLogger<ProductService>.Instance);
         };
 
         Because of = () => hatOutcome = productService.CreateItemsAsync(product1Id,1, attributes,loginCreds).GetAwaiter().GetResult();
@@ -528,7 +529,7 @@ namespace TheFreckExchange.Specs
                 ProductId = product1Id,
             });
             itemRepoMock.Setup(p => p.CreateAsync(Moq.It.IsAny<Item>())).ReturnsAsync(newHat);
-            productService = new ProductService(productRepoMock.Object, itemRepoMock.Object, accountRepoMock.Object, loginServiceMock.Object, imageRepoMock.Object, configRepoMock.Object);
+            productService = new ProductService(productRepoMock.Object, itemRepoMock.Object, accountRepoMock.Object, loginServiceMock.Object, imageRepoMock.Object, configRepoMock.Object, NullLogger<ProductService>.Instance);
         };
 
         Because of = () => hatOutcome = productService.CreateItemsAsync(product1Id, itemQuantity, attributes, loginCreds).GetAwaiter().GetResult();
@@ -609,7 +610,7 @@ namespace TheFreckExchange.Specs
                 ProductId = product1Id,
             });
             productRepoMock.Setup(p => p.UpdateAsync(Moq.It.IsAny<Product>()));
-            productService = new ProductService(productRepoMock.Object, itemRepoMock.Object, accountRepoMock.Object, loginServiceMock.Object, imageRepoMock.Object, configRepoMock.Object);
+            productService = new ProductService(productRepoMock.Object, itemRepoMock.Object, accountRepoMock.Object, loginServiceMock.Object, imageRepoMock.Object, configRepoMock.Object, NullLogger<ProductService>.Instance);
         };
 
         Because of = () => productService.UpdateProductWithImageAsync(product1Id, images).GetAwaiter().GetResult();
@@ -680,7 +681,7 @@ namespace TheFreckExchange.Specs
             }
             hatOutcomes = new List<Item>();
             itemRepoMock.Setup(p => p.GetAllItemsAsync(product1Id)).ReturnsAsync(hats);
-            productService = new ProductService(productRepoMock.Object, itemRepoMock.Object, accountRepoMock.Object, loginServiceMock.Object, imageRepoMock.Object, configRepoMock.Object);
+            productService = new ProductService(productRepoMock.Object, itemRepoMock.Object, accountRepoMock.Object, loginServiceMock.Object, imageRepoMock.Object, configRepoMock.Object, NullLogger<ProductService>.Instance);
         };
 
         Because of = () =>
@@ -831,7 +832,7 @@ namespace TheFreckExchange.Specs
                     .ReturnsAsync(hats.Where(h => h.Attributes.Where(a => a.Value == attributeValues[j]).Any()));
                 }
             }
-            productService = new ProductService(productRepoMock.Object, itemRepoMock.Object, accountRepoMock.Object, loginServiceMock.Object, imageRepoMock.Object, configRepoMock.Object);
+            productService = new ProductService(productRepoMock.Object, itemRepoMock.Object, accountRepoMock.Object, loginServiceMock.Object, imageRepoMock.Object, configRepoMock.Object, NullLogger<ProductService>.Instance);
             attributeOutcome = new List<GroupedAttributes>();
         };
 
@@ -878,7 +879,7 @@ namespace TheFreckExchange.Specs
                 AvailableAttributes = product1AvailableAttributes
             };
             productRepoMock.Setup(p => p.GetByNameAsync(Moq.It.IsAny<string>())).ReturnsAsync(product);
-            service = new ProductService(productRepoMock.Object, itemRepoMock.Object, accountRepoMock.Object, loginServiceMock.Object, imageRepoMock.Object, configRepoMock.Object);
+            service = new ProductService(productRepoMock.Object, itemRepoMock.Object, accountRepoMock.Object, loginServiceMock.Object, imageRepoMock.Object, configRepoMock.Object, NullLogger<ProductService>.Instance);
         };
 
         Because of = () => attributes = service.GetAvailableAttributes(product.Name).GetAwaiter().GetResult();
@@ -967,7 +968,7 @@ namespace TheFreckExchange.Specs
                     .ReturnsAsync(hats.Where(h => h.Attributes.Where(a => a.Value == attributeValues[j]).Any()));
                 }
             }
-            productService = new ProductService(productRepoMock.Object, itemRepoMock.Object, accountRepoMock.Object, loginServiceMock.Object, imageRepoMock.Object, configRepoMock.Object);
+            productService = new ProductService(productRepoMock.Object, itemRepoMock.Object, accountRepoMock.Object, loginServiceMock.Object, imageRepoMock.Object, configRepoMock.Object, NullLogger<ProductService>.Instance);
             redItems = new List<Item>();
             greenItems = new List<Item>();
             blackItems = new List<Item>();
@@ -1149,7 +1150,7 @@ namespace TheFreckExchange.Specs
                     .ReturnsAsync(hats.Where(h => h.Attributes.Where(a => a.Value == attributeValues[j]).Any()));
                 }
             }
-            productService = new ProductService(productRepoMock.Object, itemRepoMock.Object, accountRepoMock.Object, loginServiceMock.Object, imageRepoMock.Object, configRepoMock.Object);
+            productService = new ProductService(productRepoMock.Object, itemRepoMock.Object, accountRepoMock.Object, loginServiceMock.Object, imageRepoMock.Object, configRepoMock.Object, NullLogger<ProductService>.Instance);
             redItems = new List<Item>();
             greenItems = new List<Item>();
             blackItems = new List<Item>();
@@ -1295,7 +1296,7 @@ namespace TheFreckExchange.Specs
                 ProductId = product1Id,
             });
             itemRepoMock.Setup(i => i.GetAllItemsAsync(product1Name)).ReturnsAsync(hats);
-            productService = new ProductService(productRepoMock.Object, itemRepoMock.Object, accountRepoMock.Object, loginServiceMock.Object, imageRepoMock.Object, configRepoMock.Object);
+            productService = new ProductService(productRepoMock.Object, itemRepoMock.Object, accountRepoMock.Object, loginServiceMock.Object, imageRepoMock.Object, configRepoMock.Object, NullLogger<ProductService>.Instance);
             items = new List<Item>();
         };
 
@@ -1383,7 +1384,7 @@ namespace TheFreckExchange.Specs
             loginServiceMock.Setup(l => l.ValidatePermissionsAsync(account1, PermissionType.User, Moq.It.IsAny<string>())).ReturnsAsync(true);
             accountRepoMock.Setup(a => a.GetByUsernameAsync(Moq.It.IsAny<string>())).ReturnsAsync(account1);
             itemRepoMock.Setup(i => i.GetByAttributesAsync(Moq.It.IsAny<string>(), Moq.It.IsAny<List<ItemAttribute>>())).ReturnsAsync(selectedHat);
-            productService = new ProductService(productRepoMock.Object, itemRepoMock.Object, accountRepoMock.Object, loginServiceMock.Object, imageRepoMock.Object, configRepoMock.Object);
+            productService = new ProductService(productRepoMock.Object, itemRepoMock.Object, accountRepoMock.Object, loginServiceMock.Object, imageRepoMock.Object, configRepoMock.Object, NullLogger<ProductService>.Instance);
         };
 
         Because of = () => itemOutcome = productService.PurchaseItem(hatDTO, qty).GetAwaiter().GetResult();
@@ -1446,7 +1447,7 @@ namespace TheFreckExchange.Specs
                 }
             };
             imageRepoMock.Setup(r => r.GetAll()).Returns(images);
-            productService = new ProductService(productRepoMock.Object, itemRepoMock.Object, accountRepoMock.Object, loginServiceMock.Object, imageRepoMock.Object, configRepoMock.Object);
+            productService = new ProductService(productRepoMock.Object, itemRepoMock.Object, accountRepoMock.Object, loginServiceMock.Object, imageRepoMock.Object, configRepoMock.Object, NullLogger<ProductService>.Instance);
         };
 
         Because of = () => outcome = productService.GetAllImages();
@@ -1499,7 +1500,7 @@ namespace TheFreckExchange.Specs
             };
             configRepoMock.Setup(c => c.GetConfigAsync()).ReturnsAsync(config);
             imageRepoMock.Setup(r => r.GetAll()).Returns(images);
-            productService = new ProductService(productRepoMock.Object, itemRepoMock.Object, accountRepoMock.Object, loginServiceMock.Object, imageRepoMock.Object, configRepoMock.Object);
+            productService = new ProductService(productRepoMock.Object, itemRepoMock.Object, accountRepoMock.Object, loginServiceMock.Object, imageRepoMock.Object, configRepoMock.Object, NullLogger<ProductService>.Instance);
         };
 
         Because of = () => outcome = productService.GetAllSiteImagesAsync().GetAwaiter().GetResult();
@@ -1540,7 +1541,7 @@ namespace TheFreckExchange.Specs
             };
             configRepoMock.Setup(c => c.GetConfigAsync()).ReturnsAsync(config);
             imageRepoMock.Setup(p => p.GetBackgroundImageAsync(Moq.It.IsAny<string>())).ReturnsAsync(image);
-            productService = new ProductService(productRepoMock.Object, itemRepoMock.Object, accountRepoMock.Object, loginServiceMock.Object, imageRepoMock.Object, configRepoMock.Object);
+            productService = new ProductService(productRepoMock.Object, itemRepoMock.Object, accountRepoMock.Object, loginServiceMock.Object, imageRepoMock.Object, configRepoMock.Object, NullLogger<ProductService>.Instance);
         };
 
         Because of = () => outcome = productService.GetBackgroundImageAsync().GetAwaiter().GetResult();
@@ -1578,7 +1579,7 @@ namespace TheFreckExchange.Specs
             blankConfig = Guid.Empty.ToString();
             configRepoMock.Setup(c => c.GetConfigAsync()).ReturnsAsync(config);
             imageRepoMock.Setup(p => p.GetBackgroundImageAsync(Moq.It.IsAny<string>())).ReturnsAsync(image);
-            productService = new ProductService(productRepoMock.Object, itemRepoMock.Object, accountRepoMock.Object, loginServiceMock.Object, imageRepoMock.Object, configRepoMock.Object);
+            productService = new ProductService(productRepoMock.Object, itemRepoMock.Object, accountRepoMock.Object, loginServiceMock.Object, imageRepoMock.Object, configRepoMock.Object, NullLogger<ProductService>.Instance);
         };
 
         Because of = () => outcome = productService.GetBackgroundImageAsync().GetAwaiter().GetResult();
@@ -1616,7 +1617,7 @@ namespace TheFreckExchange.Specs
                 new FormFile(stream2,0,stream2.Length,"hatImage2","hatImageName2")
             };
             imageRepoMock.Setup(r => r.UploadImageAsync(Moq.It.IsAny<ImageFile>()));
-            productService = new ProductService(productRepoMock.Object, itemRepoMock.Object, accountRepoMock.Object, loginServiceMock.Object, imageRepoMock.Object, configRepoMock.Object);
+            productService = new ProductService(productRepoMock.Object, itemRepoMock.Object, accountRepoMock.Object, loginServiceMock.Object, imageRepoMock.Object, configRepoMock.Object, NullLogger<ProductService>.Instance);
         };
 
         Because of = () => productService.UploadImagesAsync(images).GetAwaiter().GetResult();
@@ -1629,7 +1630,7 @@ namespace TheFreckExchange.Specs
         private static MemoryStream stream2;
     }
 
-    public class When_Getting_Images : With_ProductRepo_Setup
+    public class When_Getting_Images_From_ImageIds : With_ProductRepo_Setup
     {
         Establish context = () =>
         {
@@ -1655,10 +1656,55 @@ namespace TheFreckExchange.Specs
                 }
             };
             imageRepoMock.Setup(r => r.GetImageFilesAsync(Moq.It.IsAny<IEnumerable<string>>())).ReturnsAsync(images);
-            productService = new ProductService(productRepoMock.Object, itemRepoMock.Object, accountRepoMock.Object, loginServiceMock.Object, imageRepoMock.Object, configRepoMock.Object);
+            productService = new ProductService(productRepoMock.Object, itemRepoMock.Object, accountRepoMock.Object, loginServiceMock.Object, imageRepoMock.Object, configRepoMock.Object,NullLogger<ProductService>.Instance);
         };
 
         Because of = () => foundImages = productService.GetImagesAsync(imageIds).GetAwaiter().GetResult();
+
+        It Should_Return_Image_Files = () => foundImages.Count().ShouldEqual(images.Count());
+
+        It Should_Find_ImageFiles_In_Repo = () => imageRepoMock.Verify(i => i.GetImageFilesAsync(Moq.It.IsAny<List<string>>()), Times.Once);
+
+        private static IProductService productService;
+        private static string image1Id;
+        private static string image2Id;
+        private static List<string> imageIds;
+        private static IEnumerable<ImageFile> images;
+        private static IEnumerable<ImageFile> foundImages;
+    }
+
+    public class When_Getting_Images_From_ProductId : With_ProductRepo_Setup
+    {
+        Establish context = () =>
+        {
+            image1Id = Guid.NewGuid().ToString();
+            image2Id = Guid.NewGuid().ToString();
+            imageIds = new List<string>
+            {
+                image1Id,image2Id
+            };
+            images = new List<ImageFile>
+            {
+                new ImageFile
+                {
+                    Image = Encoding.ASCII.GetBytes("First image"),
+                    ImageId = image1Id,
+                    Name = "Image 1"
+                },
+                new ImageFile
+                {
+                    Image = Encoding.ASCII.GetBytes("Second image"),
+                    ImageId = image2Id,
+                    Name = "Image 2"
+                }
+            };
+            product1.ImageReferences = imageIds;
+            productRepoMock.Setup(p => p.GetByProductIdAsync(Moq.It.IsAny<string>())).ReturnsAsync(product1);
+            imageRepoMock.Setup(r => r.GetImageFilesAsync(Moq.It.IsAny<IEnumerable<string>>())).ReturnsAsync(images);
+            productService = new ProductService(productRepoMock.Object, itemRepoMock.Object, accountRepoMock.Object, loginServiceMock.Object, imageRepoMock.Object, configRepoMock.Object, NullLogger<ProductService>.Instance);
+        };
+
+        Because of = () => foundImages = productService.GetImagesAsync(product1Id).GetAwaiter().GetResult();
 
         It Should_Return_Image_Files = () => foundImages.Count().ShouldEqual(images.Count());
 

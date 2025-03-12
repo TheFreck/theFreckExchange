@@ -5,6 +5,7 @@ using TheFreckExchange.Server.Repos;
 using TheFreckExchange.Server.Services;
 using System.Runtime;
 using It = Machine.Specifications.It;
+using Microsoft.Extensions.Logging.Abstractions;
 
 namespace TheFreckExchange.Specs
 {
@@ -65,7 +66,7 @@ namespace TheFreckExchange.Specs
         Establish context = () =>
         {
             loginServiceMock.Setup(l => l.CreateLogin(Moq.It.IsAny<string>())).Returns((string.Empty, new byte[64]));
-            service = new AccountService(accountRepoMock.Object,loginServiceMock.Object);
+            service = new AccountService(accountRepoMock.Object,loginServiceMock.Object,NullLogger<AccountService>.Instance);
             inputs = new List<(string name, string email, string username, string password, double balance)>
             {
                 new (name1, email1, username1, password1, 35),
@@ -150,7 +151,7 @@ namespace TheFreckExchange.Specs
     {
         Establish context = static () =>
         {
-            service = new AccountService(accountRepoMock.Object, loginServiceMock.Object);
+            service = new AccountService(accountRepoMock.Object, loginServiceMock.Object, NullLogger<AccountService>.Instance);
             accountRepoMock.Setup(a => a.GetAllAccounts()).Returns(new List<Account> { account1,account2});
             inputs = new List<string>
             {
@@ -190,7 +191,7 @@ namespace TheFreckExchange.Specs
     {
         Establish context = static () =>
         {
-            service = new AccountService(accountRepoMock.Object, loginServiceMock.Object);
+            service = new AccountService(accountRepoMock.Object, loginServiceMock.Object, NullLogger<AccountService>.Instance);
             accountRepoMock.Setup(a => a.GetByAccountIdAsync(account1Id)).ReturnsAsync(account1);
             accountRepoMock.Setup(a => a.GetByAccountIdAsync(account2Id)).ReturnsAsync(account2);
             inputs = new List<string>
@@ -254,7 +255,7 @@ namespace TheFreckExchange.Specs
     {
         Establish context = static () =>
         {
-            service = new AccountService(accountRepoMock.Object, loginServiceMock.Object);
+            service = new AccountService(accountRepoMock.Object, loginServiceMock.Object, NullLogger<AccountService>.Instance);
             accountRepoMock.Setup(a => a.GetByEmailAsync(email1)).ReturnsAsync(account1);
             accountRepoMock.Setup(a => a.GetByEmailAsync(email2)).ReturnsAsync(account2);
             inputs = new List<string>
@@ -318,7 +319,7 @@ namespace TheFreckExchange.Specs
     {
         Establish context = static () =>
         {
-            service = new AccountService(accountRepoMock.Object, loginServiceMock.Object);
+            service = new AccountService(accountRepoMock.Object, loginServiceMock.Object, NullLogger<AccountService>.Instance);
             accountRepoMock.Setup(a => a.GetByUsernameAsync(email1)).ReturnsAsync(account1);
             accountRepoMock.Setup(a => a.GetByUsernameAsync(email2)).ReturnsAsync(account2);
             inputs = new List<string>
@@ -406,7 +407,7 @@ namespace TheFreckExchange.Specs
                 account1,account2
             };
             outcomes = new List<Account>();
-            service = new AccountService(accountRepoMock.Object, loginServiceMock.Object);
+            service = new AccountService(accountRepoMock.Object, loginServiceMock.Object, NullLogger<AccountService>.Instance);
         };
 
         Because of = () =>
@@ -468,7 +469,7 @@ namespace TheFreckExchange.Specs
 
         Establish context = () =>
         {
-            service = new AccountService(accountRepoMock.Object, loginServiceMock.Object);
+            service = new AccountService(accountRepoMock.Object, loginServiceMock.Object, NullLogger<AccountService>.Instance);
             acct1StartingBalance = 100;
             acct2StartingBalance = 230;
             startingBalances = new double[]

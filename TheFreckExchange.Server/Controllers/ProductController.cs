@@ -260,6 +260,13 @@ namespace TheFreckExchange.Server.Controllers
             return await productService.GetImagesAsync(imageIds);
         }
 
+        [HttpGet("imageItems/{productId}")]
+        public async Task<IEnumerable<ImageFile>> GetProductImages(string productId)
+        {
+            logger.LogInformation($"Get product images, Controller");
+            return await productService.GetImagesAsync(productId);
+        }
+
         [HttpGet("images")]
         public IEnumerable<ImageFile> GetAllImages()
         {

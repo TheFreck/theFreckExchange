@@ -2,12 +2,11 @@ import { Box, Button, Card, Chip, FormControl, Grid2, InputLabel, MenuItem, Sele
 import { useCallback, useContext, useEffect, useState } from "react";
 import DisabledByDefaultIcon from '@mui/icons-material/DisabledByDefault';
 import CheckBoxIcon from '@mui/icons-material/CheckBox';
-import { ImageCarousel } from "../../components/ImageCarousel";
-import { updateItemsAsync,getImagesFromReferencesAsync, getProductsAsync } from "../../helpers/helpersWelcome";
+import { updateItemsAsync,getImagesFromProductAsync, getProductsAsync } from "../../helpers/helpers";
 
 export const ModifyProduct = () => {
     const [productsArray, setProductsArray] = useState([]);
-    const [selectedProduct, setSelectedProduct] = useState("");
+    const [selectedProduct, setSelectedProduct] = useState({});
     const [imageObjects, setImageObjects] = useState([]);
     const [name,setName] = useState("");
     const [price, setPrice] = useState(0.0);
@@ -15,24 +14,25 @@ export const ModifyProduct = () => {
     const [attributes,setAttributes] = useState([]);
     const [attributeInput, setAttributeInput] = useState("");
     const [isDirty, setIsDirty] = useState(false);
+    const [ready,setReady] = useState(false);
 
     useEffect(() => {
         getProductsAsync(prods => {
-            console.log("prods: ", prods);
             if (prods.length === 0) return;
             setProductsArray(prods);
-            console.log("up and atom!");
+            setReady(true);
         });
     }, []);
 
     const selectProduct = (p) => {
-        getImagesFromReferencesAsync(p.target.value.imageReferences,images => {
-            setSelectedProduct(p.target.value);
+        let prod = productsArray.find(a => a.name === p.target.value);
+        getImagesFromProductAsync(prod.productId,images => {
+            setSelectedProduct(prod);
             setImageObjects(images.map(i => ({id:i.id,imageId: i.imageId,name: i.name,image: window.atob(i.image)})));
-            setName(p.target.value.name);
-            setPrice(p.target.value.price);
-            setDescription(p.target.value.productDescription);
-            setAttributes(p.target.value.availableAttributes);
+            setName(prod.name);
+            setPrice(prod.price);
+            setDescription(prod.productDescription);
+            setAttributes(prod.availableAttributes);
         });
     }
 
@@ -55,7 +55,6 @@ export const ModifyProduct = () => {
             userToken: localStorage.getItem("permissions.user")
         }
         updateItemsAsync(selectedProduct, prod => {
-            console.log("prod back from update: ", prod);
         });
     }
 
@@ -85,28 +84,40 @@ export const ModifyProduct = () => {
 
     return (
         <Box
-            sx={{
-                margin: "0 auto",
-                width: "80vw",
-                display: "flex",
-                flexDirection: "column",
-                maxHeight: "90vh",
-            }}
             component="form"
+            sx={{ 
+                display: "flex", 
+                flexDirection: "column", 
+                margin: "0 auto", 
+                padding: "0 5vw",
+                width: "90vw",
+                height: "80vh"
+            }}
         >
-            <Grid2
-                sx={{ width: "100%" }}
-            >
-                {productsArray.length > 0 &&
+            <Grid2 container >
+                <Typography
+                    variant="h4"
+                >
+                    Modify Product
+                    <hr/>
+                </Typography>
+                {ready &&
                     <FormControl fullWidth>
-                        <InputLabel id="productLabel">Product</InputLabel>
+                        <InputLabel id="productLabel">Product Name</InputLabel>
                         <Select
                             id="productSelector"
                             labelId="productLabel"
-                            label="Product"
-                            value={selectedProduct}
+                            label="Product Name"
+                            value={name}
                             onChange={selectProduct}
-                            sx={{ fontSize: "2em", height: "2em", margin: 0, padding: "0 2em", display: "flex", textAlign: "left" }}
+                            sx={{ 
+                                fontSize: "2em", 
+                                height: "2em", 
+                                margin: 0, 
+                                padding: "0 2em", 
+                                display: "flex", 
+                                textAlign: "left",
+                            }}
                         >
                             <MenuItem
                                 name="Select a product"
@@ -115,102 +126,78 @@ export const ModifyProduct = () => {
                             >
                                 Select a product
                             </MenuItem>
-                            {productsArray.length > 0 && productsArray.map((p, i) => (
-                                <MenuItem
-                                    name={p.name}
-                                    key={i}
-                                    value={p}
-                                >
-                                    {p.name}
-                                </MenuItem>
-                            ))}
+                            {
+                                ready && productsArray.map((p,i) => (
+                                    <MenuItem
+                                        key={i}
+                                        value={p.name}
+                                    >
+                                        {p.name}
+                                    </MenuItem>
+                                ))
+                            }
                         </Select>
                     </FormControl>
                 }
-            </Grid2>
-            {selectedProduct &&
-                <Grid2>
-                    <Grid2>
-                        <ImageCarousel
-                            imageObjects={imageObjects}
-                            height="40vh"
-                            width="80vw"
-                        />
-                    </Grid2>
-                    <Grid2
-                        container
-                        spacing={1}
-                        sx={{padding: "1vh 1vw 1vh 1vw"}}
+                <Grid2 size={12}>
+                    <Stack direction="row" spacing={1}
+                        label="Attributes"
+                        sx={{ border: "solid", borderWidth: "1px", borderColor: "lightgray", margin: ".5vh 0", padding: ".5em" }}
                     >
-                        <Grid2
-                            size={4}
-                            sx={{
-                                display: "flex",
-                                flexDirection: "column",
-                            }}
-                        >
-                            <TextField
-                                required
-                                id="productName"
-                                label="Product Name"
-                                onChange={n => setName(n.target.value)}
-                                value={name}
-                            />
-                            <Stack direction="row" spacing={1}
-                                label="Attributes"
-                                sx={{ border: "solid", borderWidth: "1px", borderColor: "lightgray", margin: ".5vh 0", padding: ".5em" }}
-                            >
-                                {attributes && attributes.map((a, i) => (
-                                    <Chip onClick={() => setAttributes([...attributes.filter(at => at !== a)])} label={a} key={i} />
-                                ))}
-                            </Stack>
-                            <TextField
-                                label="Product Attributes"
-                                onChange={p => {
-                                    setAttributeInput(p.target.value);
-                                }}
-                                value={attributeInput}
-                                onKeyDown={k => {
-                                    if (k.code === "NumpadEnter" || k.code === "Enter") {
-                                        setAttributes([...attributes, attributeInput])
-                                        setAttributeInput("");
-                                    }
-                                }}
-                                onBlur={() => {
-                                    setAttributes([...attributes, attributeInput])
-                                    setAttributeInput("");
-                                }}
-                            />
-                            <Grid2>
-                                <TextField
-                                    sx={{width: "50%"}}
-                                    required
-                                    id="productPrice"
-                                    label="Price"
-                                    value={price}
-                                    onChange={p => setPrice(p.target.value)}
-                                />
-                                <Button
-                                    variant="contained"
-                                    sx={{height: "100%",width: "50%"}}
-                                    onClick={updateAsync}
-                                >Update Product</Button>
-                            </Grid2>
-                        </Grid2>
-                        <Grid2
-                            size={8}
-                        >
-                            <TextField
-                                sx={{width: "100%",fieldSet: {marginBottom: "-1vh"}}}
-                                multiline
-                                value={description}
-                                label="Product Description"
-                                onChange={p => setDescription(p.target.value)}
-                            />
-                        </Grid2>
-                    </Grid2>
+                        {attributes && attributes.map((a, i) => (
+                            <Chip onClick={() => setAttributes([...attributes.filter(at => at !== a)])} label={a} key={i} />
+                        ))}
+                    </Stack>
+                    <TextField
+                        sx={{
+                            width: "100%"
+                        }}
+                        label="Product Attributes"
+                        onChange={p => {
+                            setAttributeInput(p.target.value);
+                        }}
+                        value={attributeInput}
+                        onKeyDown={k => {
+                            if (k.code === "NumpadEnter" || k.code === "Enter") {
+                                setAttributes([...attributes, attributeInput])
+                                setAttributeInput("");
+                            }
+                        }}
+                        onBlur={() => {
+                            setAttributes([...attributes, attributeInput])
+                            setAttributeInput("");
+                        }}
+                    />
                 </Grid2>
-            }
+                <hr/>
+                <Grid2 size={12}>
+                    <TextField
+                        sx={{width: "100%",fieldSet: {marginBottom: "-1vh"}}}
+                        multiline
+                        value={description}
+                        label="Product Description"
+                        onChange={p => setDescription(p.target.value)}
+                    />
+                </Grid2>
+                <hr/>
+                <Grid2 size={12}>
+                    <TextField
+                        sx={{width: "50%"}}
+                        required
+                        id="productPrice"
+                        label="Price"
+                        value={price}
+                        onChange={p => setPrice(p.target.value)}
+                    />
+                    <Button
+                        variant="contained"
+                        sx={{height: "100%",width: "50%"}}
+                        onClick={updateAsync}
+                    >
+                        Update Product
+                    </Button>
+                </Grid2>
+            </Grid2>
         </Box >
     )
 }

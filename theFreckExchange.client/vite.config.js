@@ -31,7 +31,6 @@ if (!fs.existsSync(certFilePath) || !fs.existsSync(keyFilePath)) {
         throw new Error("Could not create certificate.");
     }
 }
-console.log("env: ", env.NODE_ENV);
 
 const target = env.NODE_ENV == "development" ? "https://localhost:7299" : "https://thefreckexchange-cvgkagadbkcedyfm.westus-01.azurewebsites.net/";
 
